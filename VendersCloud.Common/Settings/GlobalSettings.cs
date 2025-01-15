@@ -23,27 +23,38 @@ namespace VendersCloud.Common.Settings
         #region Utils
         private static string GetString(string key, string defaultVal = null)
         {
+            // Fetch value from environment variables or _appSettings
             var data = Environment.GetEnvironmentVariable(key) ?? _appSettings[key] ?? defaultVal;
+
             if (data == null)
             {
                 var filepath = GlobalSettings.FilePath;
+                Console.WriteLine("Checking file at path: " + filepath);
+
                 if (File.Exists(filepath))
                 {
                     var json = File.ReadAllText(filepath);
                     var jsonObj = JObject.Parse(json);
-                    var appSettings = jsonObj["appSettings"];
+                    var appSettings = jsonObj["AppSettings"];  // Ensure this matches the JSON structure
+
                     if (appSettings != null && appSettings[key] != null)
                     {
                         data = appSettings[key]?.ToString();
                     }
                     else
                     {
-                        Console.WriteLine("Key not found: " + key);
+                        Console.WriteLine("Key not found in JSON: " + key);
                     }
                 }
+                else
+                {
+                    Console.WriteLine("File does not exist: " + filepath);
+                }
             }
+
             return data;
         }
+
 
 
         private static int GetInt(string key, int defaultVal = 0)
