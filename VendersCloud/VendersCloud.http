@@ -1,0 +1,6 @@
+@VendersCloud_HostAddress = http://localhost:5260
+
+GET {{VendersCloud_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
