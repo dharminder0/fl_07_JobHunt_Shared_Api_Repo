@@ -29,7 +29,7 @@ namespace VendersCloud.WebApi
         {
             InitSettings();
             var conn = Configuration.GetConnectionString("");
-            // Register the Swagger generator, defining 1 or more Swagger documents
+            /// Register the Swagger generator, defining 1 or more Swagger documents
             services.AddSwaggerGen(c => {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Venders Cloud Service", Version = "v1" });
                 // Authorization header
