@@ -1,11 +1,7 @@
-﻿using VendersCloud.Business.Entities.Abstract;
-
-namespace VendersCloud.Business.Entities.DataModels
+﻿namespace VendersCloud.Business.Entities.DTOModels
 {
-    [Alias(Name="[User]")]
-    public class User :IEntityKey
+    public  class UserDto
     {
-        [Key(AutoNumber=true)]
         public int Id { get; set; }
         public string Token { get; set; }
         public string Email { get; set; }
@@ -16,7 +12,6 @@ namespace VendersCloud.Business.Entities.DataModels
         public DateTime UpdatedOn { get; set; }
         public DateTime LastLoginTime { get; set; }
         public string Password { get; set; }
-        public string UserId { get; set; }  
-        public string RoleType {  get; set; }
+        public string UserId { get; set; }
     }
 }

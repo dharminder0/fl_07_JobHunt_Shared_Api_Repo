@@ -13,6 +13,10 @@ namespace VendersCloud.Business.Entities.DataModels
         public string Email { get; set; }
         public DateTime CreatedOn { get; set; }
         public DateTime UpdatedOn { get; set; }
+        public string CompanyWebsite { get; set; }
+        public string CompanyStrength { get; set; }
+        public string CompanyIcon { get; set; }
+        public string Description { get; set; }
 
     }
 }

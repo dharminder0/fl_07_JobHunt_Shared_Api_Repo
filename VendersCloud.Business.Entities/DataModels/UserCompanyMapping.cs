@@ -7,7 +7,7 @@ namespace VendersCloud.Business.Entities.DataModels
     {
         [Key(AutoNumber = true)]
         public int Id { get; set; }
-        public int UserId { get; set; }
+        public string UserId { get; set; }
         public string CompanyCode { get; set; }
     }
 }
