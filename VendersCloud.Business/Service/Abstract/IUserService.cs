@@ -6,8 +6,8 @@ namespace VendersCloud.Business.Service.Abstract
 {
     public interface IUserService
     {
-        Task<IEnumerable<User>> GetAllUsersInfo();
-        Task<UserLoginResponseModel> UserLogin(UserLoginRequestModel loginRequest);
-        Task<string> UserSignUp(string companyName, string email, string password);
+        Task<IEnumerable<User>> GetAllUsersInfoAsync();
+        Task<UserLoginResponseModel> UserLoginAsync(UserLoginRequestModel loginRequest);
+        Task<string> UserSignUpAsync(string companyName, string email, string password);
     }
 }

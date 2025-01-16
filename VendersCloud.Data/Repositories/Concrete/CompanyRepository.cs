@@ -6,7 +6,7 @@ namespace VendersCloud.Data.Repositories.Concrete
 {
     public class CompanyRepository : DataRepository<Company>, ICompanyRepository
     {
-        public async Task<Company> GetCompanyDetailByCompanyCode(string companyCode)
+        public async Task<Company> GetCompanyDetailByCompanyCodeAsync(string companyCode)
         {
             if (string.IsNullOrEmpty(companyCode))
             {
@@ -27,7 +27,7 @@ namespace VendersCloud.Data.Repositories.Concrete
         }
 
 
-        public async Task<string> Upsert(string companyName, string email, string companyCode)
+        public async Task<string> UpsertAsync(string companyName, string email, string companyCode)
         {
             try
             {

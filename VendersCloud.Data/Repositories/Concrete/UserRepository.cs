@@ -8,7 +8,7 @@ namespace VendersCloud.Data.Repositories.Concrete
     public class UserRepository : DataRepository<User>,IUserRepository
     {
 
-        public async Task<IEnumerable<User>> GetAllUsersInfo()
+        public async Task<IEnumerable<User>> GetAllUsersInfoAsync()
         {
             try
             {
@@ -23,7 +23,7 @@ namespace VendersCloud.Data.Repositories.Concrete
             }
         }
 
-        public async Task<User> UserLogin(UserLoginRequestModel loginRequest)
+        public async Task<User> UserLoginAsync(UserLoginRequestModel loginRequest)
         {
             try
             {
@@ -56,7 +56,7 @@ namespace VendersCloud.Data.Repositories.Concrete
             }
         }
 
-        public async Task<string> Upsert(string companyName, string email, string password, string userId)
+        public async Task<string> UpsertAsync(string companyName, string email, string password, string userId)
         {
             try
             {
@@ -95,10 +95,6 @@ namespace VendersCloud.Data.Repositories.Concrete
                 throw new ApplicationException("Error during upsert operation", ex);
             }
         }
-
-
-
-
 
     }
 }
