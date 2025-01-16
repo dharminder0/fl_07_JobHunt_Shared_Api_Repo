@@ -495,7 +495,13 @@ SET ", GetAliasName());
                 return db.GetList<T>(null, commandTimeout: 5000000).ToList();
             }
         }
-
+        public async Task<IEnumerable<T>> GetListByAsync(IPredicate where, string connectionName = null)
+        {
+            using (var db = GetConnection(connectionName))
+            {
+                return (await db.GetListAsync<T>(where, commandTimeout: 5000000)).ToList();
+            }
+        }
         public IEnumerable<T1> GetAllDapper<T1>(string connectionName = null) where T1 : class, new()
         {
             using (var db = GetConnection(connectionName))

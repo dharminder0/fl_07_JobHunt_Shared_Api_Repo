@@ -5,7 +5,7 @@ namespace VendersCloud.Data.Repositories.Abstract
 {
     public interface IUserCompanyMappingRepository : IDataRepository<UserCompanyMapping>
     {
-        Task<UserCompanyMapping> GetMappingsByUserId(string userId);
-        Task AddMapping(string userId, string companyCode);
+        Task<UserCompanyMapping> GetMappingsByUserIdAsync(string userId);
+        Task AddMappingAsync(string userId, string companyCode);
     }
 }

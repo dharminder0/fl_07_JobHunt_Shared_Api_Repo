@@ -22,11 +22,11 @@ namespace VendersCloud.Business.Service.Concrete
             _companyRepository = companyRepository;
         }
 
-        public async Task<IEnumerable<User>> GetAllUsersInfo()
+        public async Task<IEnumerable<User>> GetAllUsersInfoAsync()
         {
             try
             {
-                var result = await _userRepository.GetAllUsersInfo();
+                var result = await _userRepository.GetAllUsersInfoAsync();
                 return result;
             }
             catch (Exception ex)
@@ -35,18 +35,18 @@ namespace VendersCloud.Business.Service.Concrete
 
             }
         }
-        public async Task<UserLoginResponseModel> UserLogin(UserLoginRequestModel loginRequest)
+        public async Task<UserLoginResponseModel> UserLoginAsync(UserLoginRequestModel loginRequest)
         {
             try
             {
                 if (!string.IsNullOrEmpty(loginRequest.Email) && !string.IsNullOrEmpty(loginRequest.Password))
                 {
                     UserLoginResponseModel model = new UserLoginResponseModel();
-                    var result = await _userRepository.UserLogin(loginRequest);
+                    var result = await _userRepository.UserLoginAsync(loginRequest);
                     model.UserId = result.UserId;
-                    var mapping = await _userCompanyMappingRepository.GetMappingsByUserId(model.UserId);
+                    var mapping = await _userCompanyMappingRepository.GetMappingsByUserIdAsync(model.UserId);
                     var companyCode = mapping.CompanyCode;
-                    var companydata = await _companyRepository.GetCompanyDetailByCompanyCode(companyCode);
+                    var companydata = await _companyRepository.GetCompanyDetailByCompanyCodeAsync(companyCode);
                     model.Email = result.Email;
                     if (Enum.TryParse(result.RoleType, true, out RoleType role))
                     {
@@ -69,7 +69,7 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
-        public async Task<string> UserSignUp(string companyName, string email, string password)
+        public async Task<string> UserSignUpAsync(string companyName, string email, string password)
         {
             try
             {
@@ -84,13 +84,13 @@ namespace VendersCloud.Business.Service.Concrete
                     byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
                     userId = BitConverter.ToString(hashBytes).Replace("-", "").Substring(0, 8);
                 }
-                var rs = await _userRepository.Upsert(companyName, email, password, userId);
+                var rs = await _userRepository.UpsertAsync(companyName, email, password, userId);
                 Random random = new Random();
                 const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
                 string companyCode = new string(Enumerable.Repeat(chars, 8)
                   .Select(s => s[random.Next(s.Length)]).ToArray());
-                var res = await _companyRepository.Upsert(companyName, email, companyCode);
-                 await _userCompanyMappingRepository.AddMapping(userId, companyCode);
+                var res = await _companyRepository.UpsertAsync(companyName, email, companyCode);
+                 await _userCompanyMappingRepository.AddMappingAsync(userId, companyCode);
                 return rs;
             }
             catch (Exception ex)

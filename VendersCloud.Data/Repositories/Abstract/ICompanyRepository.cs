@@ -5,7 +5,7 @@ namespace VendersCloud.Data.Repositories.Abstract
 {
     public interface ICompanyRepository : IDataRepository<Company>
     {
-        Task<Company> GetCompanyDetailByCompanyCode(string companyCode);
-        Task<string> Upsert(string companyName, string email, string companyCode);
+        Task<Company> GetCompanyDetailByCompanyCodeAsync(string companyCode);
+        Task<string> UpsertAsync(string companyName, string email, string companyCode);
     }
 }

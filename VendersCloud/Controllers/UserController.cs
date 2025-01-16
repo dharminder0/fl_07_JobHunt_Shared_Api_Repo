@@ -20,11 +20,11 @@ namespace VendersCloud.WebApi.Controllers
 
         [HttpGet]
         [Route("getAllUsers")]
-        public async Task<IActionResult> GetAllUsersInfo()
+        public async Task<IActionResult> GetAllUsersInfoAsync()
         {
             try
             {
-                var result = await _userService.GetAllUsersInfo();
+                var result = await _userService.GetAllUsersInfoAsync();
                 return Json(result);
             }
             catch (Exception ex)
@@ -38,11 +38,11 @@ namespace VendersCloud.WebApi.Controllers
         ///</summary>
         [HttpPost]
         [Route("login")]
-        public async Task<IActionResult> UserLogin(UserLoginRequestModel userLogin)
+        public async Task<IActionResult> UserLoginAsync(UserLoginRequestModel userLogin)
         {
             try
             {
-                var result = await _userService.UserLogin(userLogin);
+                var result = await _userService.UserLoginAsync(userLogin);
                 return Json(result);
             }
             catch (Exception ex)
@@ -59,11 +59,11 @@ namespace VendersCloud.WebApi.Controllers
         ///</summary>
         [HttpPost]
         [Route("signUp")]
-        public async Task<IActionResult> UserSignUp(string companyName, string email, string password)
+        public async Task<IActionResult> UserSignUpAsync(string companyName, string email, string password)
         {
             try
             {
-                var result = await _userService.UserSignUp(companyName, email, password);
+                var result = await _userService.UserSignUpAsync(companyName, email, password);
                 return Json("UserId:- "+result);
             }
             catch (Exception ex)
