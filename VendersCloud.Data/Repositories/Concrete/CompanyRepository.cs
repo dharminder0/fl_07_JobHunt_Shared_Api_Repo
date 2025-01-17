@@ -1,4 +1,5 @@
 ﻿using VendersCloud.Business.Entities.DataModels;
+using VendersCloud.Business.Entities.RequestModels;
 using VendersCloud.Common.Data;
 using VendersCloud.Data.Repositories.Abstract;
 
@@ -63,6 +64,51 @@ namespace VendersCloud.Data.Repositories.Concrete
                 throw new ApplicationException("Error during upsert operation", ex);
             }
         }
+
+        public async Task<bool> AddCompanyInformationAsync(CompanyInfoRequestModel companyInfo, string companyCode)
+        {
+            try
+            {
+                var UserId = companyInfo.UserId;
+                var CompanyName = companyInfo.CompanyName;
+                var Description = companyInfo.Portfolio;
+                var Mail = companyInfo.ContactMail;
+                var Phone = companyInfo.Phone;
+                var Website = companyInfo.Website;
+                var Strength = companyInfo.Strength;
+
+                var sql = @"Update [Company] 
+                    SET
+                    Phone = @Phone,
+                    CreatedOn = GetDate(),
+                    UpdatedOn = GetDate(),
+                    CompanyWebsite = @Website,
+                    CompanyStrength = @Strength,
+                    Description = @Description
+                    Where 
+                    CompanyCode = @companyCode";
+
+                var rowsAffected = await ExecuteAsync(sql, new
+                {
+                    Phone,
+                    Website,
+                    Strength,
+                    Description,
+                    companyCode
+                });
+
+                // Return true if one or more rows were affected
+                return rowsAffected > 0;
+            }
+            catch (Exception ex)
+            {
+                // Handle the exception (log it, rethrow it, return a default value, etc.)
+                Console.WriteLine($"An error occurred: {ex.Message}");
+                return false;
+            }
+        }
+
+
 
     }
 }

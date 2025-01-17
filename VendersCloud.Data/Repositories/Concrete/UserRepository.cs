@@ -2,10 +2,11 @@
 using VendersCloud.Business.Entities.RequestModels;
 using VendersCloud.Common.Data;
 using VendersCloud.Data.Repositories.Abstract;
+using static VendersCloud.Data.Enum.Enum;
 
 namespace VendersCloud.Data.Repositories.Concrete
 {
-    public class UserRepository : DataRepository<User>,IUserRepository
+    public class UserRepository : DataRepository<User>, IUserRepository
     {
 
         public async Task<IEnumerable<User>> GetAllUsersInfoAsync()
@@ -52,7 +53,7 @@ namespace VendersCloud.Data.Repositories.Concrete
             catch (Exception ex)
             {
                 // Log the exception here (if logging is set up)
-                throw new ApplicationException( ex.Message);
+                throw new ApplicationException(ex.Message);
             }
         }
 
@@ -98,6 +99,48 @@ namespace VendersCloud.Data.Repositories.Concrete
             {
                 // Log the exception if logging is set up
                 throw new ApplicationException("Error during upsert operation", ex);
+            }
+        }
+
+        public async Task<bool> AddInformationAsync(CompanyInfoRequestModel companyInfo)
+        {
+            string userId = companyInfo.UserId;
+            string companyName = companyInfo.CompanyName;
+            string description = companyInfo.Portfolio;
+            string mail = companyInfo.ContactMail;
+            string phone = companyInfo.Phone;
+            string website = companyInfo.Website;
+            string strength = companyInfo.Strength;
+            RoleType role = (RoleType)int.Parse(companyInfo.RegistrationType);
+            string roleTypeString = role.ToString(); 
+
+            string sql = @"
+                         UPDATE [USER]
+                         SET
+                             Email = @Mail,
+                             Phone = @Phone,
+                             RoleType = @RoleType,
+                             CreatedOn = GETDATE(),
+                             UpdatedOn = GETDATE()
+                          
+                         WHERE UserId = @UserId";
+
+            try
+            {
+                var rowsAffected = await ExecuteAsync(sql, new
+                {
+                     mail,
+                     phone,
+                    RoleType = roleTypeString,
+                     userId
+                });
+
+                return rowsAffected > 0;
+            }
+            catch (Exception ex)
+            {
+                
+                throw ex;
             }
         }
 
