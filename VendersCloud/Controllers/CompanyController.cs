@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using VendersCloud.Business.Entities.RequestModels;
 using VendersCloud.Business.Service.Abstract;
 
 namespace VendersCloud.WebApi.Controllers
@@ -51,5 +52,25 @@ namespace VendersCloud.WebApi.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        //[HttpPost]
+        //[Route("CompanyInfo")]
+        /////<summary>
+        /////Company Information
+        /////<param name="companyInfo"></param>
+        ///// </summary>
+
+        //public async Task<IActionResult> AddCompanyInformationAsync(CompanyInfoRequestModel companyInfo)
+        //{
+        //    try
+        //    {
+        //        var result = await _companyService.AddCompanyInformationAsync(companyInfo);
+        //        return Json(result);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(ex.Message);
+        //    }
+        //}
     }
 }

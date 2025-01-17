@@ -65,7 +65,7 @@ namespace VendersCloud.Business.Service.Concrete
             catch (Exception ex)
             {
                 // Handle the exception, e.g., log it
-                throw new Exception("Error during user login", ex);
+                throw new Exception(ex.Message);
             }
         }
 

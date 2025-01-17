@@ -52,7 +52,7 @@ namespace VendersCloud.Data.Repositories.Concrete
             catch (Exception ex)
             {
                 // Log the exception here (if logging is set up)
-                throw new ApplicationException("Error during user login", ex);
+                throw new ApplicationException( ex.Message);
             }
         }
 
