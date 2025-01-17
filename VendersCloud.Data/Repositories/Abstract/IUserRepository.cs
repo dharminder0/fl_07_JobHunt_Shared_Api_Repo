@@ -8,6 +8,6 @@ namespace VendersCloud.Data.Repositories.Abstract
     {
         Task<IEnumerable<User>> GetAllUsersInfoAsync();
         Task<User> UserLoginAsync(UserLoginRequestModel loginRequest);
-        Task<string> UpsertAsync(string companyName, string email, string password, string userId);
+        Task<string> UpsertAsync(UserSignUpRequestModel usersign, string userId);
     }
 }

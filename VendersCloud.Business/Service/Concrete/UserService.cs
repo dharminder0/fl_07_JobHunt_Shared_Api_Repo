@@ -69,28 +69,28 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
-        public async Task<string> UserSignUpAsync(string companyName, string email, string password)
+        public async Task<string> UserSignUpAsync(UserSignUpRequestModel usersign)
         {
             try
             {
-                if (string.IsNullOrEmpty(companyName) || (string.IsNullOrEmpty(email)) || (string.IsNullOrEmpty(password)))
+                if (string.IsNullOrEmpty(usersign.CompanyName) || (string.IsNullOrEmpty(usersign.Email)) || (string.IsNullOrEmpty(usersign.Password)))
                 {
                     throw new ArgumentException("Value can't be null");
                 }
-                string userId = string.Empty;
-                string input = $"{email}-{DateTime.UtcNow}";
-                using (SHA256 sha256 = SHA256.Create())
-                {
-                    byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
-                    userId = BitConverter.ToString(hashBytes).Replace("-", "").Substring(0, 8);
-                }
-                var rs = await _userRepository.UpsertAsync(companyName, email, password, userId);
+                //string userId = string.Empty;
+                //string input = $"{email}-{DateTime.UtcNow}";
+                //using (SHA256 sha256 = SHA256.Create())
+                //{
+                //    byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+                //    userId = $"USID"+BitConverter.ToString(hashBytes).Replace("-", "").Substring(0, 8);
+                //}
+                string userId = usersign.Email;
+                var rs = await _userRepository.UpsertAsync(usersign,userId);
                 Random random = new Random();
                 const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-                string ccm = $"{companyName}-{chars}";
-                string companyCode = new string(Enumerable.Repeat(ccm, 8)
+                string companyCode = new string(Enumerable.Repeat(chars, 8)
                   .Select(s => s[random.Next(s.Length)]).ToArray());
-                var res = await _companyRepository.UpsertAsync(companyName, email, companyCode);
+                var res = await _companyRepository.UpsertAsync(usersign.CompanyName, usersign.Email, companyCode);
                  await _userCompanyMappingRepository.AddMappingAsync(userId, companyCode);
                 return rs;
             }

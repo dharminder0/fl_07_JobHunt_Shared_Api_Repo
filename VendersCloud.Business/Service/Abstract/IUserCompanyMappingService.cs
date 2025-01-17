@@ -1,9 +1,8 @@
 ﻿using VendersCloud.Business.Entities.DataModels;
-using VendersCloud.Common.Data;
 
-namespace VendersCloud.Data.Repositories.Abstract
+namespace VendersCloud.Business.Service.Abstract
 {
-    public interface IUserCompanyMappingRepository : IDataRepository<UserCompanyMapping>
+    public interface IUserCompanyMappingService
     {
         Task<UserCompanyMapping> GetMappingsByUserIdAsync(string userId);
         Task<bool> AddMappingAsync(string userId, string companyCode);
