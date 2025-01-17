@@ -87,7 +87,8 @@ namespace VendersCloud.Business.Service.Concrete
                 var rs = await _userRepository.UpsertAsync(companyName, email, password, userId);
                 Random random = new Random();
                 const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-                string companyCode = new string(Enumerable.Repeat(chars, 8)
+                string ccm = $"{companyName}-{chars}";
+                string companyCode = new string(Enumerable.Repeat(ccm, 8)
                   .Select(s => s[random.Next(s.Length)]).ToArray());
                 var res = await _companyRepository.UpsertAsync(companyName, email, companyCode);
                  await _userCompanyMappingRepository.AddMappingAsync(userId, companyCode);
