@@ -1,6 +1,4 @@
 ﻿using System.Data;
-using System.Security.Cryptography;
-using System.Text;
 using VendersCloud.Business.Entities.DataModels;
 using VendersCloud.Business.Entities.RequestModels;
 using VendersCloud.Business.Entities.ResponseModels;
@@ -69,13 +67,13 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
-        public async Task<string> UserSignUpAsync(UserSignUpRequestModel usersign)
+        public async Task<ActionMessageResponseModel> UserSignUpAsync(UserSignUpRequestModel usersign)
         {
             try
             {
                 if (string.IsNullOrEmpty(usersign.CompanyName) || (string.IsNullOrEmpty(usersign.Email)) || (string.IsNullOrEmpty(usersign.Password)))
                 {
-                    throw new ArgumentException("Value can't be null");
+                    return new ActionMessageResponseModel { Success = false, Message = "Values can't be null", Content = "" };
                 }
                 //string userId = string.Empty;
                 //string input = $"{email}-{DateTime.UtcNow}";
@@ -85,14 +83,33 @@ namespace VendersCloud.Business.Service.Concrete
                 //    userId = $"USID"+BitConverter.ToString(hashBytes).Replace("-", "").Substring(0, 8);
                 //}
                 string userId = usersign.Email;
-                var rs = await _userRepository.UpsertAsync(usersign,userId);
+                var rs = await _userRepository.UpsertAsync(usersign, userId);
                 Random random = new Random();
                 const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
                 string companyCode = new string(Enumerable.Repeat(chars, 8)
                   .Select(s => s[random.Next(s.Length)]).ToArray());
                 var res = await _companyRepository.UpsertAsync(usersign.CompanyName, usersign.Email, companyCode);
-                 await _userCompanyMappingRepository.AddMappingAsync(userId, companyCode);
-                return rs;
+                await _userCompanyMappingRepository.AddMappingAsync(userId, companyCode);
+                return new ActionMessageResponseModel { Success = true, Message = "UserId", Content = "rs" };
+            }
+            catch (Exception ex)
+            {
+                return new ActionMessageResponseModel { Success = false, Message = ex.Message, Content = "" };
+            }
+        }
+
+        public async Task<bool> AddInformationAsync(CompanyInfoRequestModel companyInfo)
+        {
+            try
+            {
+                if(!string.IsNullOrEmpty(companyInfo.UserId))
+                {
+                    var result= await _userRepository.AddInformationAsync(companyInfo);
+                    return result;
+
+                }
+                return false;
+
             }
             catch (Exception ex)
             {
