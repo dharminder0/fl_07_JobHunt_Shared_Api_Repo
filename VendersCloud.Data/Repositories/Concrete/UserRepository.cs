@@ -56,28 +56,33 @@ namespace VendersCloud.Data.Repositories.Concrete
             }
         }
 
-        public async Task<string> UpsertAsync(string companyName, string email, string password, string userId)
+        public async Task<string> UpsertAsync(UserSignUpRequestModel usersign, string userId)
         {
             try
             {
-                var sql = @"
-            IF EXISTS (SELECT 1 FROM [USER] WHERE EMAIL=@Email)
-            BEGIN
-                UPDATE [USER]
-                SET
-                    FIRSTNAME=@CompanyName,
-                    PASSWORD=@Password
-                WHERE EMAIL=@Email;
-                SELECT UserId FROM [USER] WHERE EMAIL=@Email;
-            END
-            ELSE
-            BEGIN
-                INSERT INTO [USER] (FirstName, Email, Password, UserId)
-                VALUES (@CompanyName, @Email, @Password, @UserId);
-                SELECT UserID From [User] Where Email=@Email;
-            END";
+                string CompanyName = usersign.CompanyName;
+                string Password = usersign.Password;
+                string Email = usersign.Email;
 
-                var parameters = new { companyName, email, password, userId };
+                var sql = @"
+        IF EXISTS (SELECT 1 FROM [USER] WHERE EMAIL=@Email)
+        BEGIN
+            UPDATE [USER]
+            SET
+                FIRSTNAME = @CompanyName,
+                PASSWORD = @Password,
+                USERID = @userId
+            WHERE EMAIL = @Email;
+            SELECT UserId FROM [USER] WHERE EMAIL = @Email;
+        END
+        ELSE
+        BEGIN
+            INSERT INTO [USER] (FirstName, Email, Password, UserId)
+            VALUES (@CompanyName, @Email, @Password, @userId);
+            SELECT UserID FROM [USER] WHERE Email = @Email;
+        END";
+
+                var parameters = new { CompanyName, Password, Email, userId };
 
                 // Execute the SQL command and capture the result
                 var result = await QueryAsync<string>(sql, parameters);
@@ -95,6 +100,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                 throw new ApplicationException("Error during upsert operation", ex);
             }
         }
+
 
     }
 }

@@ -29,12 +29,13 @@ namespace VendersCloud.Data.Repositories.Concrete
 
 
 
-        public async Task AddMappingAsync(string userId, string companyCode)
+        public async Task<bool> AddMappingAsync(string userId, string companyCode)
         {
             try
             {
                 var sql = @"INSERT INTO UserCompanyMapping (UserId, CompanyCode) VALUES (@userId, @companyCode)";
                 await ExecuteAsync(sql, new { userId, companyCode });
+                return true;
             }
             catch (Exception ex)
             {

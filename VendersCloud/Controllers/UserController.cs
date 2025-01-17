@@ -53,17 +53,15 @@ namespace VendersCloud.WebApi.Controllers
 
         ///<summary>
         ///User SignUp
-        ///<param name="companyName"></param>
-        ///<param name="email"></param>
-        ///<param name="password"></param>
+        ///<param name="usersign"></param>
         ///</summary>
         [HttpPost]
         [Route("signUp")]
-        public async Task<IActionResult> UserSignUpAsync(string companyName, string email, string password)
+        public async Task<IActionResult> UserSignUpAsync(UserSignUpRequestModel usersign)
         {
             try
             {
-                var result = await _userService.UserSignUpAsync(companyName, email, password);
+                var result = await _userService.UserSignUpAsync(usersign);
                 return Json("UserId:- "+result);
             }
             catch (Exception ex)
