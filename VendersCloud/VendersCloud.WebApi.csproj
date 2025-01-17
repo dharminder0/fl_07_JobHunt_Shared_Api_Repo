@@ -37,10 +37,4 @@
     <ProjectReference Include="..\VendersCloud.Data\VendersCloud.Data.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="Ignite.Security.Lib">
-      <HintPath>..\..\accounts-api\accounts\Shared\.net8.0\Ignite.Security.Lib.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
 </Project>
