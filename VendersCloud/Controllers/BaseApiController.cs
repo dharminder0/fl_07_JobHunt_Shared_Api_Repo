@@ -1,5 +1,4 @@
-﻿
-using Ignite.Security.Lib;
+﻿using IgniteSecurityLib;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Serialization;
 
