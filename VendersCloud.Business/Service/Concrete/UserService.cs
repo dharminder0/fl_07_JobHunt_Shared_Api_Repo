@@ -90,7 +90,7 @@ namespace VendersCloud.Business.Service.Concrete
                   .Select(s => s[random.Next(s.Length)]).ToArray());
                 var res = await _companyRepository.UpsertAsync(usersign.CompanyName, usersign.Email, companyCode);
                 await _userCompanyMappingRepository.AddMappingAsync(userId, companyCode);
-                return new ActionMessageResponseModel { Success = true, Message = "UserId", Content = "rs" };
+                return new ActionMessageResponseModel { Success = true, Message = "UserId", Content = rs };
             }
             catch (Exception ex)
             {

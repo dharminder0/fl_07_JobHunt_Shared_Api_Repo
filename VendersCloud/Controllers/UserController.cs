@@ -62,7 +62,7 @@ namespace VendersCloud.WebApi.Controllers
             try
             {
                 var result = await _userService.UserSignUpAsync(usersign);
-                return Json("UserId:- "+result);
+                return Json(result);
             }
             catch (Exception ex)
             {

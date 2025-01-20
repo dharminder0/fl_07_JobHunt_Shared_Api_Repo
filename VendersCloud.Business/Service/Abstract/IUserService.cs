@@ -7,7 +7,7 @@ namespace VendersCloud.Business.Service.Abstract
     public interface IUserService
     {
         Task<IEnumerable<User>> GetAllUsersInfoAsync();
-        Task<UserLoginResponseModel> UserLoginAsync(UserLoginRequestModel loginRequest);
+        Task<ActionMessageResponseModel> UserLoginAsync(UserLoginRequestModel loginRequest);
         Task<ActionMessageResponseModel> UserSignUpAsync(UserSignUpRequestModel usersign);
         Task<bool> AddInformationAsync(CompanyInfoRequestModel companyInfo);
 
