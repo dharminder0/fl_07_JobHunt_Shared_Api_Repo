@@ -33,7 +33,7 @@ namespace VendersCloud.Business.Service.Concrete
 
             }
         }
-        public async Task<UserLoginResponseModel> UserLoginAsync(UserLoginRequestModel loginRequest)
+        public async Task<ActionMessageResponseModel> UserLoginAsync(UserLoginRequestModel loginRequest)
         {
             try
             {
@@ -52,18 +52,18 @@ namespace VendersCloud.Business.Service.Concrete
                     }
                     model.CompanyIcon = companydata.CompanyIcon;
                     model.CompanyName = companydata.CompanyName;
-                    return model;
+                    return new ActionMessageResponseModel() { Success = true,Message=" Login SuccessFull!",Content= model} ;
 
                 }
                 else
                 {
-                    throw new ArgumentException("The credentials can't be blank");
+                    return new ActionMessageResponseModel() { Success = false, Message = "The credentials can't be blank", Content = "" }; 
                 }
             }
             catch (Exception ex)
             {
                 // Handle the exception, e.g., log it
-                throw new Exception(ex.Message);
+                return new ActionMessageResponseModel() { Success = false, Message = ex.Message, Content = "" };
             }
         }
 
