@@ -9,5 +9,6 @@ namespace VendersCloud.Data.Repositories.Abstract
         Task<Company> GetCompanyDetailByCompanyCodeAsync(string companyCode);
         Task<string> UpsertAsync(string companyName, string email, string companyCode);
         Task<bool> AddCompanyInformationAsync(CompanyInfoRequestModel companyInfo, string companyCode);
+        Task<List<Company>> GetAllCompanyDetails();
     }
 }

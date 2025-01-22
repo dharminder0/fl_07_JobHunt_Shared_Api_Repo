@@ -4,6 +4,7 @@ using VendersCloud.Business.Entities.DataModels;
 using VendersCloud.Business.Entities.RequestModels;
 using VendersCloud.Common.Data;
 using VendersCloud.Data.Repositories.Abstract;
+using Dapper;
 
 namespace VendersCloud.Data.Repositories.Concrete
 {
@@ -111,7 +112,22 @@ namespace VendersCloud.Data.Repositories.Concrete
             }
         }
 
-
+        public async Task<List<Company>> GetAllCompanyDetails()
+        {
+            try
+            {
+                using (var connection = GetConnection())
+                {
+                    await connection.OpenAsync();
+                    var company = await connection.QueryAsync<Company>("SELECT * FROM [Company]");
+                    return company.ToList();
+                }
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
+        }
 
     }
 }
