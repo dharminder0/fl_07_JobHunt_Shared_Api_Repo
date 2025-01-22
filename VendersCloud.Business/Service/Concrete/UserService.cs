@@ -1,4 +1,5 @@
-﻿using System.Data;
+﻿using Microsoft.AspNetCore.Identity.Data;
+using System.Data;
 using VendersCloud.Business.Entities.DataModels;
 using VendersCloud.Business.Entities.RequestModels;
 using VendersCloud.Business.Entities.ResponseModels;
@@ -90,7 +91,24 @@ namespace VendersCloud.Business.Service.Concrete
                   .Select(s => s[random.Next(s.Length)]).ToArray());
                 var res = await _companyRepository.UpsertAsync(usersign.CompanyName, usersign.Email, companyCode);
                 await _userCompanyMappingRepository.AddMappingAsync(userId, companyCode);
-                return new ActionMessageResponseModel { Success = true, Message = "UserId", Content = rs };
+                UserLoginResponseModel model = new UserLoginResponseModel();
+                UserLoginRequestModel loginRequest= new UserLoginRequestModel();
+                loginRequest.Email=usersign.Email;
+                loginRequest.Password=usersign.Password;
+                var result = await _userRepository.UserLoginAsync(loginRequest);
+                model.UserId = result.UserId;
+                var mapping = await _userCompanyMappingRepository.GetMappingsByUserIdAsync(model.UserId);
+                var companyCode2 = mapping.CompanyCode;
+                var companydata = await _companyRepository.GetCompanyDetailByCompanyCodeAsync(companyCode2);
+                model.Email = result.Email;
+                if (Enum.TryParse(result.RoleType, true, out RoleType role))
+                {
+                    model.Role = ((int)role).ToString();
+                }
+                model.CompanyIcon = companydata.CompanyIcon;
+                model.CompanyName = companydata.CompanyName;
+
+                return new ActionMessageResponseModel { Success = true, Message = "Signup data", Content = model };
             }
             catch (Exception ex)
             {
