@@ -11,6 +11,6 @@ namespace VendersCloud.Business.Service.Abstract
         Task<ActionMessageResponseModel> UserSignUpAsync(UserSignUpRequestModel usersign);
         Task<bool> AddInformationAsync(CompanyInfoRequestModel companyInfo);
 
-
+        Task<IEnumerable<User>> GetUserDetailsByUserIdAsync(string userId);
     }
 }

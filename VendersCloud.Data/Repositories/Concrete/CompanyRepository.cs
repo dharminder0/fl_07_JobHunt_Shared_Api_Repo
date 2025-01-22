@@ -112,7 +112,7 @@ namespace VendersCloud.Data.Repositories.Concrete
             }
         }
 
-        public async Task<List<Company>> GetAllCompanyDetails()
+        public async Task<List<Company>> GetAllCompanyDetailsAsync()
         {
             try
             {

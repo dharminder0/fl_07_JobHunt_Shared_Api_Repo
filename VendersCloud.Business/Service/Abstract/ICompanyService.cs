@@ -1,4 +1,5 @@
 ﻿using VendersCloud.Business.Entities.DataModels;
+using VendersCloud.Business.Entities.Dtos;
 using VendersCloud.Business.Entities.RequestModels;
 using VendersCloud.Business.Entities.ResponseModels;
 
@@ -9,6 +10,7 @@ namespace VendersCloud.Business.Service.Abstract
         Task<Company> GetCompanyDetailByCompanyCodeAsync(string companyCode);
         Task<string> UpsertAsync(string companyName, string email, string companyCode);
         Task<ActionMessageResponseModel> AddCompanyInformationAsync(CompanyInfoRequestModel companyInfo);
-        Task<IEnumerable<Company>> GetAllCompanyDetails();
+        Task<IEnumerable<Company>> GetAllCompanyDetailsAsync();
+        Task<List<CompanyUserListDto>> GetCompanyUserListAsync(string companyCode);
     }
 }

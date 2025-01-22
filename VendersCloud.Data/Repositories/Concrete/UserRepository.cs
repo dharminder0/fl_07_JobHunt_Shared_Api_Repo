@@ -7,6 +7,7 @@ using VendersCloud.Data.Repositories.Abstract;
 using static VendersCloud.Data.Enum.Enum;
 using System.Data.SqlClient;
 using Dapper;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace VendersCloud.Data.Repositories.Concrete
 {
@@ -119,38 +120,50 @@ namespace VendersCloud.Data.Repositories.Concrete
             string phone = companyInfo.Phone;
             string website = companyInfo.Website;
             string strength = companyInfo.Strength;
-            RoleType role = (RoleType)int.Parse(companyInfo.RegistrationType);
-            string roleTypeString = role.ToString(); 
+            int number;
+            bool isInteger = int.TryParse(companyInfo.RegistrationType, out number);
+
+            string roleTypeString;
+            if (isInteger)
+            {
+                RoleType role = (RoleType)number;
+                roleTypeString = role.ToString();
+            }
+            else
+            {
+                roleTypeString = companyInfo.RegistrationType.ToString();
+            }
 
             string sql = @"
-                         UPDATE [USER]
-                         SET
-                             Email = @Mail,
-                             Phone = @Phone,
-                             RoleType = @RoleType,
-                             CreatedOn = GETDATE(),
-                             UpdatedOn = GETDATE()
-                          
-                         WHERE UserId = @UserId";
+                 UPDATE [USER]
+                 SET
+                     Email = @Mail,
+                     Phone = @Phone,
+                     RoleType = @RoleType,
+                     CreatedOn = GETDATE(),
+                     UpdatedOn = GETDATE()
+                  
+                 WHERE UserId = @UserId";
 
             try
             {
                 var rowsAffected = await ExecuteAsync(sql, new
                 {
-                     mail,
-                     phone,
+                    mail,
+                    phone,
                     RoleType = roleTypeString,
-                     userId
+                    userId
                 });
 
                 return rowsAffected > 0;
             }
             catch (Exception ex)
             {
-                
+                // Handle the exception
                 throw ex;
             }
         }
+
 
         public async Task<IEnumerable<User>> GetUserDetailsByUserIdAsync(string userId)
         {
