@@ -1,4 +1,6 @@
-﻿using VendersCloud.Business.Entities.DataModels;
+﻿using DapperExtensions.Predicate;
+using DapperExtensions;
+using VendersCloud.Business.Entities.DataModels;
 using VendersCloud.Business.Entities.RequestModels;
 using VendersCloud.Common.Data;
 using VendersCloud.Data.Repositories.Abstract;
@@ -9,16 +11,17 @@ namespace VendersCloud.Data.Repositories.Concrete
     {
         public async Task<Company> GetCompanyDetailByCompanyCodeAsync(string companyCode)
         {
-            if (string.IsNullOrEmpty(companyCode))
-            {
-                throw new ArgumentException("Company code can't be blank");
-            }
-
-            var sql = "SELECT * FROM COMPANY WHERE COMPANYCODE = @companyCode";
-
+           
             try
             {
-                var result = await QueryAsync<Company>(sql, new { companyCode });
+                if (string.IsNullOrEmpty(companyCode))
+                {
+                    throw new ArgumentException("Company code can't be blank");
+                }
+
+                var pg = new PredicateGroup { Operator = GroupOperator.And, Predicates = new List<IPredicate>() };
+                pg.Predicates.Add(Predicates.Field<Company>(ucm => ucm.CompanyCode, Operator.Eq, companyCode));
+                var result = await GetListByAsync(pg);
                 return result.FirstOrDefault();
             }
             catch (Exception ex)
