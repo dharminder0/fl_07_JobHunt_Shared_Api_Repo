@@ -14,6 +14,7 @@ namespace VendersCloud.Business.Service.Concrete
         private readonly IUserRepository _userRepository;
         private readonly IUserCompanyMappingRepository _userCompanyMappingRepository;
         private readonly ICompanyRepository _companyRepository;
+
         public UserService(IUserRepository userRepository, IUserCompanyMappingRepository userCompanyMappingRepository, ICompanyRepository companyRepository)
         {
             _userRepository = userRepository;
@@ -25,115 +26,158 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-                var result = await _userRepository.GetAllUsersInfoAsync();
-                return result;
+                return await _userRepository.GetAllUsersInfoAsync();
             }
             catch (Exception ex)
             {
-                throw ex;
-
+                // Log the exception if needed (can be extended with a logging service)
+                throw new InvalidOperationException("Failed to retrieve user information.", ex);
             }
         }
+
         public async Task<ActionMessageResponseModel> UserLoginAsync(UserLoginRequestModel loginRequest)
         {
+            if (string.IsNullOrEmpty(loginRequest.Email) || string.IsNullOrEmpty(loginRequest.Password))
+            {
+                return new ActionMessageResponseModel { Success = false, Message = "The credentials can't be blank", Content = "" };
+            }
+
             try
             {
-                if (!string.IsNullOrEmpty(loginRequest.Email) && !string.IsNullOrEmpty(loginRequest.Password))
+                var userLoginResponse = await _userRepository.UserLoginAsync(loginRequest);
+                if (userLoginResponse == null)
                 {
-                    UserLoginResponseModel model = new UserLoginResponseModel();
-                    var result = await _userRepository.UserLoginAsync(loginRequest);
-                    model.UserId = result.UserId;
-                    var mapping = await _userCompanyMappingRepository.GetMappingsByUserIdAsync(model.UserId);
-                    var companyCode = mapping.CompanyCode;
-                    var companydata = await _companyRepository.GetCompanyDetailByCompanyCodeAsync(companyCode);
-                    model.Email = result.Email;
-                    if (Enum.TryParse(result.RoleType, true, out RoleType role))
-                    {
-                        model.Role = ((int)role).ToString();
-                    }
-                    model.CompanyIcon = companydata.CompanyIcon;
-                    model.CompanyName = companydata.CompanyName;
-                    return new ActionMessageResponseModel() { Success = true,Message=" Login SuccessFull!",Content= model} ;
+                    return new ActionMessageResponseModel { Success = false, Message = "Invalid credentials", Content = "" };
+                }
 
-                }
-                else
+                var companyData = await GetCompanyDataForUserAsync(userLoginResponse.UserId);
+
+                var model = new UserLoginResponseModel
                 {
-                    return new ActionMessageResponseModel() { Success = false, Message = "The credentials can't be blank", Content = "" }; 
-                }
+                    UserId = userLoginResponse.UserId,
+                    Email = userLoginResponse.Email,
+                    Role = Enum.TryParse(userLoginResponse.RoleType, true, out RoleType role) ? ((int)role).ToString() : null,
+                    CompanyIcon = companyData.CompanyIcon,
+                    CompanyName = companyData.CompanyName
+                };
+
+                return new ActionMessageResponseModel { Success = true, Message = "Login Successful!", Content = model };
             }
             catch (Exception ex)
             {
-                // Handle the exception, e.g., log it
-                return new ActionMessageResponseModel() { Success = false, Message = ex.Message, Content = "" };
+                // Log the exception if needed
+                return new ActionMessageResponseModel { Success = false, Message = ex.Message, Content = "" };
             }
         }
 
         public async Task<ActionMessageResponseModel> UserSignUpAsync(UserSignUpRequestModel usersign)
         {
+            if (string.IsNullOrEmpty(usersign.CompanyName) || string.IsNullOrEmpty(usersign.Email) || string.IsNullOrEmpty(usersign.Password))
+            {
+                return new ActionMessageResponseModel { Success = false, Message = "Values can't be null", Content = "" };
+            }
+
             try
             {
-                if (string.IsNullOrEmpty(usersign.CompanyName) || (string.IsNullOrEmpty(usersign.Email)) || (string.IsNullOrEmpty(usersign.Password)))
-                {
-                    return new ActionMessageResponseModel { Success = false, Message = "Values can't be null", Content = "" };
-                }
-                //string userId = string.Empty;
-                //string input = $"{email}-{DateTime.UtcNow}";
-                //using (SHA256 sha256 = SHA256.Create())
-                //{
-                //    byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
-                //    userId = $"USID"+BitConverter.ToString(hashBytes).Replace("-", "").Substring(0, 8);
-                //}
                 string userId = usersign.Email;
-                var rs = await _userRepository.UpsertAsync(usersign, userId);
-                Random random = new Random();
-                const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-                string companyCode = new string(Enumerable.Repeat(chars, 8)
-                  .Select(s => s[random.Next(s.Length)]).ToArray());
-                var res = await _companyRepository.UpsertAsync(usersign.CompanyName, usersign.Email, companyCode);
-                await _userCompanyMappingRepository.AddMappingAsync(userId, companyCode);
-                UserLoginResponseModel model = new UserLoginResponseModel();
-                UserLoginRequestModel loginRequest= new UserLoginRequestModel();
-                loginRequest.Email=usersign.Email;
-                loginRequest.Password=usersign.Password;
-                var result = await _userRepository.UserLoginAsync(loginRequest);
-                model.UserId = result.UserId;
-                var mapping = await _userCompanyMappingRepository.GetMappingsByUserIdAsync(model.UserId);
-                var companyCode2 = mapping.CompanyCode;
-                var companydata = await _companyRepository.GetCompanyDetailByCompanyCodeAsync(companyCode2);
-                model.Email = result.Email;
-                if (Enum.TryParse(result.RoleType, true, out RoleType role))
-                {
-                    model.Role = ((int)role).ToString();
-                }
-                model.CompanyIcon = companydata.CompanyIcon;
-                model.CompanyName = companydata.CompanyName;
 
-                return new ActionMessageResponseModel { Success = true, Message = "Signup data", Content = model };
+                // Create the user
+                var userCreationResult = await CreateUserAsync(usersign, userId);
+                if (!userCreationResult.Success)
+                    return userCreationResult;
+
+                // Create the company and associate with the user
+                string companyCode = GenerateCompanyCode();
+                var companyCreationResult = await CreateCompanyAsync(usersign.CompanyName, usersign.Email, companyCode);
+                if (!companyCreationResult.Success)
+                    return companyCreationResult;
+
+                // Map the user to the company
+                await _userCompanyMappingRepository.AddMappingAsync(userId, companyCode);
+
+                // Log the user in
+                var loginRequest = new UserLoginRequestModel { Email = usersign.Email, Password = usersign.Password };
+                return await UserLoginAsync(loginRequest); // Reuse login logic after signup
             }
             catch (Exception ex)
             {
+                // Log the exception if needed
                 return new ActionMessageResponseModel { Success = false, Message = ex.Message, Content = "" };
             }
         }
 
-        public async Task<bool> AddInformationAsync(CompanyInfoRequestModel companyInfo)
+        private async Task<ActionMessageResponseModel> CreateUserAsync(UserSignUpRequestModel usersign, string userId)
         {
             try
             {
-                if(!string.IsNullOrEmpty(companyInfo.UserId))
+                var userCreationResult = await _userRepository.UpsertAsync(usersign, userId);
+                if (userCreationResult == null)
                 {
-                    var result= await _userRepository.AddInformationAsync(companyInfo);
-                    return result;
-
+                    return new ActionMessageResponseModel { Success = false, Message = "User creation failed", Content = "" };
                 }
-                return false;
 
+                return new ActionMessageResponseModel { Success = true, Message = "User created successfully", Content = "" };
             }
             catch (Exception ex)
             {
-                throw ex;
+                // Log the exception if needed
+                return new ActionMessageResponseModel { Success = false, Message = $"Error creating user: {ex.Message}", Content = "" };
+            }
+        }
+
+        private async Task<ActionMessageResponseModel> CreateCompanyAsync(string companyName, string email, string companyCode)
+        {
+            try
+            {
+                var companyCreationResult = await _companyRepository.UpsertAsync(companyName, email, companyCode);
+                if (companyCreationResult == null)
+                {
+                    return new ActionMessageResponseModel { Success = false, Message = "Company creation failed", Content = "" };
+                }
+
+                return new ActionMessageResponseModel { Success = true, Message = "Company created successfully", Content = "" };
+            }
+            catch (Exception ex)
+            {
+                // Log the exception if needed
+                return new ActionMessageResponseModel { Success = false, Message = $"Error creating company: {ex.Message}", Content = "" };
+            }
+        }
+
+        private string GenerateCompanyCode()
+        {
+            Random random = new Random();
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            return new string(Enumerable.Repeat(chars, 8).Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+
+        private async Task<Company> GetCompanyDataForUserAsync(string userId)
+        {
+            var mapping = await _userCompanyMappingRepository.GetMappingsByUserIdAsync(userId);
+            if (mapping == null) throw new InvalidOperationException("User is not mapped to any company.");
+
+            var companyData = await _companyRepository.GetCompanyDetailByCompanyCodeAsync(mapping.CompanyCode);
+            if (companyData == null) throw new InvalidOperationException("Company not found.");
+
+            return companyData;
+        }
+
+        public async Task<bool> AddInformationAsync(CompanyInfoRequestModel companyInfo)
+        {
+            if (string.IsNullOrEmpty(companyInfo.UserId))
+            {
+                return false;
+            }
+
+            try
+            {
+                return await _userRepository.AddInformationAsync(companyInfo);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception if needed
+                throw new InvalidOperationException("Failed to add company information.", ex);
             }
         }
     }
 }
-
