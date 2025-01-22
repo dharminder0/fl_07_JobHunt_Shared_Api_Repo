@@ -82,12 +82,12 @@ namespace VendersCloud.Business.Service.Concrete
                 var result = await _companyRepository.AddCompanyInformationAsync(companyInfo, CompanyCode);
                 if (result)
                 {
-                    var res = await _userService.AddInformationAsync(companyInfo);
-                    if (res)
-                    {
+                    //var res = await _userService.AddInformationAsync(companyInfo);
+                    //if (res)
+                    //{
                         return new ActionMessageResponseModel() { Success = true, Message = "CompanyInformation is Added", Content = CompanyCode };
-                    }
-                    return new ActionMessageResponseModel() { Success = false, Message = "While data is not found by userid", Content = "" };
+                   // }
+                  //  return new ActionMessageResponseModel() { Success = false, Message = "While data is not found by userid", Content = "" };
                 }
                 return new ActionMessageResponseModel() { Success = false, Message = "", Content = "" };
             }
