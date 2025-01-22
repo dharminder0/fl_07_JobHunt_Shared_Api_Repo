@@ -1,8 +1,12 @@
-﻿using VendersCloud.Business.Entities.DataModels;
+﻿using DapperExtensions.Predicate;
+using DapperExtensions;
+using VendersCloud.Business.Entities.DataModels;
 using VendersCloud.Business.Entities.RequestModels;
 using VendersCloud.Common.Data;
 using VendersCloud.Data.Repositories.Abstract;
 using static VendersCloud.Data.Enum.Enum;
+using System.Data.SqlClient;
+using Dapper;
 
 namespace VendersCloud.Data.Repositories.Concrete
 {
@@ -13,16 +17,20 @@ namespace VendersCloud.Data.Repositories.Concrete
         {
             try
             {
-                var sql = @"SELECT * FROM [USER]";
-                return await QueryAsync<User>(sql);
+                using (var connection = GetConnection())
+                {
+                    await connection.OpenAsync();
+                    var users = await connection.QueryAsync<User>("SELECT * FROM [User]");
+                    return users;
+                }
             }
             catch (Exception ex)
             {
-                // Log the exception (you can use any logging library)
                 Console.WriteLine(ex.Message);
-                throw; // Rethrow the original exception
+                throw; 
             }
         }
+
 
         public async Task<User> UserLoginAsync(UserLoginRequestModel loginRequest)
         {
