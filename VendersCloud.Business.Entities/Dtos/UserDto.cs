@@ -11,7 +11,7 @@
         public DateTime CreatedOn { get; set; }
         public DateTime UpdatedOn { get; set; }
         public DateTime LastLoginTime { get; set; }
-        public string Password { get; set; }
         public string UserId { get; set; }
+        public string RoleType { get; set; }
     }
 }

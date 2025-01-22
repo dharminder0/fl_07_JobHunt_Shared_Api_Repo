@@ -20,13 +20,25 @@ namespace VendersCloud.Data.Repositories.Concrete
             }
             catch (Exception ex)
             {
-                // Consider logging the exception
                 throw;
-                //test
             }
         }
 
+        public async Task<List<UserCompanyMapping>> GetMappingsByCompanyCodeAsync(string companyCode)
+        {
+            try
+            {
+                var pg = new PredicateGroup { Operator = GroupOperator.And, Predicates = new List<IPredicate>() };
+                pg.Predicates.Add(Predicates.Field<UserCompanyMapping>(ucm => ucm.CompanyCode, Operator.Eq, companyCode));
 
+                var userCompanyMapping = await GetListByAsync(pg);
+                return userCompanyMapping.ToList();
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
 
 
         public async Task<bool> AddMappingAsync(string userId, string companyCode)

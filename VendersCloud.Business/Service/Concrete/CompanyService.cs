@@ -1,8 +1,11 @@
 ﻿using VendersCloud.Business.Entities.DataModels;
+using VendersCloud.Business.Entities.DTOModels;
+using VendersCloud.Business.Entities.Dtos;
 using VendersCloud.Business.Entities.RequestModels;
 using VendersCloud.Business.Entities.ResponseModels;
 using VendersCloud.Business.Service.Abstract;
 using VendersCloud.Data.Repositories.Abstract;
+using VendersCloud.Data.Repositories.Concrete;
 
 namespace VendersCloud.Business.Service.Concrete
 {
@@ -12,7 +15,8 @@ namespace VendersCloud.Business.Service.Concrete
         private readonly IUserCompanyMappingService _userCompanyMappingService;
         private readonly IUserService _userService;
 
-        public CompanyService(ICompanyRepository companyRepository, IUserCompanyMappingService userCompanyMappingService,IUserService userService)
+
+        public CompanyService(ICompanyRepository companyRepository, IUserCompanyMappingService userCompanyMappingService, IUserService userService)
         {
             _companyRepository = companyRepository;
             _userCompanyMappingService = userCompanyMappingService;
@@ -81,7 +85,7 @@ namespace VendersCloud.Business.Service.Concrete
                     var res = await _userService.AddInformationAsync(companyInfo);
                     if (res)
                     {
-                        return new ActionMessageResponseModel() { Success = true, Message = "CompanyInformation is Added", Content = "" };
+                        return new ActionMessageResponseModel() { Success = true, Message = "CompanyInformation is Added", Content = CompanyCode };
                     }
                     return new ActionMessageResponseModel() { Success = false, Message = "While data is not found by userid", Content = "" };
                 }
@@ -95,11 +99,11 @@ namespace VendersCloud.Business.Service.Concrete
 
         }
 
-        public async Task<IEnumerable<Company>> GetAllCompanyDetails()
+        public async Task<IEnumerable<Company>> GetAllCompanyDetailsAsync()
         {
             try
             {
-                var result = await _companyRepository.GetAllCompanyDetails();
+                var result = await _companyRepository.GetAllCompanyDetailsAsync();
                 return result;
             }
             catch (Exception ex)
@@ -107,5 +111,61 @@ namespace VendersCloud.Business.Service.Concrete
                 throw ex;
             }
         }
+        public async Task<List<CompanyUserListDto>> GetCompanyUserListAsync(string companyCode)
+        {
+            try
+            {
+                CompanyUserListDto companyUserListDto = new CompanyUserListDto();
+               
+                companyUserListDto.Users = new List<UserDto>();  // Initialize the Users list
+                
+                var companyData = await _companyRepository.GetCompanyDetailByCompanyCodeAsync(companyCode);
+                companyUserListDto.Id = companyData.Id;
+                companyUserListDto.CompanyCode = companyCode;
+                companyUserListDto.CompanyName = companyData.CompanyName;
+                companyUserListDto.Phone = companyData.Phone;
+                companyUserListDto.Email = companyData.Email;
+                companyUserListDto.CreatedOn = companyData.CreatedOn;
+                companyUserListDto.UpdatedOn = companyData.UpdatedOn;
+                companyUserListDto.CompanyStrength = companyData.CompanyStrength;
+                companyUserListDto.CompanyWebsite = companyData.CompanyWebsite;
+                companyUserListDto.CompanyIcon = companyData.CompanyIcon;
+                companyUserListDto.Description = companyData.Description;
+
+                var mappingData = await _userCompanyMappingService.GetMappingsByCompanyCodeAsync(companyCode);
+                foreach (var mapping in mappingData)
+                {
+                    var userId = mapping.UserId;
+                    var userData = (await _userService.GetUserDetailsByUserIdAsync(userId)).FirstOrDefault();
+
+                    if (userData != null)
+                    {
+                        UserDto userDto = new UserDto
+                        {
+                            Id = userData.Id,
+                            Email = userData.Email,
+                            Phone = userData.Phone,
+                            FirstName = userData.FirstName,
+                            LastName = userData.LastName,
+                            CreatedOn = userData.CreatedOn,
+                            UpdatedOn = userData.UpdatedOn,
+                            LastLoginTime = userData.LastLoginTime,
+                            UserId = userData.UserId
+                        };
+
+                        companyUserListDto.Users.Add(userDto);
+                    }
+                }
+
+                return new List<CompanyUserListDto> { companyUserListDto };
+            }
+            catch (Exception ex)
+            {
+                // Handle the exception
+                return null;
+            }
+        }
+
+
     }
 }

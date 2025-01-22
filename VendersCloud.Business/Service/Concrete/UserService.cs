@@ -179,5 +179,17 @@ namespace VendersCloud.Business.Service.Concrete
                 throw new InvalidOperationException("Failed to add company information.", ex);
             }
         }
+
+        public async Task<IEnumerable<User>> GetUserDetailsByUserIdAsync(string userId)
+        {
+            try
+            {
+                var result = await _userRepository.GetUserDetailsByUserIdAsync(userId);
+                return result;
+            }
+            catch (Exception ex) {
+                throw ex;
+            }
+        }
     }
 }

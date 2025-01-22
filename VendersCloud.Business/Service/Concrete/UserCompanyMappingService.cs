@@ -16,7 +16,8 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-                if (!string.IsNullOrEmpty(userId)) {
+                if (!string.IsNullOrEmpty(userId))
+                {
                     var mapping = await _userCompanyMappingRepository.GetMappingsByUserIdAsync(userId);
                     return mapping;
 
@@ -26,7 +27,8 @@ namespace VendersCloud.Business.Service.Concrete
                     throw new Exception("Userid can't be blank");
                 }
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 throw ex;
             }
         }
@@ -37,12 +39,34 @@ namespace VendersCloud.Business.Service.Concrete
             {
                 if (!string.IsNullOrEmpty(userId) && !string.IsNullOrEmpty(companyCode))
                 {
-                   var res= await _userCompanyMappingRepository.AddMappingAsync(userId, companyCode);
+                    var res = await _userCompanyMappingRepository.AddMappingAsync(userId, companyCode);
                     return res;
                 }
                 return false;
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public async Task<List<UserCompanyMapping>> GetMappingsByCompanyCodeAsync(string companyCode)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(companyCode))
+                {
+                    var mapping = await _userCompanyMappingRepository.GetMappingsByCompanyCodeAsync(companyCode);
+                    return mapping;
+
+                }
+                else
+                {
+                    throw new Exception("companyCode can't be blank");
+                }
+            }
+            catch (Exception ex)
+            {
                 throw ex;
             }
         }
