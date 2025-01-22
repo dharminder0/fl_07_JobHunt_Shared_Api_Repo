@@ -94,5 +94,18 @@ namespace VendersCloud.Business.Service.Concrete
 
 
         }
+
+        public async Task<IEnumerable<Company>> GetAllCompanyDetails()
+        {
+            try
+            {
+                var result = await _companyRepository.GetAllCompanyDetails();
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
     }
 }

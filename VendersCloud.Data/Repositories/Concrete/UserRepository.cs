@@ -152,6 +152,24 @@ namespace VendersCloud.Data.Repositories.Concrete
             }
         }
 
+        public async Task<IEnumerable<User>> GetUserDetailsByUserIdAsync(string userId)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(userId))
+                {
+                    throw new ArgumentException("Company code can't be blank");
+                }
 
+                var pg = new PredicateGroup { Operator = GroupOperator.And, Predicates = new List<IPredicate>() };
+                pg.Predicates.Add(Predicates.Field<User>(ucm => ucm.UserId, Operator.Eq, userId));
+                return await GetListByAsync(pg);
+                
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
     }
 }

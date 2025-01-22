@@ -72,5 +72,24 @@ namespace VendersCloud.WebApi.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpGet]
+        [Route("GetCompanyDetails")]
+        ///<summary>
+        ///Reterive all the Company Details 
+        /// </summary>
+        public async Task<IActionResult>GetAllCompanyDetails()
+        {
+            try
+            {
+                var result = await _companyService.GetAllCompanyDetails();
+                return Json(result);
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
     }
 }
