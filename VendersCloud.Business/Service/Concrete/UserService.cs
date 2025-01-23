@@ -55,7 +55,7 @@ namespace VendersCloud.Business.Service.Concrete
                 var model = new UserLoginResponseModel
                 {
                     UserId = userLoginResponse.UserId,
-                    Email = userLoginResponse.Email,
+                    Email = companyData.Email,
                     Role = Enum.TryParse(userLoginResponse.RoleType, true, out RoleType role) ? ((int)role).ToString() : null,
                     CompanyIcon = companyData.CompanyIcon,
                     CompanyName = companyData.CompanyName
