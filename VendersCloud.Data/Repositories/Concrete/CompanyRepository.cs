@@ -37,22 +37,23 @@ namespace VendersCloud.Data.Repositories.Concrete
             try
             {
                 var sql = @"
-            IF EXISTS (SELECT 1 FROM [Company] WHERE EMAIL=@Email)
-            BEGIN
-                UPDATE [Company]
-                SET
-                    COMPANYNAME=@CompanyName
-                WHERE EMAIL=@Email;
-                SELECT CompanyCode FROM [Company] WHERE EMAIL=@Email;
-            END
-            ELSE
-            BEGIN
-                INSERT INTO [Company] (CompanyName, Email, CompanyCode)
-                VALUES (@CompanyName, @Email, @companyCode);
-                SELECT CompanyCode FROM [Company] WHERE EMAIL=@Email;
-            END";
+    IF EXISTS (SELECT 1 FROM [Company] WHERE CompanyCode = @CompanyCode)
+    BEGIN
+        UPDATE [Company]
+        SET
+            CompanyName = @CompanyName,
+            Email = @Email
+        WHERE CompanyCode = @CompanyCode;
+        SELECT CompanyCode FROM [Company] WHERE CompanyCode = @CompanyCode;
+    END
+    ELSE
+    BEGIN
+        INSERT INTO [Company] (CompanyName, Email, CompanyCode)
+        VALUES (@CompanyName, @Email, @CompanyCode);
+        SELECT CompanyCode FROM [Company] WHERE CompanyCode = @CompanyCode;
+    END";
 
-                var parameters = new { companyName, email, companyCode };
+                var parameters = new { CompanyName = companyName, Email = email, CompanyCode = companyCode };
 
                 var result = await QueryAsync<string>(sql, parameters);
 
@@ -68,6 +69,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                 throw new ApplicationException("Error during upsert operation", ex);
             }
         }
+
 
         public async Task<bool> AddCompanyInformationAsync(CompanyInfoRequestModel companyInfo, string companyCode)
         {
@@ -88,6 +90,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                     UpdatedOn = GetDate(),
                     CompanyWebsite = @Website,
                     CompanyStrength = @Strength,
+                    Email=@Mail,
                     Description = @Description
                     Where 
                     CompanyCode = @companyCode";
@@ -97,6 +100,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                     Phone,
                     Website,
                     Strength,
+                    Mail,
                     Description,
                     companyCode
                 });
