@@ -10,7 +10,8 @@ namespace VendersCloud.Business.Service.Abstract
         Task<Company> GetCompanyDetailByCompanyCodeAsync(string companyCode);
         Task<string> UpsertAsync(string companyName, string email, string companyCode);
         Task<ActionMessageResponseModel> AddCompanyInformationAsync(CompanyInfoRequestModel companyInfo);
-        Task<IEnumerable<Company>> GetAllCompanyDetailsAsync();
+        Task<ActionMessageResponseModel> GetAllCompanyDetailsAsync(string companyCode, List<string> roleType);
         Task<List<CompanyUserListDto>> GetCompanyUserListAsync(string companyCode);
+        Task<List<CompanyUserListDto>> GetCompanyUserListByRoleTypeAsync(string companyCode, string roleType);
     }
 }

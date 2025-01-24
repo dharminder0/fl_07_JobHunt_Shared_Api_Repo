@@ -8,6 +8,7 @@ using static VendersCloud.Data.Enum.Enum;
 using System.Data.SqlClient;
 using Dapper;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Globalization;
 
 namespace VendersCloud.Data.Repositories.Concrete
 {
@@ -28,7 +29,7 @@ namespace VendersCloud.Data.Repositories.Concrete
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                throw; 
+                throw;
             }
         }
 
@@ -177,7 +178,49 @@ namespace VendersCloud.Data.Repositories.Concrete
                 var pg = new PredicateGroup { Operator = GroupOperator.And, Predicates = new List<IPredicate>() };
                 pg.Predicates.Add(Predicates.Field<User>(ucm => ucm.UserId, Operator.Eq, userId));
                 return await GetListByAsync(pg);
-                
+
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public async Task<IEnumerable<User>> GetUserDetailsByRoleTypeAsync(string userId,string roletype)
+        {
+            try
+            {
+                var pg = new PredicateGroup { Operator = GroupOperator.And, Predicates = new List<IPredicate>() };
+                pg.Predicates.Add(Predicates.Field<User>(ucm => ucm.RoleType, Operator.Eq, roletype));
+                pg.Predicates.Add(Predicates.Field<User>(ucm=>ucm.UserId, Operator.Eq, userId));
+                return await GetListByAsync(pg);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public async Task<IEnumerable<User>> GetUserDetailsByRoleAsync(string roletype)
+        {
+            try
+            {
+                int number;
+                bool isInteger = int.TryParse(roletype, out number);
+
+                string roleTypeString;
+                if (isInteger)
+                {
+                    RoleType role = (RoleType)number;
+                    roleTypeString = role.ToString();
+                }
+                else
+                {
+                    roleTypeString = roletype.ToString();
+                }
+                var pg = new PredicateGroup { Operator = GroupOperator.And, Predicates = new List<IPredicate>() };
+                pg.Predicates.Add(Predicates.Field<User>(ucm => ucm.RoleType, Operator.Eq, roleTypeString));
+                return await GetListByAsync(pg);
             }
             catch (Exception ex)
             {

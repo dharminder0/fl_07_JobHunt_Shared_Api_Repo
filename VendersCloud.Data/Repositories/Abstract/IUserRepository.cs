@@ -11,5 +11,7 @@ namespace VendersCloud.Data.Repositories.Abstract
         Task<string> UpsertAsync(UserSignUpRequestModel usersign, string userId);
         Task<bool> AddInformationAsync(CompanyInfoRequestModel companyInfo);
         Task<IEnumerable<User>> GetUserDetailsByUserIdAsync(string userId);
+        Task<IEnumerable<User>> GetUserDetailsByRoleTypeAsync(string userId, string roletype);
+        Task<IEnumerable<User>> GetUserDetailsByRoleAsync(string roletype);
     }
 }
