@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.Data;
 using System.Data;
+using System.Globalization;
 using VendersCloud.Business.Entities.DataModels;
 using VendersCloud.Business.Entities.RequestModels;
 using VendersCloud.Business.Entities.ResponseModels;
@@ -188,6 +189,31 @@ namespace VendersCloud.Business.Service.Concrete
                 return result;
             }
             catch (Exception ex) {
+                throw ex;
+            }
+        }
+        public async Task<IEnumerable<User>> GetUserDetailsByRoleTypeAsync(string userId,string roletype)
+        {
+            try
+            {
+                int number;
+                bool isInteger = int.TryParse(roletype, out number);
+
+                string roleTypeString;
+                if (isInteger)
+                {
+                    RoleType role = (RoleType)number;
+                    roleTypeString = role.ToString();
+                }
+                else
+                {
+                    roleTypeString = roletype.ToString();
+                }
+                var result = await _userRepository.GetUserDetailsByRoleTypeAsync(userId, roleTypeString);
+                return result;
+            }
+            catch (Exception ex)
+            {
                 throw ex;
             }
         }

@@ -73,23 +73,23 @@ namespace VendersCloud.WebApi.Controllers
             }
         }
 
-        [HttpGet]
-        [Route("GetCompanyDetails")]
-        ///<summary>
-        ///Reterive all the Company Details 
-        /// </summary>
-        public async Task<IActionResult>GetAllCompanyDetailsAsync()
+        [HttpPost]
+        [Route("GetCompanyList")]
+        public async Task<IActionResult> GetAllCompanyDetailsAsync(string companyCode="", List<string> roleType=null)
         {
             try
             {
-                var result = await _companyService.GetAllCompanyDetailsAsync();
+                var result = await _companyService.GetAllCompanyDetailsAsync(companyCode,roleType);
+
                 return Json(result);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
         }
+
+
 
         [HttpGet]
         [Route("Company/UserList/{companyCode}")]
