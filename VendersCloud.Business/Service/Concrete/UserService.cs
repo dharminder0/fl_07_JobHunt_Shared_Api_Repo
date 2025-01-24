@@ -5,6 +5,7 @@ using VendersCloud.Business.Entities.DataModels;
 using VendersCloud.Business.Entities.RequestModels;
 using VendersCloud.Business.Entities.ResponseModels;
 using VendersCloud.Business.Service.Abstract;
+using VendersCloud.Common.Utils;
 using VendersCloud.Data.Repositories.Abstract;
 using static VendersCloud.Data.Enum.Enum;
 
@@ -23,7 +24,7 @@ namespace VendersCloud.Business.Service.Concrete
             _companyRepository = companyRepository;
         }
 
-        public async Task<IEnumerable<User>> GetAllUsersInfoAsync()
+        public async Task<IEnumerable<Users>> GetAllUsersInfoAsync()
         {
             try
             {
@@ -45,6 +46,12 @@ namespace VendersCloud.Business.Service.Concrete
 
             try
             {
+                
+                var userdata = await _userRepository.GetUserByEmail(loginRequest.Email);
+                var password = userdata.Select(ru => ru.PasswordSalt).FirstOrDefault();
+                var saltBytes = password;
+                var hashedPassword = Hasher.HashPassword(saltBytes, loginRequest.Password);
+                loginRequest.Password = hashedPassword;
                 var userLoginResponse = await _userRepository.UserLoginAsync(loginRequest);
                 if (userLoginResponse == null)
                 {
@@ -81,7 +88,7 @@ namespace VendersCloud.Business.Service.Concrete
             try
             {
                 string userId = usersign.Email;
-
+                var oldpass = usersign.Password;
                 // Create the user
                 var userCreationResult = await CreateUserAsync(usersign, userId);
                 if (!userCreationResult.Success)
@@ -97,7 +104,7 @@ namespace VendersCloud.Business.Service.Concrete
                 await _userCompanyMappingRepository.AddMappingAsync(userId, companyCode);
 
                 // Log the user in
-                var loginRequest = new UserLoginRequestModel { Email = usersign.Email, Password = usersign.Password };
+                var loginRequest = new UserLoginRequestModel { Email = usersign.Email, Password = oldpass };
                 return await UserLoginAsync(loginRequest); // Reuse login logic after signup
             }
             catch (Exception ex)
@@ -111,7 +118,10 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-                var userCreationResult = await _userRepository.UpsertAsync(usersign, userId);
+                var salt = Hasher.GenerateSalt();
+                var hashedPassword= Hasher.HashPassword(salt, usersign.Password);
+                usersign.Password = hashedPassword;
+                var userCreationResult = await _userRepository.UpsertAsync(usersign, userId,salt);
                 if (userCreationResult == null)
                 {
                     return new ActionMessageResponseModel { Success = false, Message = "User creation failed", Content = "" };
@@ -181,7 +191,7 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
-        public async Task<IEnumerable<User>> GetUserDetailsByUserIdAsync(string userId)
+        public async Task<IEnumerable<Users>> GetUserDetailsByUserIdAsync(string userId)
         {
             try
             {
@@ -192,7 +202,7 @@ namespace VendersCloud.Business.Service.Concrete
                 throw ex;
             }
         }
-        public async Task<IEnumerable<User>> GetUserDetailsByRoleTypeAsync(string userId,string roletype)
+        public async Task<IEnumerable<Users>> GetUserDetailsByRoleTypeAsync(string userId,string roletype)
         {
             try
             {

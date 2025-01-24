@@ -12,17 +12,17 @@ using System.Globalization;
 
 namespace VendersCloud.Data.Repositories.Concrete
 {
-    public class UserRepository : DataRepository<User>, IUserRepository
+    public class UserRepository : DataRepository<Users>, IUserRepository
     {
 
-        public async Task<IEnumerable<User>> GetAllUsersInfoAsync()
+        public async Task<IEnumerable<Users>> GetAllUsersInfoAsync()
         {
             try
             {
                 using (var connection = GetConnection())
                 {
                     await connection.OpenAsync();
-                    var users = await connection.QueryAsync<User>("SELECT * FROM [User]");
+                    var users = await connection.QueryAsync<Users>("SELECT * FROM [Users]");
                     return users;
                 }
             }
@@ -34,11 +34,11 @@ namespace VendersCloud.Data.Repositories.Concrete
         }
 
 
-        public async Task<User> UserLoginAsync(UserLoginRequestModel loginRequest)
+        public async Task<Users> UserLoginAsync(UserLoginRequestModel loginRequest)
         {
             try
             {
-                var sql = @"SELECT * FROM [USER] WHERE EMAIL = @Email AND Password = @Password";
+                var sql = @"SELECT * FROM [USERS] WHERE EMAIL = @Email AND Password = @Password";
 
                 var parameters = new
                 {
@@ -46,11 +46,11 @@ namespace VendersCloud.Data.Repositories.Concrete
                     Password = loginRequest.Password
                 };
 
-                var result = await QueryAsync<User>(sql, parameters);
+                var result = await QueryAsync<Users>(sql, parameters);
 
                 if (result.Any())
                 {
-                    var sqlUpdate = @"UPDATE [USER] SET LASTLOGINTIME = GETUTCDATE() WHERE EMAIL = @Email AND Password = @Password";
+                    var sqlUpdate = @"UPDATE [USERS] SET LASTLOGINTIME = GETUTCDATE() WHERE EMAIL = @Email AND Password = @Password";
                     await ExecuteAsync(sqlUpdate, parameters);
 
                     return result.FirstOrDefault();
@@ -67,7 +67,7 @@ namespace VendersCloud.Data.Repositories.Concrete
             }
         }
 
-        public async Task<string> UpsertAsync(UserSignUpRequestModel usersign, string userId)
+        public async Task<string> UpsertAsync(UserSignUpRequestModel usersign, string userId,string passwordSalt)
         {
             try
             {
@@ -76,24 +76,25 @@ namespace VendersCloud.Data.Repositories.Concrete
                 string Email = usersign.Email;
 
                 var sql = @"
-        IF EXISTS (SELECT 1 FROM [USER] WHERE EMAIL=@Email)
+        IF EXISTS (SELECT 1 FROM [USERS] WHERE EMAIL=@Email)
         BEGIN
-            UPDATE [USER]
+            UPDATE [USERS]
             SET
                 FIRSTNAME = @CompanyName,
                 PASSWORD = @Password,
+                PASSWORDSALT=@passwordSalt,
                 USERID = @userId
             WHERE EMAIL = @Email;
-            SELECT UserId FROM [USER] WHERE EMAIL = @Email;
+            SELECT UserId FROM [USERS] WHERE EMAIL = @Email;
         END
         ELSE
         BEGIN
-            INSERT INTO [USER] (FirstName, Email, Password, UserId)
-            VALUES (@CompanyName, @Email, @Password, @userId);
-            SELECT UserID FROM [USER] WHERE Email = @Email;
+            INSERT INTO [USERS] (FirstName, Email, Password, UserId,PasswordSalt)
+            VALUES (@CompanyName, @Email, @Password, @userId,@passwordSalt);
+            SELECT UserID FROM [USERS] WHERE Email = @Email;
         END";
 
-                var parameters = new { CompanyName, Password, Email, userId };
+                var parameters = new { CompanyName, Password, Email, userId,passwordSalt};
 
                 // Execute the SQL command and capture the result
                 var result = await QueryAsync<string>(sql, parameters);
@@ -136,7 +137,7 @@ namespace VendersCloud.Data.Repositories.Concrete
             }
 
             string sql = @"
-                 UPDATE [USER]
+                 UPDATE [USERS]
                  SET
                      Email = @Mail,
                      Phone = @Phone,
@@ -166,7 +167,7 @@ namespace VendersCloud.Data.Repositories.Concrete
         }
 
 
-        public async Task<IEnumerable<User>> GetUserDetailsByUserIdAsync(string userId)
+        public async Task<IEnumerable<Users>> GetUserDetailsByUserIdAsync(string userId)
         {
             try
             {
@@ -176,7 +177,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                 }
 
                 var pg = new PredicateGroup { Operator = GroupOperator.And, Predicates = new List<IPredicate>() };
-                pg.Predicates.Add(Predicates.Field<User>(ucm => ucm.UserId, Operator.Eq, userId));
+                pg.Predicates.Add(Predicates.Field<Users>(ucm => ucm.UserId, Operator.Eq, userId));
                 return await GetListByAsync(pg);
 
             }
@@ -186,13 +187,13 @@ namespace VendersCloud.Data.Repositories.Concrete
             }
         }
 
-        public async Task<IEnumerable<User>> GetUserDetailsByRoleTypeAsync(string userId,string roletype)
+        public async Task<IEnumerable<Users>> GetUserDetailsByRoleTypeAsync(string userId,string roletype)
         {
             try
             {
                 var pg = new PredicateGroup { Operator = GroupOperator.And, Predicates = new List<IPredicate>() };
-                pg.Predicates.Add(Predicates.Field<User>(ucm => ucm.RoleType, Operator.Eq, roletype));
-                pg.Predicates.Add(Predicates.Field<User>(ucm=>ucm.UserId, Operator.Eq, userId));
+                pg.Predicates.Add(Predicates.Field<Users>(ucm => ucm.RoleType, Operator.Eq, roletype));
+                pg.Predicates.Add(Predicates.Field<Users>(ucm=>ucm.UserId, Operator.Eq, userId));
                 return await GetListByAsync(pg);
             }
             catch (Exception ex)
@@ -201,7 +202,7 @@ namespace VendersCloud.Data.Repositories.Concrete
             }
         }
 
-        public async Task<IEnumerable<User>> GetUserDetailsByRoleAsync(string roletype)
+        public async Task<IEnumerable<Users>> GetUserDetailsByRoleAsync(string roletype)
         {
             try
             {
@@ -219,13 +220,20 @@ namespace VendersCloud.Data.Repositories.Concrete
                     roleTypeString = roletype.ToString();
                 }
                 var pg = new PredicateGroup { Operator = GroupOperator.And, Predicates = new List<IPredicate>() };
-                pg.Predicates.Add(Predicates.Field<User>(ucm => ucm.RoleType, Operator.Eq, roleTypeString));
+                pg.Predicates.Add(Predicates.Field<Users>(ucm => ucm.RoleType, Operator.Eq, roleTypeString));
                 return await GetListByAsync(pg);
             }
             catch (Exception ex)
             {
                 throw ex;
             }
+        }
+
+        public async Task<IEnumerable<Users>>GetUserByEmail(string email)
+        {
+            var pg = new PredicateGroup { Operator = GroupOperator.And, Predicates = new List<IPredicate>() };
+            pg.Predicates.Add(Predicates.Field<Users>(ucm => ucm.Email, Operator.Eq, email));
+            return await GetListByAsync(pg);
         }
     }
 }
