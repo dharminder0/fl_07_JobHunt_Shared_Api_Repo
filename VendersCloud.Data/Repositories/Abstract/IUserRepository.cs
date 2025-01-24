@@ -4,14 +4,15 @@ using VendersCloud.Common.Data;
 
 namespace VendersCloud.Data.Repositories.Abstract
 {
-    public interface IUserRepository :IDataRepository<User>
+    public interface IUserRepository :IDataRepository<Users>
     {
-        Task<IEnumerable<User>> GetAllUsersInfoAsync();
-        Task<User> UserLoginAsync(UserLoginRequestModel loginRequest);
-        Task<string> UpsertAsync(UserSignUpRequestModel usersign, string userId);
+        Task<IEnumerable<Users>> GetAllUsersInfoAsync();
+        Task<Users> UserLoginAsync(UserLoginRequestModel loginRequest);
+        Task<string> UpsertAsync(UserSignUpRequestModel usersign, string userId, string passwordSalt);
         Task<bool> AddInformationAsync(CompanyInfoRequestModel companyInfo);
-        Task<IEnumerable<User>> GetUserDetailsByUserIdAsync(string userId);
-        Task<IEnumerable<User>> GetUserDetailsByRoleTypeAsync(string userId, string roletype);
-        Task<IEnumerable<User>> GetUserDetailsByRoleAsync(string roletype);
+        Task<IEnumerable<Users>> GetUserDetailsByUserIdAsync(string userId);
+        Task<IEnumerable<Users>> GetUserDetailsByRoleTypeAsync(string userId, string roletype);
+        Task<IEnumerable<Users>> GetUserDetailsByRoleAsync(string roletype);
+        Task<IEnumerable<Users>> GetUserByEmail(string email);
     }
 }

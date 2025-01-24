@@ -2,8 +2,8 @@
 
 namespace VendersCloud.Business.Entities.DataModels
 {
-    [Alias(Name="[User]")]
-    public class User :IEntityKey
+    [Alias(Name="[Users]")]
+    public class Users :IEntityKey
     {
         [Key(AutoNumber=true)]
         public int Id { get; set; }
@@ -18,5 +18,6 @@ namespace VendersCloud.Business.Entities.DataModels
         public string Password { get; set; }
         public string UserId { get; set; }  
         public string RoleType {  get; set; }
+        public string PasswordSalt { get; set; }
     }
 }
