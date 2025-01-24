@@ -87,7 +87,8 @@ namespace VendersCloud.Business.Service.Concrete
 
             try
             {
-                string userId = usersign.Email;
+                string random = "user-"+Guid.NewGuid().ToString().Substring(0, 16).Replace("-","");
+                string userId = random; 
                 var oldpass = usersign.Password;
                 // Create the user
                 var userCreationResult = await CreateUserAsync(usersign, userId);
