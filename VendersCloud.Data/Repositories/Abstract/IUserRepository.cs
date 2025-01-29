@@ -9,7 +9,7 @@ namespace VendersCloud.Data.Repositories.Abstract
         Task<IEnumerable<Users>> GetAllUsersInfoAsync();
         Task<Users> UserLoginAsync(UserLoginRequestModel loginRequest);
         Task<string> UpsertAsync(UserSignUpRequestModel usersign, string userId, string passwordSalt);
-        Task<bool> AddInformationAsync(CompanyInfoRequestModel companyInfo);
+        Task<bool> UpdateRoleAsync(string userId, string roleType);
         Task<IEnumerable<Users>> GetUserDetailsByUserIdAsync(string userId);
         Task<IEnumerable<Users>> GetUserDetailsByRoleTypeAsync(string userId, string roletype);
         Task<IEnumerable<Users>> GetUserDetailsByRoleAsync(string roletype);
