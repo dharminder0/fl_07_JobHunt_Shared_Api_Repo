@@ -95,6 +95,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                     Where 
                     CompanyCode = @companyCode";
 
+
                 var rowsAffected = await ExecuteAsync(sql, new
                 {
                     Phone,

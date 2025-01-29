@@ -139,8 +139,6 @@ namespace VendersCloud.Data.Repositories.Concrete
             string sql = @"
                  UPDATE [USERS]
                  SET
-                     Email = @Mail,
-                     Phone = @Phone,
                      RoleType = @RoleType,
                      CreatedOn = GETDATE(),
                      UpdatedOn = GETDATE()
