@@ -124,6 +124,25 @@ namespace VendersCloud.Data.Repositories.Concrete
             }
         }
 
+        public async Task<List<Users>> GetAllUserAsync()
+        {
+            try
+            {
+                var dbInstance = GetDbInstance();
+                var sql = "SELECT * FROM Users";
+
+                var users = dbInstance.Select<Users>(sql).ToList();
+                return users;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception: {ex.Message}");
+                // Log the exception (optional)
+                return null;
+            }
+        }
+
+
     }
 
 }

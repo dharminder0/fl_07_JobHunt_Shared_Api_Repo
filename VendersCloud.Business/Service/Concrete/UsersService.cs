@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
+using System.Reflection;
+using VendersCloud.Business.Entities.DataModels;
 using VendersCloud.Business.Entities.Dtos;
 using VendersCloud.Business.Entities.RequestModels;
 using VendersCloud.Business.Entities.ResponseModels;
@@ -144,5 +147,43 @@ namespace VendersCloud.Business.Service.Concrete
                 return new ActionMessageResponse { Success = false, Message = ex.Message, Content = "" };
             }
         }
+
+        public async Task<List<UsersDto>> GetAllUserAsync()
+        {
+            try
+            {
+                List<UsersDto> userDtoList = new List<UsersDto>();
+                var response = await _usersRepository.GetAllUserAsync();
+                if (response != null)
+                {
+                    foreach (var dbUser in response)
+                    {
+                        UsersDto userDto = new UsersDto()
+                        {
+                            Id = dbUser.Id,
+                            FirstName = dbUser.FirstName,
+                            LastName = dbUser.LastName,
+                            UserName = dbUser.UserName,
+                            OrgCode = dbUser.OrgCode,
+                            Gender = dbUser.Gender,
+                            IsVerified = dbUser.IsVerified,
+                            ProfileAvatar = dbUser.ProfileAvatar,
+                            CreatedOn = dbUser.CreatedOn,
+                            UpdatedOn = dbUser.UpdatedOn,
+                            LastLoginTime = dbUser.LastLoginTime,
+                            IsDeleted = dbUser.IsDeleted
+                        };
+                        userDtoList.Add(userDto);
+                    }
+                }
+                return userDtoList;
+            }
+            catch (Exception ex)
+            {
+                // Log the exception or handle it accordingly
+                return null;
+            }
+        }
+
     }
 }
