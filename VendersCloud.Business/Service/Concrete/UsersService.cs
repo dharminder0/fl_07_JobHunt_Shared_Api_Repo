@@ -40,14 +40,46 @@ namespace VendersCloud.Business.Service.Concrete
                         registration.UserEmail = request.Email;
                         return new ActionMessageResponse { Success = true, Message = "New Client Registered Successfully!!", Content = registration };
                     }
-                    return new ActionMessageResponse { Success = false, Message = "Not Added" };
+                    return new ActionMessageResponse { Success = false, Message = "Not Added",Content="" };
                 }
-                return new ActionMessageResponse { Success = false, Message = "Not Added" };
+                return new ActionMessageResponse { Success = false, Message = "Not Added", Content = "" };
             }
             catch (Exception ex)
             {
-                return new ActionMessageResponse { Success = false, Message = "Not Added" };
+                return new ActionMessageResponse { Success = false, Message = "Not Added" , Content = "" };
 
+            }
+        }
+
+        public async Task<ActionMessageResponse> LoginUserAsync(LoginRequest request)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
+                {
+                    return new ActionMessageResponse { Success = false, Message = "Inputs cannot be Empty/Null", Content = "" };
+                }
+                var dbUser = await _usersRepository.GetUserByEmailAsync(request.Email);
+                if(dbUser!=null && dbUser.PasswordSalt != null)
+                {
+                    var saltBytes = dbUser.PasswordSalt;
+                    string salt = Convert.ToBase64String(saltBytes);
+                    var hashedPassword = Hasher.HashPassword(salt, request.Password);
+                    if(hashedPassword== dbUser.Password)
+                    {
+                        LoginResponseDto login = new LoginResponseDto();
+                        login.UserId = dbUser.Id.ToString();
+                        login.Email = dbUser.UserName;
+                        login.OrgCode = dbUser.OrgCode;
+
+                        return new ActionMessageResponse { Success = true, Message = "Login SuccessFull!!", Content = login };
+                    }
+                }
+                return new ActionMessageResponse { Success = false, Message = "Not Valid User!!", Content = "" };
+            }
+            catch(Exception ex)
+            {
+                return new ActionMessageResponse { Success = false, Message = "Enter Valid Inputs!!!" };
             }
         }
     }

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using DapperExtensions;
+using Microsoft.Extensions.Configuration;
 using SqlKata;
 using SqlKata.Compilers;
 using SqlKata.Execution;
@@ -74,6 +75,24 @@ namespace VendersCloud.Data.Repositories.Concrete
             catch (Exception ex)
             {
                 Console.WriteLine($"Error: {ex.Message}");
+                return null;
+            }
+        }
+
+        public async Task<Users> GetUserByEmailAsync(string email)
+        {
+            try
+            {
+                return await GetByAsync(new PredicateGroup
+                {
+                    Operator = GroupOperator.And,
+                    Predicates = new List<IPredicate> { Predicates.Field<Users>(f=>f.UserName,Operator.Eq,email) }
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception: {ex.Message}");
+                // Log the exception (optional)
                 return null;
             }
         }

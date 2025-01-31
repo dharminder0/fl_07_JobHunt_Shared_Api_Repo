@@ -6,5 +6,6 @@ namespace VendersCloud.Data.Repositories.Abstract
     public interface IUsersRepository : IBaseRepository<Users>
     {
         Task<string> InsertUserAsync(RegistrationRequest request, string hashedPassword, byte[] salt, string orgCode);
+        Task<Users> GetUserByEmailAsync(string email);
     }
 }
