@@ -162,6 +162,26 @@ namespace VendersCloud.Data.Repositories.Concrete
 
         }
 
+        public async Task<Users> GetUserByIdAsync(int Id)
+        {
+            try
+            {
+                return await GetByAsync(new PredicateGroup
+                {
+                    Operator = GroupOperator.And,
+                    Predicates = new List<IPredicate> {
+                        Predicates.Field<Users>(f=>f.Id,Operator.Eq,Id),
+                        Predicates.Field<Users>(f=>f.IsDeleted,Operator.Eq,false),
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception: {ex.Message}");
+                // Log the exception (optional)
+                return null;
+            }
+        }
     }
 
 }

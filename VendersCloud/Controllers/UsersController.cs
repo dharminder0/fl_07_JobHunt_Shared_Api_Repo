@@ -127,5 +127,25 @@ namespace VendersCloud.WebApi.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [HttpPost]
+        [Route("api/V1/users/Profile/Upsert")]
+
+        public async Task<IActionResult> UpsertUserProfileAsync(int userId, int profileId)
+        {
+            try
+            {
+                var result= await _userService.UpsertUserProfileAsync(userId, profileId);
+                return Json(result);
+            }
+            catch (Exception ex) 
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }

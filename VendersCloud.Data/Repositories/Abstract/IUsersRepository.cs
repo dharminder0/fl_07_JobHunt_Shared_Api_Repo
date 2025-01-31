@@ -10,5 +10,6 @@ namespace VendersCloud.Data.Repositories.Abstract
         Task<bool> DeleteUserByEmailAndOrgCodeAsync(string email, string organizationCode);
         Task<List<Users>> GetAllUserAsync();
         Task<List<Users>> GetUserByOrgCodeAsync(string orgCode);
+        Task<Users> GetUserByIdAsync(int Id);
     }
 }
