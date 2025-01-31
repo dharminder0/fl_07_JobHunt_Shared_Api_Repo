@@ -1,4 +1,5 @@
-﻿using VendersCloud.Business.Entities.RequestModels;
+﻿using VendersCloud.Business.Entities.Dtos;
+using VendersCloud.Business.Entities.RequestModels;
 using VendersCloud.Business.Entities.ResponseModels;
 using VendersCloud.Business.Service.Abstract;
 using VendersCloud.Common.Utils;
@@ -33,7 +34,11 @@ namespace VendersCloud.Business.Service.Concrete
                     var data = await _usersRepository.InsertUserAsync(request, hashedPassword, saltBytes, orgCode);
                     if (data != null)
                     {
-                        return new ActionMessageResponse { Success = true, Message = "New Client Registered Successfully!!", Content = data };
+                        RegistrationDto registration= new RegistrationDto();
+                        registration.UserId = data;
+                        registration.CompanyCode = orgCode;
+                        registration.UserEmail = request.Email;
+                        return new ActionMessageResponse { Success = true, Message = "New Client Registered Successfully!!", Content = registration };
                     }
                     return new ActionMessageResponse { Success = false, Message = "Not Added" };
                 }

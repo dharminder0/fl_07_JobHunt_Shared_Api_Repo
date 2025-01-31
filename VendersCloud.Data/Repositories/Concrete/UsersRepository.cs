@@ -40,7 +40,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                             Password = hashedPassword,
                             PasswordSalt = salt,
                             Username= request.Email,
-                            UpdateOn=DateTime.UtcNow,
+                            UpdatedOn=DateTime.UtcNow,
                             LastLoginTime= DateTime.UtcNow
                         })
                         .Where("OrgCode", orgCode);
