@@ -1,10 +1,7 @@
 ﻿using DapperExtensions;
 using Microsoft.Extensions.Configuration;
 using SqlKata;
-using SqlKata.Compilers;
-using SqlKata.Execution;
 using VendersCloud.Business.Entities.DataModels;
-using VendersCloud.Business.Entities.Dtos;
 using VendersCloud.Business.Entities.RequestModels;
 using VendersCloud.Data.Data;
 using VendersCloud.Data.Repositories.Abstract;
@@ -27,6 +24,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                 var query = new Query(tableName.TableName)
                     .Where("OrgCode", orgCode)
                     .Where("Username",request.Email)
+                    .Where("IsDeleted",false)
                     .Select("Id")
                     .Select("OrgCode");
 
@@ -42,7 +40,8 @@ namespace VendersCloud.Data.Repositories.Concrete
                             PasswordSalt = salt,
                             Username= request.Email,
                             UpdatedOn=DateTime.UtcNow,
-                            LastLoginTime= DateTime.UtcNow
+                            LastLoginTime= DateTime.UtcNow,
+                            IsDeleted=false
                         })
                         .Where("OrgCode", orgCode);
 
@@ -59,7 +58,8 @@ namespace VendersCloud.Data.Repositories.Concrete
                     Username = request.Email,
                     CreatedOn = DateTime.UtcNow,
                     UpdatedOn = DateTime.UtcNow,
-                    LastLoginTime = DateTime.UtcNow
+                    LastLoginTime = DateTime.UtcNow,
+                    IsDeleted=false
                 });
 
                 var insertedUserId = await dbInstance.ExecuteScalarAsync<string>(insertQuery);
@@ -86,7 +86,10 @@ namespace VendersCloud.Data.Repositories.Concrete
                 return await GetByAsync(new PredicateGroup
                 {
                     Operator = GroupOperator.And,
-                    Predicates = new List<IPredicate> { Predicates.Field<Users>(f=>f.UserName,Operator.Eq,email) }
+                    Predicates = new List<IPredicate> { 
+                        Predicates.Field<Users>(f=>f.UserName,Operator.Eq,email),
+                        Predicates.Field<Users>(f=>f.IsDeleted,Operator.Eq,false),
+                    }
                 });
             }
             catch (Exception ex)
@@ -94,6 +97,30 @@ namespace VendersCloud.Data.Repositories.Concrete
                 Console.WriteLine($"Exception: {ex.Message}");
                 // Log the exception (optional)
                 return null;
+            }
+        }
+
+        public async Task<bool> DeleteUserByEmailAndOrgCodeAsync(string email, string organizationCode)
+        {
+            try
+            {
+                var dbInstance = GetDbInstance();
+                var tableName = new Table<Users>();
+                var updateQuery = new Query(tableName.TableName)
+                        .AsUpdate(new
+                        {
+                            IsDeleted = true,
+                            UpdatedOn = DateTime.UtcNow,
+                            LastLoginTime = DateTime.UtcNow
+                        })
+                        .Where("UserName", email)
+                        .Where("OrgCode", organizationCode);
+
+                await dbInstance.ExecuteAsync(updateQuery);
+                return true;
+            }
+            catch (Exception ex) {
+                return false;
             }
         }
 

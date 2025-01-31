@@ -20,6 +20,7 @@ namespace VendersCloud.Data.Repositories.Concrete
 
                 var query = new Query(tableName.TableName)
                     .Where("Email", request.Email)
+                    .Where("IsDeleted",false)
                     .Select("OrgCode");
 
                 var existingOrgCode = await dbInstance.ExecuteScalarAsync<string>(query);
@@ -34,12 +35,14 @@ namespace VendersCloud.Data.Repositories.Concrete
                     OrgName = request.CompanyName,
                     Email = request.Email,
                     CreatedOn = DateTime.UtcNow,
-                    UpdatedOn = DateTime.UtcNow
+                    UpdatedOn = DateTime.UtcNow,
+                    IsDeleted = false
                 });
 
                 var insertedOrgCode = await dbInstance.ExecuteScalarAsync<string>(insertQuery);
                 var query2 = new Query(tableName.TableName)
                     .Where("Email", request.Email)
+                    .Where("IsDeleted", false)
                     .Select("OrgCode");
 
                 var existingOrgCode2 = await dbInstance.ExecuteScalarAsync<string>(query);
