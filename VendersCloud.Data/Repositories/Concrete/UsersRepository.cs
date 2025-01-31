@@ -26,7 +26,8 @@ namespace VendersCloud.Data.Repositories.Concrete
                 var query = new Query(tableName.TableName)
                     .Where("OrgCode", orgCode)
                     .Where("Username",request.Email)
-                    .Select("Id");
+                    .Select("Id")
+                    .Select("OrgCode");
 
                 var existingOrgCode = await dbInstance.ExecuteScalarAsync<string>(query);
 
@@ -56,14 +57,14 @@ namespace VendersCloud.Data.Repositories.Concrete
                     PasswordSalt = salt,
                     Username = request.Email,
                     CreatedOn = DateTime.UtcNow,
-                    UpdateOn = DateTime.UtcNow,
+                    UpdatedOn = DateTime.UtcNow,
                     LastLoginTime = DateTime.UtcNow
                 });
 
                 var insertedUserId = await dbInstance.ExecuteScalarAsync<string>(insertQuery);
 
                 // Re-fetch to ensure insertion
-                var query2 = new Query(tableName.TableName)
+                var query2 = new Query(tableName.TableName).Where("Username",request.Email).Where("OrgCode", orgCode)
                     .Select("Id");
 
                 var insertedOrgCode = await dbInstance.ExecuteScalarAsync<string>(query2);

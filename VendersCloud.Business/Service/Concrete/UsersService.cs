@@ -25,13 +25,17 @@ namespace VendersCloud.Business.Service.Concrete
                     return new ActionMessageResponse { Success = false, Message = "Values can't be null/empty" };
                 }
                 var orgCode = await _organizationService.RegisterNewOrganizationAsync(request);
-                string salt = Hasher.GenerateSalt();
-                byte[] saltBytes = Convert.FromBase64String(salt);
-                var hashedPassword= Hasher.HashPassword(salt, request.Password);
-                var data= await _usersRepository.InsertUserAsync(request, hashedPassword, saltBytes, orgCode);
-                if (data != null)
+                if (orgCode != null)
                 {
-                    return new ActionMessageResponse { Success = true, Message = "New User Added!!", Content = data };
+                    string salt = Hasher.GenerateSalt();
+                    byte[] saltBytes = Convert.FromBase64String(salt);
+                    var hashedPassword = Hasher.HashPassword(salt, request.Password);
+                    var data = await _usersRepository.InsertUserAsync(request, hashedPassword, saltBytes, orgCode);
+                    if (data != null)
+                    {
+                        return new ActionMessageResponse { Success = true, Message = "New Client Registered Successfully!!", Content = data };
+                    }
+                    return new ActionMessageResponse { Success = false, Message = "Not Added" };
                 }
                 return new ActionMessageResponse { Success = false, Message = "Not Added" };
             }
