@@ -3,13 +3,9 @@ using Microsoft.OpenApi.Models;
 using NetCore.AutoRegisterDi;
 using System.Reflection;
 using VendersCloud.Business;
-using VendersCloud.Business.Service.Abstract;
-using VendersCloud.Business.Service.Concrete;
 using VendersCloud.Common.Configuration;
 using VendersCloud.Common.Settings;
 using VendersCloud.Common.Utils;
-using VendersCloud.Data.Repositories.Abstract;
-using VendersCloud.Data.Repositories.Concrete;
 using ConfigurationManager = VendersCloud.Common.Configuration.ConfigurationManager;
 
 namespace VendersCloud.WebApi

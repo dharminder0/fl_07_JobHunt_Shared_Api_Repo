@@ -1,23 +1,34 @@
-﻿using VendersCloud.Business.Entities.Abstract;
+﻿using DapperExtensions.Mapper;
+using VendersCloud.Business.Entities.Abstract;
 
 namespace VendersCloud.Business.Entities.DataModels
 {
-    [Alias(Name="[Users]")]
+    [Alias(Name = "Users")]
     public class Users :IEntityKey
     {
-        [Key(AutoNumber=true)]
         public int Id { get; set; }
-        public string Token { get; set; }
-        public string Email { get; set; }
-        public string Phone { get; set; }
-        public string FirstName { get; set; }
+        public string FirstName {  get; set; }
         public string LastName { get; set; }
+        public string UserName { get; set; }
+        public string OrgCode { get; set; }
+        public string Token { get; set; }
+        public string Password {  get; set; }
+        public string PasswordSalt { get; set; }
+        public string Gender {  get; set; }
+        public bool IsVerified {  get; set; }
+        public string ProfileAvatar {  get; set; }
         public DateTime CreatedOn { get; set; }
         public DateTime UpdatedOn { get; set; }
-        public DateTime LastLoginTime { get; set; }
-        public string Password { get; set; }
-        public string UserId { get; set; }  
-        public string RoleType {  get; set; }
-        public string PasswordSalt { get; set; }
+        public DateTime LastLoginTime {  get; set; }
+        public bool IsDeleted { get; set; }
+    }
+
+    public class UserMapper : ClassMapper<Users>
+    {
+        public UserMapper()
+        {
+            Table("users");
+            AutoMap();
+        }
     }
 }
