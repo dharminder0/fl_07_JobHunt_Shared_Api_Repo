@@ -107,5 +107,25 @@ namespace VendersCloud.WebApi.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [HttpGet]
+        [Route("api/V1/{orgCode}/users")]
+
+        public async Task<IActionResult> GetUserByOrgCodeAsync(string orgCode)
+        {
+            try
+            {
+                var result = await _userService.GetUserByOrgCodeAsync(orgCode);
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }

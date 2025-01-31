@@ -1,8 +1,4 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
-using System.Reflection;
-using VendersCloud.Business.Entities.DataModels;
-using VendersCloud.Business.Entities.Dtos;
+﻿using VendersCloud.Business.Entities.Dtos;
 using VendersCloud.Business.Entities.RequestModels;
 using VendersCloud.Business.Entities.ResponseModels;
 using VendersCloud.Business.Service.Abstract;
@@ -185,5 +181,45 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
+        public async Task<ActionMessageResponse> GetUserByOrgCodeAsync(string orgCode)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(orgCode))
+                {
+                    return new ActionMessageResponse { Success = false, Message = "Inputs cannot be Empty/Null", Content = "" };
+                }
+                List<UsersDto> userDtoList = new List<UsersDto>();
+                var dbUser = await _usersRepository.GetUserByOrgCodeAsync(orgCode);
+                if (dbUser == null)
+                {
+                    return new ActionMessageResponse { Success = false, Message = "User Not Found!!", Content = "" };
+                }
+                foreach (var user in dbUser)
+                {
+                    UsersDto userDto = new UsersDto()
+                    {
+                        Id = user.Id,
+                        FirstName = user.FirstName,
+                        LastName = user.LastName,
+                        UserName = user.UserName,
+                        OrgCode = user.OrgCode,
+                        Gender = user.Gender,
+                        IsVerified = user.IsVerified,
+                        ProfileAvatar = user.ProfileAvatar,
+                        CreatedOn = user.CreatedOn,
+                        UpdatedOn = user.UpdatedOn,
+                        LastLoginTime = user.LastLoginTime,
+                        IsDeleted = user.IsDeleted
+                    };
+                    userDtoList.Add(userDto);
+                }
+                return new ActionMessageResponse { Success = false, Message = "User  Found!!", Content = userDtoList };
+            }
+            catch (Exception ex)
+            {
+                return new ActionMessageResponse { Success = false, Message = ex.Message, Content = "" };
+            }
+        }
     }
 }
