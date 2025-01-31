@@ -6,5 +6,6 @@ namespace VendersCloud.Business.Service.Abstract
     public interface IUsersService
     {
         Task<ActionMessageResponse> RegisterNewUserAsync(RegistrationRequest request);
+        Task<ActionMessageResponse> LoginUserAsync(LoginRequest request);
     }
 }

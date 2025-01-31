@@ -13,7 +13,7 @@ namespace VendersCloud.Business.Entities.DataModels
         public string OrgCode { get; set; }
         public string Token { get; set; }
         public string Password {  get; set; }
-        public string PasswordSalt { get; set; }
+        public byte[] PasswordSalt { get; set; }
         public string Gender {  get; set; }
         public bool IsVerified {  get; set; }
         public string ProfileAvatar {  get; set; }
