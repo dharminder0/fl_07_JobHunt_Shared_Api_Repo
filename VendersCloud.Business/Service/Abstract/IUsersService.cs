@@ -7,5 +7,7 @@ namespace VendersCloud.Business.Service.Abstract
     {
         Task<ActionMessageResponse> RegisterNewUserAsync(RegistrationRequest request);
         Task<ActionMessageResponse> LoginUserAsync(LoginRequest request);
+        Task<ActionMessageResponse> DeleteUserAsync(string email, string organizationCode);
+        Task<ActionMessageResponse> GetUserByEmailAsync(string email);
     }
 }

@@ -1,4 +1,5 @@
-﻿using VendersCloud.Business.Entities.Dtos;
+﻿using Microsoft.AspNetCore.Mvc;
+using VendersCloud.Business.Entities.Dtos;
 using VendersCloud.Business.Entities.RequestModels;
 using VendersCloud.Business.Entities.ResponseModels;
 using VendersCloud.Business.Service.Abstract;
@@ -80,6 +81,67 @@ namespace VendersCloud.Business.Service.Concrete
             catch(Exception ex)
             {
                 return new ActionMessageResponse { Success = false, Message = "Enter Valid Inputs!!!" };
+            }
+        }
+
+        public async Task<ActionMessageResponse> DeleteUserAsync( string email, string organizationCode)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(organizationCode))
+                {
+                    return new ActionMessageResponse { Success = false, Message = "Inputs cannot be Empty/Null", Content = "" };
+                }
+                var dbUser = await _usersRepository.GetUserByEmailAsync(email);
+                if (dbUser == null) {
+                    return new ActionMessageResponse { Success = false, Message = "User Not Found!!", Content = "" };
+                }
+                var response= await _usersRepository.DeleteUserByEmailAndOrgCodeAsync(email, organizationCode);
+                if (response)
+                {
+                    return new ActionMessageResponse { Success = true, Message = "User Deleted Successfully", Content = "" };
+                }
+                return new ActionMessageResponse { Success = false, Message = "User Not Deleted Successfully", Content = "" };
+
+            }
+            catch (Exception ex) {
+                return new ActionMessageResponse { Success = false, Message = ex.Message, Content = "" };
+            }
+
+        }
+
+        public async Task<ActionMessageResponse> GetUserByEmailAsync(string email)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(email))
+                {
+                    return new ActionMessageResponse { Success = false, Message = "Inputs cannot be Empty/Null", Content = "" };
+                }
+                var dbUser = await _usersRepository.GetUserByEmailAsync(email);
+                if (dbUser == null)
+                {
+                    return new ActionMessageResponse { Success = false, Message = "User Not Found!!", Content = "" };
+                }
+                UsersDto userdto = new UsersDto
+                {
+                    Id = dbUser.Id,
+                    FirstName = dbUser.FirstName,
+                    LastName = dbUser.LastName,
+                    UserName = dbUser.UserName,
+                    OrgCode = dbUser.OrgCode,
+                    Gender = dbUser.Gender,
+                    IsVerified = dbUser.IsVerified,
+                    ProfileAvatar = dbUser.ProfileAvatar,
+                    CreatedOn = dbUser.CreatedOn,
+                    UpdatedOn = dbUser.UpdatedOn,
+                    LastLoginTime = dbUser.LastLoginTime,
+                    IsDeleted = dbUser.IsDeleted
+                };
+                return new ActionMessageResponse { Success = false, Message = "User  Found!!", Content = userdto };
+            }
+            catch (Exception ex) {
+                return new ActionMessageResponse { Success = false, Message = ex.Message, Content = "" };
             }
         }
     }
