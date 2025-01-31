@@ -8,5 +8,6 @@ namespace VendersCloud.Data.Repositories.Abstract
         Task<string> InsertUserAsync(RegistrationRequest request, string hashedPassword, byte[] salt, string orgCode);
         Task<Users> GetUserByEmailAsync(string email);
         Task<bool> DeleteUserByEmailAndOrgCodeAsync(string email, string organizationCode);
+        Task<List<Users>> GetAllUserAsync();
     }
 }
