@@ -11,5 +11,6 @@ namespace VendersCloud.Business.Service.Abstract
         Task<ActionMessageResponse> DeleteUserAsync(string email, string organizationCode);
         Task<ActionMessageResponse> GetUserByEmailAsync(string email);
         Task<List<UsersDto>> GetAllUserAsync();
+        Task<ActionMessageResponse> GetUserByOrgCodeAsync(string orgCode);
     }
 }

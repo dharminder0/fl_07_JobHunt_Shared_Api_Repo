@@ -23,8 +23,8 @@ namespace VendersCloud.Data.Repositories.Concrete
                 // Check if the organization exists in USERS table
                 var query = new Query(tableName.TableName)
                     .Where("OrgCode", orgCode)
-                    .Where("Username",request.Email)
-                    .Where("IsDeleted",false)
+                    .Where("Username", request.Email)
+                    .Where("IsDeleted", false)
                     .Select("Id")
                     .Select("OrgCode");
 
@@ -38,10 +38,10 @@ namespace VendersCloud.Data.Repositories.Concrete
                         {
                             Password = hashedPassword,
                             PasswordSalt = salt,
-                            Username= request.Email,
-                            UpdatedOn=DateTime.UtcNow,
-                            LastLoginTime= DateTime.UtcNow,
-                            IsDeleted=false
+                            Username = request.Email,
+                            UpdatedOn = DateTime.UtcNow,
+                            LastLoginTime = DateTime.UtcNow,
+                            IsDeleted = false
                         })
                         .Where("OrgCode", orgCode);
 
@@ -59,13 +59,13 @@ namespace VendersCloud.Data.Repositories.Concrete
                     CreatedOn = DateTime.UtcNow,
                     UpdatedOn = DateTime.UtcNow,
                     LastLoginTime = DateTime.UtcNow,
-                    IsDeleted=false
+                    IsDeleted = false
                 });
 
                 var insertedUserId = await dbInstance.ExecuteScalarAsync<string>(insertQuery);
 
                 // Re-fetch to ensure insertion
-                var query2 = new Query(tableName.TableName).Where("Username",request.Email).Where("OrgCode", orgCode)
+                var query2 = new Query(tableName.TableName).Where("Username", request.Email).Where("OrgCode", orgCode)
                     .Select("Id");
 
                 var insertedOrgCode = await dbInstance.ExecuteScalarAsync<string>(query2);
@@ -86,7 +86,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                 return await GetByAsync(new PredicateGroup
                 {
                     Operator = GroupOperator.And,
-                    Predicates = new List<IPredicate> { 
+                    Predicates = new List<IPredicate> {
                         Predicates.Field<Users>(f=>f.UserName,Operator.Eq,email),
                         Predicates.Field<Users>(f=>f.IsDeleted,Operator.Eq,false),
                     }
@@ -119,7 +119,8 @@ namespace VendersCloud.Data.Repositories.Concrete
                 await dbInstance.ExecuteAsync(updateQuery);
                 return true;
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 return false;
             }
         }
@@ -142,6 +143,24 @@ namespace VendersCloud.Data.Repositories.Concrete
             }
         }
 
+        public async Task<List<Users>> GetUserByOrgCodeAsync(string orgCode)
+        {
+            try
+            {
+                var dbInstance = GetDbInstance();
+                var sql = "SELECT * FROM Users Where OrgCode=@orgCode";
+
+                var users = dbInstance.Select<Users>(sql, new {orgCode}).ToList();
+                return users;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception: {ex.Message}");
+                // Log the exception (optional)
+                return null;
+            }
+
+        }
 
     }
 
