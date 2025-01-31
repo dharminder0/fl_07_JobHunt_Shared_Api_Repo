@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using VendersCloud.Business.Entities.DataModels;
 using VendersCloud.Business.Entities.RequestModels;
 using VendersCloud.Business.Service.Abstract;
 using VendersCloud.Data.Repositories.Abstract;
@@ -41,5 +42,17 @@ namespace VendersCloud.Business.Service.Concrete
             return result.ToString();
         }
 
+        public async Task<Organization> GetOrganizationDataAsync(string orgCode)
+        {
+            try
+            {
+                var response = await _organizationRepository.GetOrganizationData(orgCode);
+                return response;
+            }
+            catch(Exception ex)
+            {
+                return null;
+            }
+        }
     }
 }

@@ -12,5 +12,6 @@ namespace VendersCloud.Business.Service.Abstract
         Task<ActionMessageResponse> GetUserByEmailAsync(string email);
         Task<List<UsersDto>> GetAllUserAsync();
         Task<ActionMessageResponse> GetUserByOrgCodeAsync(string orgCode);
+        Task<ActionMessageResponse> UpsertUserProfileAsync(int userId, int profileId);
     }
 }

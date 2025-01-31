@@ -1,9 +1,13 @@
-﻿using VendersCloud.Business.Entities.Dtos;
+﻿using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
+using VendersCloud.Business.Entities.DataModels;
+using VendersCloud.Business.Entities.Dtos;
 using VendersCloud.Business.Entities.RequestModels;
 using VendersCloud.Business.Entities.ResponseModels;
 using VendersCloud.Business.Service.Abstract;
 using VendersCloud.Common.Utils;
 using VendersCloud.Data.Repositories.Abstract;
+using static VendersCloud.Data.Enum.Enum;
 
 namespace VendersCloud.Business.Service.Concrete
 {
@@ -11,10 +15,12 @@ namespace VendersCloud.Business.Service.Concrete
     {
         private readonly IUsersRepository _usersRepository;
         private readonly IOrganizationService _organizationService;
-        public UsersService(IUsersRepository usersRepository, IOrganizationService organizationService)
+        private readonly IUserProfilesService _userProfilesService;
+        public UsersService(IUsersRepository usersRepository, IOrganizationService organizationService, IUserProfilesService userProfilesService)
         {
             _usersRepository = usersRepository;
             _organizationService = organizationService;
+            _userProfilesService= userProfilesService;
         }
 
         public async Task<ActionMessageResponse>RegisterNewUserAsync(RegistrationRequest request)
@@ -65,12 +71,18 @@ namespace VendersCloud.Business.Service.Concrete
                     var saltBytes = dbUser.PasswordSalt;
                     string salt = Convert.ToBase64String(saltBytes);
                     var hashedPassword = Hasher.HashPassword(salt, request.Password);
-                    if(hashedPassword== dbUser.Password)
+                    var userProfileRole = await _userProfilesService.GetProfileRole(dbUser.Id);
+                    var companyData = await _organizationService.GetOrganizationDataAsync(dbUser.OrgCode);
+                    string roleName = Enum.GetName(typeof(RoleType), userProfileRole);
+                    if (hashedPassword== dbUser.Password)
                     {
                         LoginResponseDto login = new LoginResponseDto();
                         login.UserId = dbUser.Id.ToString();
                         login.Email = dbUser.UserName;
                         login.OrgCode = dbUser.OrgCode;
+                        login.Role = roleName;
+                        login.CompanyIcon = companyData.Logo;
+                        login.CompanyName = companyData.OrgName;
 
                         return new ActionMessageResponse { Success = true, Message = "Login SuccessFull!!", Content = login };
                     }
@@ -215,6 +227,28 @@ namespace VendersCloud.Business.Service.Concrete
                     userDtoList.Add(userDto);
                 }
                 return new ActionMessageResponse { Success = false, Message = "User  Found!!", Content = userDtoList };
+            }
+            catch (Exception ex)
+            {
+                return new ActionMessageResponse { Success = false, Message = ex.Message, Content = "" };
+            }
+        }
+
+        public async Task<ActionMessageResponse> UpsertUserProfileAsync( int userId, int profileId)
+        {
+            try
+            {
+                if (userId < 0 || profileId < 0)
+                {
+                    return new ActionMessageResponse { Success = false, Message = "Inputs cannot be Empty/Null", Content = "" };
+                }
+                var userData = await _usersRepository.GetUserByIdAsync(userId);
+                if (userData == null)
+                {
+                    return new ActionMessageResponse { Success = false, Message = "UserId is not valid ", Content = "" };
+                }
+                var response = await _userProfilesService.UpsertUserProfileAsync(userId, profileId);
+                return new ActionMessageResponse { Success = true, Message = "", Content = true };
             }
             catch (Exception ex)
             {

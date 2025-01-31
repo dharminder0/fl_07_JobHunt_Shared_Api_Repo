@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using DapperExtensions;
+using Microsoft.Extensions.Configuration;
 using SqlKata;
 using VendersCloud.Business.Entities.DataModels;
 using VendersCloud.Business.Entities.RequestModels;
@@ -61,6 +62,24 @@ namespace VendersCloud.Data.Repositories.Concrete
             }
         }
 
+        public async Task<Organization> GetOrganizationData(string orgCode)
+        {
+            try
+            {
+                return await GetByAsync(new PredicateGroup
+                {
+                    Operator = GroupOperator.And,
+                    Predicates = new List<IPredicate> {
+                        Predicates.Field<Organization>(f=>f.OrgCode,Operator.Eq,orgCode),
+                        Predicates.Field<Organization>(f=>f.IsDeleted,Operator.Eq,false),
+                    }
+                });
+            }
+            catch(Exception ex)
+            {
+                return null;
+            }
+        }
 
     }
 

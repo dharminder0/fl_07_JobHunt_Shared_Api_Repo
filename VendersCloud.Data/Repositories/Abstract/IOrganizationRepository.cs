@@ -6,5 +6,6 @@ namespace VendersCloud.Data.Repositories.Abstract
     public interface IOrganizationRepository:IBaseRepository<Organization>
     {
         Task<string> RegisterNewOrganizationAsync(RegistrationRequest request, string OrgCode);
+        Task<Organization> GetOrganizationData(string orgCode);
     }
 }

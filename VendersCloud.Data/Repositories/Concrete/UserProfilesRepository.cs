@@ -1,5 +1,8 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using AutoMapper;
+using Microsoft.Extensions.Configuration;
+using SqlKata;
 using VendersCloud.Business.Entities.DataModels;
+using VendersCloud.Data.Data;
 using VendersCloud.Data.Repositories.Abstract;
 
 namespace VendersCloud.Data.Repositories.Concrete
@@ -8,7 +11,69 @@ namespace VendersCloud.Data.Repositories.Concrete
     {
         public UserProfilesRepository(IConfiguration configuration):base(configuration)
         {
-
         }
+
+        public async Task<bool> UpsertUserProfileAsync(int userId, int profileId)
+        {
+            try
+            {
+                var dbInstance = GetDbInstance();
+                var tableName = new Table<UserProfiles>();
+
+                // Check if the user exists in USERS table
+                var query = new Query(tableName.TableName)
+                    .Where("UserId", userId)
+                    .Where("ProfileId", profileId)
+                    .Select("Id");
+
+                var existingOrgCode = await dbInstance.ExecuteScalarAsync<string>(query);
+
+                if (!string.IsNullOrEmpty(existingOrgCode))
+                {
+                    // Update existing user record
+                    var updateQuery = new Query(tableName.TableName)
+                        .AsUpdate(new
+                        {
+                            ProfileId = profileId,
+                        })
+                        .Where("UserId", userId);
+
+                    await dbInstance.ExecuteAsync(updateQuery);
+                    return true;
+                }
+
+                // Insert new user
+                var insertQuery = new Query(tableName.TableName).AsInsert(new
+                {
+                    UserId = userId,
+                    ProfileId = profileId,
+                    IsDeleted = false
+                });
+
+                await dbInstance.ExecuteScalarAsync<string>(insertQuery);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return false;
+            }
+        }
+
+
+        public async Task<int> GetProfileRole(int userId)
+        {
+            var dbInstance = GetDbInstance();
+            var tableName = new Table<UserProfiles>();
+
+            // Check if the user exists in USERS table
+            var query = new Query(tableName.TableName)
+                .Where("UserId", userId)
+                .Select("ProfileId");
+
+           return await dbInstance.ExecuteScalarAsync<int>(query);
+        }
+
     }
 }
