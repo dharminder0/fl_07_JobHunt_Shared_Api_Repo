@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using VendersCloud.Business.Entities.RequestModels;
 using VendersCloud.Business.Service.Abstract;
 
 namespace VendersCloud.WebApi.Controllers
@@ -49,5 +50,24 @@ namespace VendersCloud.WebApi.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        //[ProducesResponseType(StatusCodes.Status200OK)]
+        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
+        //[ProducesResponseType(StatusCodes.Status404NotFound)]
+        //[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        //[HttpPost]
+        //[Route("api/V1/Organization/AddInfo")]
+        //public async Task<IActionResult> AddOrganizationInfo(CompanyInfoRequest inforequest)
+        //{
+        //    try
+        //    {
+        //        var result = await _organizationService.AddOrganizationService(inforequest);
+        //        return Json(result);
+        //    }
+        //    catch(Exception ex)
+        //    {
+        //        return BadRequest(ex.Message);
+        //    }
+        //}
     }
 }
