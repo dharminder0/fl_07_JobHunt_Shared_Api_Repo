@@ -8,7 +8,7 @@ namespace VendersCloud.Business.Entities.DataModels
     {
         public int Id { get; set; }
         public string Title { get; set; }
-        public char OrgCode { get; set; }
+        public string OrgCode { get; set; }
         public string Description {  get; set; }
         public string Experience {  get; set; }
         public string Budget {  get; set; }
