@@ -44,9 +44,77 @@ namespace VendersCloud.Data.Repositories.Concrete
 
         protected SqlConnection GetConnection(string connectionName = null)
         {
-            return new SqlConnection(_configuration.GetConnectionString(connectionName ?? _connectionName));
+            try
+            {
+                var res= new SqlConnection(_configuration.GetConnectionString(connectionName ?? _connectionName));
+                if(res.ConnectionString== "")
+                {
+                    return GetConnectionv2(connectionName);
+                }
+                return res;
+            }
+            catch(Exception ex)
+            {
+                return GetConnectionv2(connectionName);
+            }
         }
-        
+        protected SqlConnection GetConnectionv2(string connectionName = null)
+        {
+            connectionName = connectionName ?? _connectionName;
+            var filePath = _configuration["FilePath"];
+            var connectionString = string.Empty;
+
+            Console.WriteLine($"ConnectionName: {connectionName}");
+            Console.WriteLine($"FilePath: {filePath}");
+
+            if (string.IsNullOrEmpty(filePath))
+            {
+                throw new ArgumentException("FilePath cannot be null or empty.");
+            }
+
+            if (File.Exists(filePath))
+            {
+                var json = File.ReadAllText(filePath);
+                var jsonObject = JObject.Parse(json);
+                Console.WriteLine($"JSON Object: {jsonObject}");
+
+                var connectionStrings = jsonObject["ConnectionStrings"];
+                if (connectionStrings != null)
+                {
+                    Console.WriteLine($"ConnectionStrings: {connectionStrings}");
+
+                    var token = connectionStrings[connectionName];
+                    if (token != null)
+                    {
+                        connectionString = token.ToString();
+                        Console.WriteLine($"ConnectionString: {connectionString}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"The given key '{connectionName}' was not present in the ConnectionStrings section of the JSON file.");
+                        throw new KeyNotFoundException($"The given key '{connectionName}' was not present in the ConnectionStrings section of the JSON file.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("The ConnectionStrings section is missing in the JSON file.");
+                    throw new KeyNotFoundException("The ConnectionStrings section is missing in the JSON file.");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"The JSON configuration file '{filePath}' does not exist.");
+                throw new FileNotFoundException($"The JSON configuration file '{filePath}' does not exist.");
+            }
+
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                throw new ArgumentException("ConnectionString cannot be null or empty.");
+            }
+
+            return new SqlConnection(connectionString);
+        }
+
         public QueryFactory GetDbInstance(string connectionName = null)
         {
             var connection = GetConnection(connectionName);
