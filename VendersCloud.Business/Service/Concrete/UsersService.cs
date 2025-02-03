@@ -73,14 +73,14 @@ namespace VendersCloud.Business.Service.Concrete
                     var hashedPassword = Hasher.HashPassword(salt, request.Password);
                     var userProfileRole = await _userProfilesService.GetProfileRole(dbUser.Id);
                     var companyData = await _organizationService.GetOrganizationDataAsync(dbUser.OrgCode);
-                    string roleName = Enum.GetName(typeof(RoleType), userProfileRole);
+                   // string roleName = Enum.GetName(typeof(RoleType), userProfileRole);
                     if (hashedPassword== dbUser.Password)
                     {
                         LoginResponseDto login = new LoginResponseDto();
                         login.UserId = dbUser.Id.ToString();
                         login.Email = dbUser.UserName;
                         login.OrgCode = dbUser.OrgCode;
-                        login.Role = roleName;
+                        login.Role = userProfileRole.ToString();
                         login.CompanyIcon = companyData.Logo;
                         login.CompanyName = companyData.OrgName;
 
