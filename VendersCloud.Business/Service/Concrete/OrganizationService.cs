@@ -1,18 +1,23 @@
-﻿using System;
+﻿using AutoMapper;
+using System;
 using System.Text;
 using VendersCloud.Business.Entities.DataModels;
+using VendersCloud.Business.Entities.Dtos;
 using VendersCloud.Business.Entities.RequestModels;
 using VendersCloud.Business.Entities.ResponseModels;
 using VendersCloud.Business.Service.Abstract;
 using VendersCloud.Data.Repositories.Abstract;
+using VendersCloud.Data.Repositories.Concrete;
 
 namespace VendersCloud.Business.Service.Concrete
 {
     public class OrganizationService : IOrganizationService
     {
         private readonly IOrganizationRepository _organizationRepository;
-        public OrganizationService(IOrganizationRepository organizationRepository) {
+        private readonly IUserProfilesRepository _userProfilesRepository;
+        public OrganizationService(IOrganizationRepository organizationRepository, IUserProfilesRepository userProfilesRepository) {
         _organizationRepository = organizationRepository;
+            _userProfilesRepository= userProfilesRepository;
         }
 
         public async Task<string> RegisterNewOrganizationAsync(RegistrationRequest request)
@@ -69,13 +74,70 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
-        //public async Task<ActionMessageResponse> AddOrganizationInfo(CompanyInfoRequest infoRequest)
-        //{
-        //    try
-        //    {
-        //        if(infoRequest == null)
-        //    }
-        //    catch (Exception ex) { }
-        //}
+        public async Task<ActionMessageResponse> AddOrganizationInfoAsync(CompanyInfoRequest infoRequest)
+        {
+            try
+            {
+                if (infoRequest == null)
+                {
+                    return new ActionMessageResponse() { Success = false, Message = "Values can't be null", Content = "" };
+                }
+                var dbUser= await GetUserByIdAsync(infoRequest.UserId);
+                if (dbUser != null)
+                {
+                    bool response = await _organizationRepository.UpdateOrganizationByOrgCodeAsync(infoRequest, dbUser.OrgCode);
+                    if (response) { 
+                        foreach(var item in infoRequest.registrationType)
+                        {
+                            var res = await _userProfilesRepository.InsertUserProfileAsync(infoRequest.UserId, item);
+                            
+                        }
+                       
+                        return new ActionMessageResponse() { Success = true, Message = "Organization Information is updated", Content = "" };
+                    }
+                    return new ActionMessageResponse() { Success = false, Message = "Organization Information is not updated", Content = "" };
+                }
+                return new ActionMessageResponse() { Success = false, Message = "Data not found!!", Content = "" };
+            }
+            catch (Exception ex) {
+                return new ActionMessageResponse() { Success = false, Message = ex.Message, Content = "" };
+            }
+        }
+
+        public async Task<UsersDto> GetUserByIdAsync(int userId)
+        {
+            try
+            {
+                if (userId <= 0)
+                {
+                    return null;
+                }
+                var dbUser = await _organizationRepository.GetUserByIdAsync(userId);
+                if (dbUser == null)
+                {
+                    return null;
+                }
+                UsersDto userdto = new UsersDto
+                {
+                    Id = dbUser.Id,
+                    FirstName = dbUser.FirstName,
+                    LastName = dbUser.LastName,
+                    UserName = dbUser.UserName,
+                    OrgCode = dbUser.OrgCode,
+                    Gender = dbUser.Gender,
+                    IsVerified = dbUser.IsVerified,
+                    ProfileAvatar = dbUser.ProfileAvatar,
+                    CreatedOn = dbUser.CreatedOn,
+                    UpdatedOn = dbUser.UpdatedOn,
+                    LastLoginTime = dbUser.LastLoginTime,
+                    IsDeleted = dbUser.IsDeleted
+                };
+                return userdto;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
     }
 }

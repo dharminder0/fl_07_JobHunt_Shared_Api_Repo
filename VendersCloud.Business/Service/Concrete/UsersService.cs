@@ -160,6 +160,41 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
+        public async Task<UsersDto> GetUserByIdAsync(int userId)
+        {
+            try
+            {
+                if (userId<=0)
+                {
+                    return null;
+                }
+                var dbUser = await _usersRepository.GetUserByIdAsync(userId);
+                if (dbUser == null)
+                {
+                    return  null;
+                }
+                UsersDto userdto = new UsersDto
+                {
+                    Id = dbUser.Id,
+                    FirstName = dbUser.FirstName,
+                    LastName = dbUser.LastName,
+                    UserName = dbUser.UserName,
+                    OrgCode = dbUser.OrgCode,
+                    Gender = dbUser.Gender,
+                    IsVerified = dbUser.IsVerified,
+                    ProfileAvatar = dbUser.ProfileAvatar,
+                    CreatedOn = dbUser.CreatedOn,
+                    UpdatedOn = dbUser.UpdatedOn,
+                    LastLoginTime = dbUser.LastLoginTime,
+                    IsDeleted = dbUser.IsDeleted
+                };
+                return userdto;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
         public async Task<List<UsersDto>> GetAllUserAsync()
         {
             try
@@ -251,7 +286,7 @@ namespace VendersCloud.Business.Service.Concrete
                 {
                     return new ActionMessageResponse { Success = false, Message = "UserId is not valid ", Content = "" };
                 }
-                var response = await _userProfilesService.UpsertUserProfileAsync(userId, profileId);
+                var response = await _userProfilesService.InsertUserProfileAsync(userId, profileId);
                 return new ActionMessageResponse { Success = true, Message = "", Content = true };
             }
             catch (Exception ex)
