@@ -87,6 +87,7 @@ namespace VendersCloud.Data.Repositories.Concrete
             }
         }
 
+       
         public async Task<bool> DeleteUserByEmailAndOrgCodeAsync(string email, string organizationCode)
         {
             try

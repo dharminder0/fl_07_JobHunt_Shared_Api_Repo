@@ -8,5 +8,7 @@ namespace VendersCloud.Data.Repositories.Abstract
         Task<string> RegisterNewOrganizationAsync(RegistrationRequest request, string OrgCode);
         Task<Organization> GetOrganizationData(string orgCode);
         Task<List<Organization>> GetOrganizationListAsync();
+        Task<bool> UpdateOrganizationByOrgCodeAsync(CompanyInfoRequest infoRequest, string orgCode);
+        Task<Users> GetUserByIdAsync(int Id);
     }
 }

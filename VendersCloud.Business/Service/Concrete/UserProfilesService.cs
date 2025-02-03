@@ -12,7 +12,7 @@ namespace VendersCloud.Business.Service.Concrete
             _userProfilesRepository= userProfilesRepository;
         }
 
-        public async Task<bool> UpsertUserProfileAsync(int userId, int profileId)
+        public async Task<bool> InsertUserProfileAsync(int userId, int profileId)
         {
             try
             {
@@ -20,7 +20,7 @@ namespace VendersCloud.Business.Service.Concrete
                 {
                     return false;
                 }
-                var response = await _userProfilesRepository.UpsertUserProfileAsync(userId, profileId);
+                var response = await _userProfilesRepository.InsertUserProfileAsync(userId, profileId);
                 return response;
             }
             catch (Exception ex) { 

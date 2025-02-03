@@ -20,12 +20,11 @@ namespace VendersCloud.Data.Repositories.Concrete
                 var tableName = new Table<Organization>();
 
                 var query = new Query(tableName.TableName)
-                    .Where("Email", request.Email)
                     .Where("IsDeleted",false)
+                    .Where("OrgName",request.CompanyName)
                     .Select("OrgCode");
 
                 var existingOrgCode = await dbInstance.ExecuteScalarAsync<string>(query);
-
                 if (!string.IsNullOrEmpty(existingOrgCode))
                 {
                     return existingOrgCode;
@@ -98,6 +97,50 @@ namespace VendersCloud.Data.Repositories.Concrete
                 return null;
             }
         }
+
+        public async Task<bool>UpdateOrganizationByOrgCodeAsync(CompanyInfoRequest infoRequest, string orgCode)
+        {
+            try
+            {
+                var dbInstance= GetDbInstance();
+                var tableName = new Table<Organization>();
+                var updateQuery = new Query(tableName.TableName).AsUpdate(new
+                {
+                    OrgName = infoRequest.CompanyName,
+                    Email = infoRequest.ContactMail,
+                    Description= infoRequest.Portfolio,
+                    Website= infoRequest.Website,
+                    Phone= infoRequest.Phone,
+                    EmpCount=infoRequest.Strength,
+                    UpdatedOn = DateTime.UtcNow,
+                    IsDeleted = false
+                }).Where("OrgCode", orgCode);
+                await dbInstance.ExecuteAsync(updateQuery);
+                return true;
+            }
+            catch(Exception ex)
+            {
+                return false;
+            }
+        }
+
+        public async Task<Users> GetUserByIdAsync(int Id)
+        {
+            try
+            {
+                var dbInstance = GetDbInstance();
+                var sql = "SELECT * FROM Users Where Id=@Id";
+
+                var users = await dbInstance.SelectAsync<Users>(sql, new { Id });
+                return users?.FirstOrDefault();
+            }
+            catch (Exception ex)
+            { 
+                return null;
+            }
+        }
+
+        
 
     }
 

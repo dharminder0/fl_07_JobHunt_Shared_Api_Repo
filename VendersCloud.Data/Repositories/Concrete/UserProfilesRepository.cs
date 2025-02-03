@@ -13,35 +13,13 @@ namespace VendersCloud.Data.Repositories.Concrete
         {
         }
 
-        public async Task<bool> UpsertUserProfileAsync(int userId, int profileId)
+        public async Task<bool> InsertUserProfileAsync(int userId, int profileId)
         {
             try
             {
                 var dbInstance = GetDbInstance();
                 var tableName = new Table<UserProfiles>();
-
-                // Check if the user exists in USERS table
-                var query = new Query(tableName.TableName)
-                    .Where("UserId", userId)
-                    .Where("ProfileId", profileId)
-                    .Select("Id");
-
-                var existingOrgCode = await dbInstance.ExecuteScalarAsync<string>(query);
-
-                if (!string.IsNullOrEmpty(existingOrgCode))
-                {
-                    // Update existing user record
-                    var updateQuery = new Query(tableName.TableName)
-                        .AsUpdate(new
-                        {
-                            ProfileId = profileId,
-                        })
-                        .Where("UserId", userId);
-
-                    await dbInstance.ExecuteAsync(updateQuery);
-                    return true;
-                }
-
+              
                 // Insert new user
                 var insertQuery = new Query(tableName.TableName).AsInsert(new
                 {
