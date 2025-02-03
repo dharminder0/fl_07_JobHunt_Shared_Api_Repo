@@ -19,7 +19,16 @@ namespace VendersCloud.Data.Repositories.Concrete
             {
                 var dbInstance = GetDbInstance();
                 var tableName = new Table<UserProfiles>();
-              
+                var checkUserExist = new Query(tableName.TableName)
+                      .Where("UserId", userId)
+                      .Where("ProfileId", profileId)
+                      .Select("ProfileId");
+
+                var existing = await dbInstance.ExecuteScalarAsync<string>(checkUserExist);
+                if(existing!=null)
+                {
+                    return true;
+                }
                 // Insert new user
                 var insertQuery = new Query(tableName.TableName).AsInsert(new
                 {
