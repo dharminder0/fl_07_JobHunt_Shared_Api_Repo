@@ -1,6 +1,8 @@
 ﻿using VendersCloud.Business.Entities.DataModels;
+using VendersCloud.Business.Entities.Dtos;
 using VendersCloud.Business.Service.Abstract;
 using VendersCloud.Data.Repositories.Abstract;
+using static VendersCloud.Data.Enum.Enum;
 
 namespace VendersCloud.Business.Service.Concrete
 {
@@ -30,17 +32,27 @@ namespace VendersCloud.Business.Service.Concrete
 
         }
 
-        public async Task<List<UserProfiles>> GetProfileRole(int userId)
+        public async Task<List<UserProfileDto>> GetProfileRole(int userId)
         {
             try
             {
                 var response = await _userProfilesRepository.GetProfileRole(userId);
-                return response;
+
+                var userProfileRoles = response.Select(role => new UserProfileDto
+                {
+                    Id = role.Id,
+                    UserId = role.UserId,
+                    ProfileId = role.ProfileId,
+                    RoleName = Enum.GetName(typeof(RoleType), role.ProfileId),
+                    IsDeleted = role.IsDeleted
+                }).ToList();
+                return userProfileRoles;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                return null;
+                throw ex;
             }
         }
+
     }
 }
