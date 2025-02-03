@@ -39,6 +39,8 @@ namespace VendersCloud.Data.Repositories.Concrete
                 // Insert new user
                 var insertQuery = new Query(tableName.TableName).AsInsert(new
                 {
+                    FirstName= request.FirstName,
+                    LastName= request.LastName,
                     OrgCode = orgCode,
                     Password = hashedPassword,
                     PasswordSalt = salt,
