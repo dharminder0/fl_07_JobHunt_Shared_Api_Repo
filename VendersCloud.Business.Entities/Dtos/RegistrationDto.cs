@@ -3,7 +3,7 @@
     public class RegistrationDto
     {
         public string UserId { get; set; }
-        public string CompanyCode { get; set; }
+        public string OrgCode { get; set; }
         public string UserEmail { get; set; }
     }
 }
