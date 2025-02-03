@@ -57,14 +57,14 @@ namespace VendersCloud.WebApi.Controllers
         //[ProducesResponseType(StatusCodes.Status401Unauthorized)]
         //[HttpPost]
         //[Route("api/V1/Organization/AddInfo")]
-        //public async Task<IActionResult> AddOrganizationInfo(CompanyInfoRequest inforequest)
+        //public async Task<IActionResult> AddOrganizationInfo(CompanyInfoRequest infoRequest)
         //{
         //    try
         //    {
-        //        var result = await _organizationService.AddOrganizationService(inforequest);
+        //        var result = await _organizationService.AddOrganizationService(infoRequest);
         //        return Json(result);
         //    }
-        //    catch(Exception ex)
+        //    catch (Exception ex)
         //    {
         //        return BadRequest(ex.Message);
         //    }
