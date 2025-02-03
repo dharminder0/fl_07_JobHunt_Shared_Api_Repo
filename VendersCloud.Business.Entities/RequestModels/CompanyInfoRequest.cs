@@ -2,8 +2,8 @@
 {
     public class CompanyInfoRequest
     {
-        public int UserId { get; set; }
-        public List<int> registrationType { get; set; }
+        public string UserId { get; set; }
+        public List<string> registrationType { get; set; }
         public string OrgName { get; set; }
         public string Portfolio { get; set; }
         public string ContactMail { get; set; }

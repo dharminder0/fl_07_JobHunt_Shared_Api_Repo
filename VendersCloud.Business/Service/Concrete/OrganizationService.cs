@@ -82,14 +82,17 @@ namespace VendersCloud.Business.Service.Concrete
                 {
                     return new ActionMessageResponse() { Success = false, Message = "Values can't be null", Content = "" };
                 }
-                var dbUser= await GetUserByIdAsync(infoRequest.UserId);
+                int userId = Convert.ToInt32(infoRequest.UserId);
+
+                var dbUser = await GetUserByIdAsync(userId);
                 if (dbUser != null)
                 {
                     bool response = await _organizationRepository.UpdateOrganizationByOrgCodeAsync(infoRequest, dbUser.OrgCode);
                     if (response) { 
                         foreach(var item in infoRequest.registrationType)
                         {
-                            var res = await _userProfilesRepository.InsertUserProfileAsync(infoRequest.UserId, item);
+                            int pId = Convert.ToInt32(item);
+                            var res = await _userProfilesRepository.InsertUserProfileAsync(userId, pId);
                             
                         }
                        
