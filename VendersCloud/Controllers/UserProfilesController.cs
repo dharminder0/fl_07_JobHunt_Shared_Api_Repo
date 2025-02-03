@@ -44,13 +44,9 @@ namespace VendersCloud.WebApi.Controllers
         {
             try
             {
-                var result = await _userProfilesService.GetProfileRole(userId);
-               if(result!=null)
-                {
-                    string roleName = Enum.GetName(typeof(RoleType), result);
-                    return Json(roleName);
-                }
-                return Json(result);
+                var results = await _userProfilesService.GetProfileRole(userId);
+               
+                return Json(results);
             }
             catch (Exception ex)
             {

@@ -49,17 +49,13 @@ namespace VendersCloud.Data.Repositories.Concrete
         }
 
 
-        public async Task<int> GetProfileRole(int userId)
+        public async Task<List<UserProfiles>> GetProfileRole(int userId)
         {
             var dbInstance = GetDbInstance();
-            var tableName = new Table<UserProfiles>();
+            var sql = "SELECT * FROM UserProfiles WHERE UserId=@userId";
 
-            // Check if the user exists in USERS table
-            var query = new Query(tableName.TableName)
-                .Where("UserId", userId)
-                .Select("ProfileId");
-
-           return await dbInstance.ExecuteScalarAsync<int>(query);
+            var response = await dbInstance.SelectAsync<UserProfiles>(sql, new { userId });
+            return response.ToList();
         }
 
     }

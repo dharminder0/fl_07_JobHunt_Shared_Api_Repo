@@ -77,14 +77,16 @@ namespace VendersCloud.Business.Service.Concrete
                     var hashedPassword = Hasher.HashPassword(salt, request.Password);
                     var userProfileRole = await _userProfilesService.GetProfileRole(dbUser.Id);
                     var companyData = await _organizationService.GetOrganizationDataAsync(dbUser.OrgCode);
-                   // string roleName = Enum.GetName(typeof(RoleType), userProfileRole);
+                    // string roleName = Enum.GetName(typeof(RoleType), userProfileRole);
+
+                    List<string> userProfileRoles = userProfileRole.Select(role => role.ProfileId.ToString()).ToList();
                     if (hashedPassword== dbUser.Password)
                     {
                         LoginResponseDto login = new LoginResponseDto();
                         login.UserId = dbUser.Id.ToString();
                         login.Email = dbUser.UserName;
                         login.OrgCode = dbUser.OrgCode;
-                        login.Role = userProfileRole.ToString();
+                        login.Role = userProfileRoles;
                         login.CompanyIcon = companyData.Logo;
                         login.CompanyName = companyData.OrgName;
 
@@ -273,7 +275,7 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
-        public async Task<ActionMessageResponse> UpsertUserProfileAsync( int userId, int profileId)
+        public async Task<ActionMessageResponse> InsertUserProfileAsync( int userId, int profileId)
         {
             try
             {
