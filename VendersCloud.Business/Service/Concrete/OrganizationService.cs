@@ -54,5 +54,18 @@ namespace VendersCloud.Business.Service.Concrete
                 return null;
             }
         }
+
+        public async Task<List<Organization>> GetOrganizationListAsync()
+        {
+            try
+            {
+                var response = await _organizationRepository.GetOrganizationListAsync();
+                return response;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
     }
 }
