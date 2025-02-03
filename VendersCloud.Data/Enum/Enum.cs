@@ -5,8 +5,7 @@
         public enum RoleType
         {
             Vendor=1,
-            Client=2,
-            Both=3
+            Client=2
         }
 
         public enum BillingType

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using VendersCloud.Business.Service.Abstract;
+using static VendersCloud.Data.Enum.Enum;
 
 namespace VendersCloud.WebApi.Controllers
 {
@@ -44,6 +45,11 @@ namespace VendersCloud.WebApi.Controllers
             try
             {
                 var result = await _userProfilesService.GetProfileRole(userId);
+               if(result!=null)
+                {
+                    string roleName = Enum.GetName(typeof(RoleType), result);
+                    return Json(roleName);
+                }
                 return Json(result);
             }
             catch (Exception ex)

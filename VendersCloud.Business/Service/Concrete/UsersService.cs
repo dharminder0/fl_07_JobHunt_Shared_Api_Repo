@@ -42,7 +42,7 @@ namespace VendersCloud.Business.Service.Concrete
                     {
                         RegistrationDto registration= new RegistrationDto();
                         registration.UserId = data;
-                        registration.CompanyCode = orgCode;
+                        registration.OrgCode = orgCode;
                         registration.UserEmail = request.Email;
                         return new ActionMessageResponse { Success = true, Message = "New Client Registered Successfully!!", Content = registration };
                     }
