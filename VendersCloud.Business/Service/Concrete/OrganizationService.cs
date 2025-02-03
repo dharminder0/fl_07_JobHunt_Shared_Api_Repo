@@ -2,6 +2,7 @@
 using System.Text;
 using VendersCloud.Business.Entities.DataModels;
 using VendersCloud.Business.Entities.RequestModels;
+using VendersCloud.Business.Entities.ResponseModels;
 using VendersCloud.Business.Service.Abstract;
 using VendersCloud.Data.Repositories.Abstract;
 
@@ -67,5 +68,14 @@ namespace VendersCloud.Business.Service.Concrete
                 return null;
             }
         }
+
+        //public async Task<ActionMessageResponse> AddOrganizationInfo(CompanyInfoRequest infoRequest)
+        //{
+        //    try
+        //    {
+        //        if(infoRequest == null)
+        //    }
+        //    catch (Exception ex) { }
+        //}
     }
 }

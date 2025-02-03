@@ -32,21 +32,8 @@ namespace VendersCloud.Data.Repositories.Concrete
 
                 if (!string.IsNullOrEmpty(existingOrgCode))
                 {
-                    // Update existing user record
-                    var updateQuery = new Query(tableName.TableName)
-                        .AsUpdate(new
-                        {
-                            Password = hashedPassword,
-                            PasswordSalt = salt,
-                            Username = request.Email,
-                            UpdatedOn = DateTime.UtcNow,
-                            LastLoginTime = DateTime.UtcNow,
-                            IsDeleted = false
-                        })
-                        .Where("OrgCode", orgCode);
-
-                    await dbInstance.ExecuteAsync(updateQuery);
-                    return existingOrgCode;
+                    string res = "User Already Exists!!";
+                    return res;
                 }
 
                 // Insert new user

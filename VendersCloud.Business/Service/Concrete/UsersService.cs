@@ -40,6 +40,10 @@ namespace VendersCloud.Business.Service.Concrete
                     var data = await _usersRepository.InsertUserAsync(request, hashedPassword, saltBytes, orgCode);
                     if (data != null)
                     {
+                        if(data.Equals("User Already Exists!!"))
+                        {
+                            return new ActionMessageResponse { Success = false, Message = "User Already Exists!!", Content = "" };
+                        }
                         RegistrationDto registration= new RegistrationDto();
                         registration.UserId = data;
                         registration.OrgCode = orgCode;
