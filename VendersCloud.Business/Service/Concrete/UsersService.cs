@@ -275,7 +275,7 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
-        public async Task<ActionMessageResponse> UpsertUserProfileAsync( int userId, int profileId)
+        public async Task<ActionMessageResponse> InsertUserProfileAsync( int userId, int profileId)
         {
             try
             {
