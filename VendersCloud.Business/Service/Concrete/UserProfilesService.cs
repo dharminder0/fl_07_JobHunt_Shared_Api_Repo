@@ -1,4 +1,5 @@
-﻿using VendersCloud.Business.Service.Abstract;
+﻿using VendersCloud.Business.Entities.DataModels;
+using VendersCloud.Business.Service.Abstract;
 using VendersCloud.Data.Repositories.Abstract;
 
 namespace VendersCloud.Business.Service.Concrete
@@ -29,7 +30,7 @@ namespace VendersCloud.Business.Service.Concrete
 
         }
 
-        public async Task<int> GetProfileRole(int userId)
+        public async Task<List<UserProfiles>> GetProfileRole(int userId)
         {
             try
             {
@@ -38,7 +39,7 @@ namespace VendersCloud.Business.Service.Concrete
             }
             catch(Exception ex)
             {
-                return 0;
+                return null;
             }
         }
     }

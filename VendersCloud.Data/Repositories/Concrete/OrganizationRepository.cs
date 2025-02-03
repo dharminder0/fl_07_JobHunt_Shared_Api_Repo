@@ -106,7 +106,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                 var tableName = new Table<Organization>();
                 var updateQuery = new Query(tableName.TableName).AsUpdate(new
                 {
-                    OrgName = infoRequest.CompanyName,
+                    OrgName = infoRequest.OrgName,
                     Email = infoRequest.ContactMail,
                     Description= infoRequest.Portfolio,
                     Website= infoRequest.Website,

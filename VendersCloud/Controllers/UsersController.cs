@@ -133,13 +133,13 @@ namespace VendersCloud.WebApi.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [HttpPost]
-        [Route("api/V1/users/Profile/Upsert")]
+        [Route("api/V1/users/Profile/Insert")]
 
-        public async Task<IActionResult> UpsertUserProfileAsync(int userId, int profileId)
+        public async Task<IActionResult> InsertUserProfileAsync(int userId, int profileId)
         {
             try
             {
-                var result= await _userService.UpsertUserProfileAsync(userId, profileId);
+                var result= await _userService.InsertUserProfileAsync(userId, profileId);
                 return Json(result);
             }
             catch (Exception ex) 
