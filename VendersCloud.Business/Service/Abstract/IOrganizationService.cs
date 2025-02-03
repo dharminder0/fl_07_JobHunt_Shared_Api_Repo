@@ -7,5 +7,6 @@ namespace VendersCloud.Business.Service.Abstract
     {
         Task<string> RegisterNewOrganizationAsync(RegistrationRequest request);
         Task<Organization> GetOrganizationDataAsync(string orgCode);
+        Task<List<Organization>> GetOrganizationListAsync();
     }
 }

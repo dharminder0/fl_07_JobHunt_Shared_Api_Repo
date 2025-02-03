@@ -81,6 +81,24 @@ namespace VendersCloud.Data.Repositories.Concrete
             }
         }
 
+        public async Task<List<Organization>> GetOrganizationListAsync()
+        {
+            try
+            {
+                var dbInstance = GetDbInstance();
+                var sql = "SELECT * FROM Organization";
+
+                var orgdata = dbInstance.Select<Organization>(sql).ToList();
+                return orgdata;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception: {ex.Message}");
+                // Log the exception (optional)
+                return null;
+            }
+        }
+
     }
 
 }
