@@ -31,5 +31,46 @@ namespace VendersCloud.WebApi.Controllers
                 return BadRequest(ex);
             }
         }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [HttpPost]
+        [Route("api/V1/Requirement/Delete")]
+        public async Task<IActionResult> DeleteRequirmentAsync(int requirementId,string orgCode)
+        {
+            try
+            {
+                var result= await _requirementService.DeleteRequirementAsync(requirementId, orgCode);
+                return Json(result);
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [HttpGet]
+        [Route("api/V1/Requirement/GetList")]
+        public async Task<IActionResult>GetRequirementListAsync()
+        {
+            try
+            {
+                var result = await _requirementService.GetRequirementListAsync();
+                return Json(result);
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
     }
 }
+
+

@@ -86,8 +86,51 @@ namespace VendersCloud.Data.Repositories.Concrete
             }
         }
 
+        public async Task<bool> DeleteRequirementAsync(int requirementId, string orgCode)
+        {
+            try
+            {
+                var dbInstance = GetDbInstance();
+                var tableName = new Table<Requirement>();
+                var sql = "SELECT * FROM Requirement WHERE Id=@Id AND OrgCode=@OrgCode";
 
+                // Trim and validate input data
+                var Id = requirementId;
+                var cleanedOrgCode = orgCode.Trim();
 
+                var response = await dbInstance.SelectAsync<Requirement>(sql, new { Id = Id, OrgCode = cleanedOrgCode });
+                if (response.Any())
+                {
+                    var updateQuery = new Query(tableName.TableName).AsUpdate(new
+                    { 
+                        IsDeleted = true
+                    }).Where("Id", Id).Where("OrgCode", cleanedOrgCode);
+                    await dbInstance.ExecuteScalarAsync<string>(updateQuery);
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        public async Task<List<Requirement>> GetRequirementListAsync()
+        {
+            try
+            {
+                var dbInstance = GetDbInstance();
+                var sql = "SELECT * FROM Requirement Where IsDeleted<>1";
+
+                var list = dbInstance.Select<Requirement>(sql).ToList();
+                return list;
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
+        }
 
     }
 }
