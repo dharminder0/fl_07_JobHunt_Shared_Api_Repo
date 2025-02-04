@@ -132,5 +132,20 @@ namespace VendersCloud.Data.Repositories.Concrete
             }
         }
 
+        public async Task<List<Requirement>> GetRequirementListByIdAsync(int requirementId)
+        {
+            try
+            {
+                var dbInstance = GetDbInstance();
+                var sql = "SELECT * FROM Requirement Where IsDeleted<>1 and Id=@requirementId";
+
+                var list = dbInstance.Select<Requirement>(sql, new { requirementId}).ToList();
+                return list;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
     }
 }
