@@ -8,5 +8,6 @@ namespace VendersCloud.Data.Repositories.Abstract
         Task<bool> RequirementUpsertAsync(RequirementRequest request);
         Task<bool> DeleteRequirementAsync(int requirementId, string orgCode);
         Task<List<Requirement>> GetRequirementListAsync();
+        Task<List<Requirement>> GetRequirementListByIdAsync(int requirementId);
     }
 }
