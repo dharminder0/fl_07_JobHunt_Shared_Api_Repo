@@ -1,9 +1,16 @@
-﻿using Microsoft.Extensions.Configuration;
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
 
 namespace VendersCloud.Business
 {
     public class ExternalConfigReader
+
     {
         private readonly IConfiguration _configuration;
 
@@ -41,7 +48,7 @@ namespace VendersCloud.Business
             // If BaseUrl is not available in appsettings.json, read from external file
             return GetValueFromExternalFile("BaseUrl");
         }
-  
+
         private string GetValueFromExternalFile(string key)
         {
             string filePath = _configuration["FilePath"];
@@ -64,6 +71,7 @@ namespace VendersCloud.Business
 
             return value;
         }
+
 
         // Method to get Base URL with fallback to external file if not available in appsettings.json
         public string GetSmtpServerdomain()
@@ -149,6 +157,7 @@ namespace VendersCloud.Business
 
             return value;
         }
+
     }
 
 }

@@ -562,6 +562,84 @@ namespace VendersCloud.Business.Service.Concrete
                 _headers.Add(key, value);
         }
 
+        public async Task<T> PostAsyncV2<T>(string route, object body, Dictionary<string, string> customHeaders = null)
+        {
+            var url = route;
+            var client = GetClientV2(customHeaders);  // Pass custom headers to the GetClient method
+            client.Timeout = TimeSpan.FromMinutes(5);
+
+            var dataAsString = JsonConvert.SerializeObject(body, new JsonSerializerSettings
+            {
+                ContractResolver = new CamelCasePropertyNamesContractResolver()
+            });
+
+            var content = new StringContent(dataAsString);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+            var response = await client.PostAsync(url, content);
+
+            if (response.IsSuccessStatusCode && response.Content != null)
+            {
+                var data = await response.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<T>(data, _jsonSerializerSettings);
+            }
+            else
+            {
+                if (response.Content != null)
+                {
+                    var result = await response.Content.ReadAsStringAsync();
+                    throw new Exception(result);
+                }
+
+                throw new Exception("Unknown error");
+            }
+        }
+        private HttpClient GetClientV2(Dictionary<string, string> customHeaders = null)
+        {
+            var httpClient = new HttpClient();
+
+            // Check if customHeaders contains Authorization header and extract API Key from there
+            if (customHeaders != null && customHeaders.ContainsKey("Authorization"))
+            {
+                var authorizationHeader = customHeaders["Authorization"];
+
+                // Ensure it starts with "Bearer " and extract the API key (after the "Bearer " prefix)
+                if (authorizationHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                {
+                    var apiKey = authorizationHeader.Substring(7); // Remove "Bearer " from the header value
+                    httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
+                }
+                else
+                {
+                    throw new Exception("Authorization header must start with 'Bearer ' followed by the API key.");
+                }
+            }
+            else
+            {
+                throw new Exception("Authorization header is missing in customHeaders.");
+            }
+
+            // Add any other custom headers passed into the method (excluding Authorization, which is already handled)
+            if (customHeaders != null)
+            {
+                foreach (var header in customHeaders)
+                {
+                    if (!string.IsNullOrWhiteSpace(header.Key) && !string.IsNullOrWhiteSpace(header.Value) && header.Key != "Authorization")
+                    {
+                        httpClient.DefaultRequestHeaders.Add(header.Key, header.Value);
+                    }
+                }
+            }
+
+            // Set default headers
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            return httpClient;
+        }
+
+
+
+
         private HttpClient GetClient()
         {
             var httpClient = new HttpClient();
@@ -584,7 +662,110 @@ namespace VendersCloud.Business.Service.Concrete
             var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
             return Convert.ToBase64String(plainTextBytes);
         }
+
+
+        //private HttpClient GetFilledHttpClient(string apiUrl = "")
+        //{
+        //    var client = new HttpClient();
+        //    var proxyEnabled = bool.Parse(ConfigurationManager.AppSettings["ProxyEnabled"]);
+        //    if (proxyEnabled)
+        //    {
+        //        // Proxy Server Info
+        //        var proxyHost = ConfigurationManager.AppSettings["ProxyHost"];
+        //        var proxyPort = !string.IsNullOrWhiteSpace(ConfigurationManager.AppSettings["ProxyPort"])
+        //            ? int.Parse(ConfigurationManager.AppSettings["ProxyPort"])
+        //            : 8080;
+        //        var proxyUserName = ConfigurationManager.AppSettings["ProxyUserName"];
+        //        var proxyPassword = ConfigurationManager.AppSettings["ProxyPassword"];
+
+        //        var proxyServer = new WebProxy(proxyHost, proxyPort);
+        //        proxyServer.Credentials = new NetworkCredential { UserName = proxyUserName, Password = proxyPassword };
+        //        //client.Proxy = proxyServer;
+
+        //        var httpClientHandler = new HttpClientHandler()
+        //        {
+        //            Proxy = proxyServer,
+        //            PreAuthenticate = true,
+        //            UseDefaultCredentials = false,
+        //            Credentials = new NetworkCredential { UserName = proxyUserName, Password = proxyPassword }
+        //        };
+        //        client = new HttpClient(httpClientHandler);
+
+        //    }
+
+        //var bearerKey = !string.IsNullOrWhiteSpace(apiUrl) ? ConfigurationManager.AppSettings["ProductionApiBearer"] : ConfigurationManager.AppSettings["ApiBearer"];
+        //client.DefaultRequestHeaders.Add("Authorization", bearerKey);
+        //if (HttpContext.Current != null)
+        //{
+        //    CurrentHttpContext = HttpContext.Current;
+        //}
+
+        //return client;
+        // }
+        public object Patch(string route, object body)
+        {
+            var url = $"{RootUrl.TrimEnd('/')}/{route}".TrimEnd('/');
+            var client = GetClient();
+            var dataAsString = JsonConvert.SerializeObject(body);
+            var content = new StringContent(dataAsString);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+            var method = new HttpMethod("PATCH");
+            var request = new HttpRequestMessage(method, url) { Content = content };
+            var response = client.SendAsync(request).Result;
+            if (response.IsSuccessStatusCode && response.Content != null)
+            {
+                var data = response.Content.ReadAsStringAsync().Result;
+                return JsonConvert.DeserializeObject(data, _jsonSerializerSettings);
+            }
+            else
+            {
+                if (response.Content != null)
+                {
+                    var result = response.Content.ReadAsStringAsync().Result;
+                    throw new Exception(result);
+                }
+                throw new Exception("Unknown error");
+            }
+        }
+
+        public object SendAsync(string route, HttpContent body)
+        {
+            var url = $"{RootUrl.TrimEnd('/')}/{route}".TrimEnd('/');
+            var client = GetClient();
+            var request = new HttpRequestMessage(HttpMethod.Post, url);
+
+            request.Content = body;
+
+            var response = client.Send(request);
+            response.EnsureSuccessStatusCode();
+            // Console.WriteLine(await response.Content.ReadAsStringAsync());
+            if (response.IsSuccessStatusCode && response.Content != null)
+            {
+                var data = response.Content.ReadAsStringAsync().Result;
+                return JsonConvert.DeserializeObject(data, _jsonSerializerSettings);
+            }
+            else
+            {
+                if (response.Content != null)
+                {
+                    var result = response.Content.ReadAsStringAsync().Result;
+                    throw new Exception(result);
+                }
+                throw new Exception("Unknown error");
+            }
+
+        }
+        public bool Head<T>(string route)
+        {
+            var url = $"{RootUrl.TrimEnd('/')}/{route}";
+            var message = new HttpRequestMessage(HttpMethod.Get, new Uri(url));
+            var client = GetClient();
+            var response = client.SendAsync(message).Result;
+            return response.IsSuccessStatusCode;
+        }
+
     }
 }
 
        
+
