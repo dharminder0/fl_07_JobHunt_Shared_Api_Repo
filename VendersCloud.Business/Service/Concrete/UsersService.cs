@@ -22,7 +22,7 @@ namespace VendersCloud.Business.Service.Concrete
             _organizationService = organizationService;
             _userProfilesService= userProfilesService;
             _configuration = configuration;
-            _communicationService = new CommunicationService();
+            _communicationService = new CommunicationService(configuration);
         }
 
         public async Task<ActionMessageResponse>RegisterNewUserAsync(RegistrationRequest request)

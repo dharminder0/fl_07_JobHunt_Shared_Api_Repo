@@ -9,17 +9,11 @@ namespace VendersCloud.Business.Service.Concrete
     {
         public IConfiguration _configuration;
         private readonly ExternalConfigReader _externalConfig ;
-        public CommunicationService(IConfiguration configuration)
-    : base(configuration[""], configuration[""])
+        public CommunicationService(IConfiguration configuration) : base(configuration[""], configuration[""])
         {
             _configuration = configuration;
-            _externalConfig = new ExternalConfigReader(_configuration);
+            _externalConfig = new ExternalConfigReader(configuration);
         }
-        public CommunicationService()
-        {
-
-        }
-
 
         public async Task<bool> SendUserVerificationEmail(string firstname, string lastname, string email, string verificationOtp, string usertoken)
         {
