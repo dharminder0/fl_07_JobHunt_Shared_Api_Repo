@@ -22,7 +22,7 @@ namespace VendersCloud.Business.Service.Concrete
             _organizationService = organizationService;
             _userProfilesService= userProfilesService;
             _configuration = configuration;
-            _communicationService = new CommunicationService(_configuration);
+            _communicationService = new CommunicationService(configuration);
         }
 
         public async Task<ActionMessageResponse>RegisterNewUserAsync(RegistrationRequest request)
@@ -335,9 +335,12 @@ namespace VendersCloud.Business.Service.Concrete
                     var updateResponse=await _usersRepository.UpdateOtpAndTokenAsync(otp,token,email);
                     if(updateResponse)
                     {
-                        await _communicationService.SendUserVerificationEmail(existingUser.FirstName, existingUser.LastName, existingUser.UserName, otp, token);
+                        if(await _communicationService.SendUserVerificationEmail(existingUser.FirstName, existingUser.LastName, existingUser.UserName, otp, token))
+                        {
+                            return new ActionMessageResponse { Success = true, Message = "Email is sent Successfully!!", Content = "" };
+                        }
 
-                        return new ActionMessageResponse { Success = true, Message = "Email is sent Successfully!!", Content = "" };
+                        return new ActionMessageResponse { Success = true, Message = "Email Sending Fail !!", Content = "" };
                     }
                 }
                 return new ActionMessageResponse { Success = true, Message = "User is not registered!!", Content = "" };
