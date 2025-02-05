@@ -76,14 +76,14 @@ namespace VendersCloud.Business
         // Method to get Base URL with fallback to external file if not available in appsettings.json
         public string GetSmtpServerdomain()
         {
-            string SmtpServerdomain = _configuration["SmtpServerdomain"];
+            string SmtpServerdomain = _configuration["SmtpServerDomain"];
 
             if (!string.IsNullOrEmpty(SmtpServerdomain))
             {
                 return SmtpServerdomain;
             }
 
-            return GetValueFromExternalAppSettingsFile("SmtpServerdomain");
+            return GetValueFromExternalAppSettingsFile("SmtpServerDomain");
         }
 
       
@@ -125,14 +125,14 @@ namespace VendersCloud.Business
 
         public string GetVerifyEmailDomainUrl()
         {
-            string VerifyEmailDomainUrl = _configuration["VerifyEmailDomainUrl"];
+            string VerifyEmailDomainUrl = _configuration["WebAppUrl"];
 
             if (!string.IsNullOrEmpty(VerifyEmailDomainUrl))
             {
                 return VerifyEmailDomainUrl;
             }
 
-            return GetValueFromExternalAppSettingsFile("VerifyEmailDomainUrl");
+            return GetValueFromExternalAppSettingsFile("WebAppUrl");
         }
         // Helper method to get values from the external file
         private string GetValueFromExternalAppSettingsFile(string key)
