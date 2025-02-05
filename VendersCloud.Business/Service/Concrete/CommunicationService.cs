@@ -30,15 +30,15 @@ namespace VendersCloud.Business.Service.Concrete
         <h2 style=""color: #2C3E50; background-color: #f3f3f3; padding: 15px; border-radius: 5px;"">Welcome to VendorsCloud, {fullname}! 🎉</h2>
         <p>We're thrilled to have you on board. To complete your registration, please verify your email address.</p>
         
-        <div style=""background: #3498db; color: #fff; padding: 20px; border-radius: 5px; margin-top: 20px;"">
-            <strong>Your OTP:</strong> <span style=""font-size: 24px; font-weight: bold;"">{verificationOtp}</span>
+        <div style=""display: inline-block;
+                  text-decoration: none; border-radius: 5px; font-size: 18px; font-weight: bold; margin-top: 20px;"">
+            <strong>Your OTP:</strong> <span style=""font-size: 18px; font-weight: bold;color:#4640DE"">{verificationOtp}</span>
         </div>
 
         <p style=""margin-top: 30px;"">Click the button below to verify your email:</p>
 
-        <a href=""{url}/everify/{usertoken}""
-           style=""display: inline-block; padding: 15px 25px; background-color: #e74c3c; color: #ffffff;
-                  text-decoration: none; border-radius: 5px; font-size: 18px; font-weight: bold; margin-top: 20px;"">
+        <a href=""{url}/everify/{usertoken}"" style=""display: inline-block; padding: 8px 25px; background-color: #4640DE; color: #ffffff;
+                  text-decoration: none; border-radius: 5px; font-size: 18px; font-weight: 600; margin-top: 20px;"">
             ✅ Verify Email
         </a>
 
