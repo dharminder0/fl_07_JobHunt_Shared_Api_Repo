@@ -76,7 +76,7 @@ namespace VendersCloud.Business.Service.Concrete
 
                 var mailMessage = new MailMessage
                 {
-                    From = new MailAddress(smtpClientdomain),//email domain
+                    From = new MailAddress(smtpUser),//email domain
                     Subject = emailMessage.Subject,
                     Body = emailMessage.Body,
                     IsBodyHtml = true,
