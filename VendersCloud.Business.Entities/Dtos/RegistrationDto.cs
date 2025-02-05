@@ -4,6 +4,6 @@
     {
         public string UserId { get; set; }
         public string OrgCode { get; set; }
-        public string UserEmail { get; set; }
+        public string Email { get; set; }
     }
 }
