@@ -8,5 +8,6 @@
         public List<string> Role { get; set; }
         public string CompanyIcon { get; set; }
         public string CompanyName { get; set; }
+        public bool IsVerified { get; set; }
     }
 }
