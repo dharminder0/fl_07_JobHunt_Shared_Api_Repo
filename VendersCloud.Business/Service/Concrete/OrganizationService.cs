@@ -142,5 +142,7 @@ namespace VendersCloud.Business.Service.Concrete
                 throw ex;
             }
         }
+
+        
     }
 }

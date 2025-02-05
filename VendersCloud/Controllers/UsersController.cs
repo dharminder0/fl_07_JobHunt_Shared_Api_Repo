@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using VendersCloud.Business.Entities.RequestModels;
 using VendersCloud.Business.Service.Abstract;
 
@@ -94,7 +95,7 @@ namespace VendersCloud.WebApi.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [HttpGet]
-        [Route("api/V1/allusers")]
+        [Route("api/V1/all-users")]
         public async Task<IActionResult> GetAllUserAsync()
         {
             try
@@ -133,7 +134,7 @@ namespace VendersCloud.WebApi.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [HttpPost]
-        [Route("api/V1/users/Profile/Insert")]
+        [Route("api/V1/users/Profile/Add")]
 
         public async Task<IActionResult> InsertUserProfileAsync(int userId, int profileId)
         {
@@ -146,6 +147,44 @@ namespace VendersCloud.WebApi.Controllers
             {
                 return BadRequest(ex.Message);
             }
+        }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [HttpPost]
+        [Route("api/V1/users/Email/Verify")]
+        public async Task<IActionResult> VerifyUserEmailAsync(string userToken, string otp)
+        {
+            try
+            {
+                var result = await _userService.VerifyUserEmailAsync(userToken, otp);
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [HttpPost]
+        [Route("api/V1/users/resend-email")]
+        public async Task<IActionResult> ResendEmailAsync(string EmailId)
+        {
+            try
+            {
+                var result= await _userService.ResendEmailVerificationAsync(EmailId);
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
         }
     }
 }

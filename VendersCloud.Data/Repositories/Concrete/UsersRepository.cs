@@ -13,7 +13,7 @@ namespace VendersCloud.Data.Repositories.Concrete
         public UsersRepository(IConfiguration configuration) : base(configuration)
         {
         }
-        public async Task<string> InsertUserAsync(RegistrationRequest request, string hashedPassword, byte[] salt, string orgCode)
+        public async Task<string> InsertUserAsync(RegistrationRequest request, string hashedPassword, byte[] salt, string orgCode,string verificationOtp,string token)
         {
             try
             {
@@ -39,8 +39,8 @@ namespace VendersCloud.Data.Repositories.Concrete
                 // Insert new user
                 var insertQuery = new Query(tableName.TableName).AsInsert(new
                 {
-                    FirstName= request.FirstName,
-                    LastName= request.LastName,
+                    FirstName = request.FirstName,
+                    LastName = request.LastName,
                     OrgCode = orgCode,
                     Password = hashedPassword,
                     PasswordSalt = salt,
@@ -48,7 +48,9 @@ namespace VendersCloud.Data.Repositories.Concrete
                     CreatedOn = DateTime.UtcNow,
                     UpdatedOn = DateTime.UtcNow,
                     LastLoginTime = DateTime.UtcNow,
-                    IsDeleted = false
+                    IsDeleted = false,
+                    VerificationToken = verificationOtp,
+                    Token=token
                 });
 
                 var insertedUserId = await dbInstance.ExecuteScalarAsync<string>(insertQuery);
@@ -170,6 +172,72 @@ namespace VendersCloud.Data.Repositories.Concrete
                 Console.WriteLine($"Exception: {ex.Message}");
                 // Log the exception (optional)
                 return null;
+            }
+        }
+
+        public async Task<bool> VerifyUserEmailAsync(string userToken, string Otp)
+        {
+            try
+            {
+                var res= await GetByAsync(new PredicateGroup
+                {
+                    Operator = GroupOperator.And,
+                    Predicates = new List<IPredicate> {
+                        Predicates.Field<Users>(f=>f.Token,Operator.Eq,userToken),
+                        Predicates.Field<Users>(f=>f.VerificationToken,Operator.Eq,Otp),
+                        Predicates.Field<Users>(f=>f.IsDeleted,Operator.Eq,false),
+                    }
+                });
+                if(res!=null)
+                {
+                    var dbInstance = GetDbInstance();
+                    var tableName = new Table<Users>();
+                    var updateQuery = new Query(tableName.TableName)
+                            .AsUpdate(new
+                            {
+                                Verificationtoken = "",
+                                IsVerified = true,
+                                Token = "",
+                                UpdatedOn = DateTime.UtcNow,
+                                LastLoginTime = DateTime.UtcNow
+                            })
+                            .Where("Token", userToken);
+
+                    await dbInstance.ExecuteAsync(updateQuery);
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception: {ex.Message}");
+                // Log the exception (optional)
+                return false;
+            }
+        }
+
+        public async Task<bool> UpdateOtpAndTokenAsync(string otp,string token,string email)
+        {
+            try
+            {
+                var dbInstance = GetDbInstance();
+                var tableName = new Table<Users>();
+                var updateQuery = new Query(tableName.TableName)
+                        .AsUpdate(new
+                        {
+                            Verificationtoken = otp,
+                            Token = token,
+                            UpdatedOn = DateTime.UtcNow,
+                            LastLoginTime = DateTime.UtcNow
+                        })
+                        .Where("Username", email);
+
+                await dbInstance.ExecuteAsync(updateQuery);
+                return true;
+            }
+            catch(Exception ex)
+            {
+                return false;
             }
         }
     }
