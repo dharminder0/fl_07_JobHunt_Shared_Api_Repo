@@ -67,7 +67,6 @@ namespace VendersCloud.Business.Service.Concrete
                 var smtpClientdomain = _externalConfig.GetSmtpServerdomain();
                 var smtpUser = _externalConfig.GetSmptUserName();
                 var smtpPassword = _externalConfig.GetSmtpUserPassword();
-                var smtpEmailDomain = _externalConfig.GetSmtpEmailDomain();
                 var smtpClient = new SmtpClient(smtpClientdomain)//smtp server domain
                 {
                     Port = 587,
@@ -77,7 +76,7 @@ namespace VendersCloud.Business.Service.Concrete
 
                 var mailMessage = new MailMessage
                 {
-                    From = new MailAddress(smtpEmailDomain),//email domain
+                    From = new MailAddress(smtpClientdomain),//email domain
                     Subject = emailMessage.Subject,
                     Body = emailMessage.Body,
                     IsBodyHtml = true,
