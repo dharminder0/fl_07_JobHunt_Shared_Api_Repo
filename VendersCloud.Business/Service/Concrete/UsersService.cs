@@ -1,13 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json.Linq;
-using VendersCloud.Business.Entities.DataModels;
+﻿using Microsoft.Extensions.Configuration;
 using VendersCloud.Business.Entities.Dtos;
 using VendersCloud.Business.Entities.RequestModels;
 using VendersCloud.Business.Entities.ResponseModels;
 using VendersCloud.Business.Service.Abstract;
 using VendersCloud.Common.Utils;
 using VendersCloud.Data.Repositories.Abstract;
-using static VendersCloud.Data.Enum.Enum;
+using VendersCloud.Data.Repositories.Concrete;
 
 namespace VendersCloud.Business.Service.Concrete
 {
@@ -16,11 +14,15 @@ namespace VendersCloud.Business.Service.Concrete
         private readonly IUsersRepository _usersRepository;
         private readonly IOrganizationService _organizationService;
         private readonly IUserProfilesService _userProfilesService;
-        public UsersService(IUsersRepository usersRepository, IOrganizationService organizationService, IUserProfilesService userProfilesService)
+        private IConfiguration _configuration;
+        private CommunicationService _communicationService;
+        public UsersService(IConfiguration configuration,IUsersRepository usersRepository, IOrganizationService organizationService, IUserProfilesService userProfilesService)
         {
             _usersRepository = usersRepository;
             _organizationService = organizationService;
             _userProfilesService= userProfilesService;
+            _configuration = configuration;
+            _communicationService = new CommunicationService(_configuration);
         }
 
         public async Task<ActionMessageResponse>RegisterNewUserAsync(RegistrationRequest request)
@@ -37,13 +39,16 @@ namespace VendersCloud.Business.Service.Concrete
                     string salt = Hasher.GenerateSalt();
                     byte[] saltBytes = Convert.FromBase64String(salt);
                     var hashedPassword = Hasher.HashPassword(salt, request.Password);
-                    var data = await _usersRepository.InsertUserAsync(request, hashedPassword, saltBytes, orgCode);
+                    var verificationOtp = GenerateOTP();
+                    string token = Guid.NewGuid().ToString().ToLower();
+                    var data = await _usersRepository.InsertUserAsync(request, hashedPassword, saltBytes, orgCode,verificationOtp,token);
                     if (data != null)
                     {
                         if(data.Equals("User Already Exists!!"))
                         {
                             return new ActionMessageResponse { Success = false, Message = "User Already Exists!!", Content = "" };
                         }
+                       await _communicationService.SendUserVerificationEmail(request.FirstName, request.LastName, request.Email, verificationOtp, token);
                         RegistrationDto registration= new RegistrationDto();
                         registration.UserId = data;
                         registration.OrgCode = orgCode;
@@ -89,7 +94,7 @@ namespace VendersCloud.Business.Service.Concrete
                         login.Role = userProfileRoles;
                         login.CompanyIcon = companyData.Logo;
                         login.CompanyName = companyData.OrgName;
-
+                        login.IsVerified = dbUser.IsVerified;
                         return new ActionMessageResponse { Success = true, Message = "Login SuccessFull!!", Content = login };
                     }
                 }
@@ -295,6 +300,60 @@ namespace VendersCloud.Business.Service.Concrete
             {
                 return new ActionMessageResponse { Success = false, Message = ex.Message, Content = "" };
             }
+        }
+
+        public async Task<ActionMessageResponse> VerifyUserEmailAsync(string userToken, string Otp)
+        {
+            try
+            {
+                if(string.IsNullOrEmpty(userToken) && (string.IsNullOrEmpty(Otp)))
+                    {
+                    return new ActionMessageResponse { Success = false, Message = "Value's cannot be blank", Content = "" };
+                }
+                var response= await _usersRepository.VerifyUserEmailAsync(userToken, Otp);
+                if (response)
+                {
+                    return new ActionMessageResponse { Success = true, Message = "User is Verified!!", Content = "" };
+                }
+                return new ActionMessageResponse { Success = false, Message = "Enter Valid otp!!", Content = "" };
+            }
+            catch (Exception ex)
+            {
+                return new ActionMessageResponse { Success = false, Message = ex.Message, Content = "" };
+            }
+        }
+
+        public async Task<ActionMessageResponse>ResendEmailVerificationAsync(string email)
+        {
+            try
+            {
+                var existingUser = await _usersRepository.GetUserByEmailAsync(email);
+                if (existingUser != null)
+                {
+                    string otp = GenerateOTP();
+                    string token = Guid.NewGuid().ToString().ToLower();
+                    var updateResponse=await _usersRepository.UpdateOtpAndTokenAsync(otp,token,email);
+                    if(updateResponse)
+                    {
+                        await _communicationService.SendUserVerificationEmail(existingUser.FirstName, existingUser.LastName, existingUser.UserName, otp, token);
+
+                        return new ActionMessageResponse { Success = true, Message = "Email is sent Successfully!!", Content = "" };
+                    }
+                }
+                return new ActionMessageResponse { Success = true, Message = "User is not registered!!", Content = "" };
+
+
+            }
+            catch (Exception ex)
+            {
+                return new ActionMessageResponse { Success = false, Message = ex.Message, Content = "" };
+            }
+        }
+
+        public static string GenerateOTP()
+        {
+            var random = new Random();
+            return random.Next(100000,999999).ToString();
         }
     }
 }

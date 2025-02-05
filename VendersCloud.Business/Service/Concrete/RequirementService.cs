@@ -67,5 +67,22 @@ namespace VendersCloud.Business.Service.Concrete
                 throw ex;
             }
         }
+
+        public async Task<List<Requirement>> GetRequirementListByIdAsync(int requirementId)
+        {
+            try
+            {
+                if(requirementId <=0)
+                {
+                    return new List<Requirement>();
+                }
+                var response = await _requirementRepository.GetRequirementListByIdAsync(requirementId);
+                return response;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
     }
 }

@@ -561,6 +561,7 @@ namespace VendersCloud.Business.Service.Concrete
             else
                 _headers.Add(key, value);
         }
+
         public async Task<T> PostAsyncV2<T>(string route, object body, Dictionary<string, string> customHeaders = null)
         {
             var url = route;
@@ -638,6 +639,7 @@ namespace VendersCloud.Business.Service.Concrete
 
 
 
+
         private HttpClient GetClient()
         {
             var httpClient = new HttpClient();
@@ -660,6 +662,7 @@ namespace VendersCloud.Business.Service.Concrete
             var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
             return Convert.ToBase64String(plainTextBytes);
         }
+
 
         //private HttpClient GetFilledHttpClient(string apiUrl = "")
         //{
@@ -763,3 +766,6 @@ namespace VendersCloud.Business.Service.Concrete
 
     }
 }
+
+       
+

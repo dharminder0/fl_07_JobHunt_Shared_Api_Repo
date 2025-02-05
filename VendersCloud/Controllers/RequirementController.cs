@@ -70,6 +70,25 @@ namespace VendersCloud.WebApi.Controllers
             }
         }
 
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [HttpGet]
+        [Route("api/V1/Requirement/GetList/{requirementId}")]
+        public async Task<IActionResult> GetRequirementListByIdAsync(int requirementId)
+        {
+            try
+            {
+                var result = await _requirementService.GetRequirementListByIdAsync(requirementId);
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
     }
 }
 
