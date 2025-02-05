@@ -20,5 +20,9 @@ namespace VendersCloud.Business.Service.Concrete
                 _httpService.AddHeader("api-key", apiKey);
             }
         }
+        public ExternalServiceBase()
+        {
+
+        }
     }
 }
