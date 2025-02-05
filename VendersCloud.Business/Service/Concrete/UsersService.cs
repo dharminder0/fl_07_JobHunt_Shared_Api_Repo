@@ -48,12 +48,15 @@ namespace VendersCloud.Business.Service.Concrete
                         {
                             return new ActionMessageResponse { Success = false, Message = "User Already Exists!!", Content = "" };
                         }
-                       await _communicationService.SendUserVerificationEmail(request.FirstName, request.LastName, request.Email, verificationOtp, token);
-                        RegistrationDto registration= new RegistrationDto();
-                        registration.UserId = data;
-                        registration.OrgCode = orgCode;
-                        registration.Email = request.Email;
-                        return new ActionMessageResponse { Success = true, Message = "New Client Registered Successfully!!", Content = registration };
+                        if (await _communicationService.SendUserVerificationEmail(request.FirstName, request.LastName, request.Email, verificationOtp, token))
+                        {
+                            RegistrationDto registration = new RegistrationDto();
+                            registration.UserId = data;
+                            registration.OrgCode = orgCode;
+                            registration.Email = request.Email;
+                            return new ActionMessageResponse { Success = true, Message = "New Client Registered Successfully!!", Content = registration };
+                        }
+                        return new ActionMessageResponse { Success = false, Message = "Enter Correct Email", Content = "" };
                     }
                     return new ActionMessageResponse { Success = false, Message = "Not Added",Content="" };
                 }
@@ -340,7 +343,7 @@ namespace VendersCloud.Business.Service.Concrete
                             return new ActionMessageResponse { Success = true, Message = "Email is sent Successfully!!", Content = "" };
                         }
 
-                        return new ActionMessageResponse { Success = true, Message = "Email Sending Fail !!", Content = "" };
+                        return new ActionMessageResponse { Success = false, Message = "Email Sending Fail !!", Content = "" };
                     }
                 }
                 return new ActionMessageResponse { Success = true, Message = "User is not registered!!", Content = "" };
