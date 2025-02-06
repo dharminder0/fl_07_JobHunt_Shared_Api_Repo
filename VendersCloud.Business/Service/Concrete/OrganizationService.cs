@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using Microsoft.AspNetCore.Identity.Data;
+using System.Text;
 using VendersCloud.Business.Entities.DataModels;
 using VendersCloud.Business.Entities.Dtos;
 using VendersCloud.Business.Entities.RequestModels;
@@ -14,10 +15,14 @@ namespace VendersCloud.Business.Service.Concrete
         private readonly IOrganizationRepository _organizationRepository;
         private readonly IUserProfilesRepository _userProfilesRepository;
         private readonly IOrgProfilesRepository _orgProfilesService;
-        public OrganizationService(IOrganizationRepository organizationRepository, IUserProfilesRepository userProfilesRepository, IOrgProfilesRepository _orgProfilesRepository) {
-        _organizationRepository = organizationRepository;
+        private readonly IOrgLocationRepository _organizationLocationRepository;
+        private readonly IOrgSocialRepository _organizationSocialRepository;
+        public OrganizationService(IOrganizationRepository organizationRepository, IUserProfilesRepository userProfilesRepository, IOrgProfilesRepository _orgProfilesRepository, IOrgLocationRepository organizationLocationRepository, IOrgSocialRepository organizationSocialRepository) {
+            _organizationRepository = organizationRepository;
             _userProfilesRepository= userProfilesRepository;
             _orgProfilesService = _orgProfilesRepository;
+            _organizationLocationRepository = organizationLocationRepository;
+            _organizationSocialRepository = organizationSocialRepository;
         }
 
         public async Task<string> RegisterNewOrganizationAsync(RegistrationRequest request)
@@ -144,6 +149,72 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
-        
+        public async Task<ActionMessageResponse> UpsertOrganizationProfile(OrganizationProfileRequest request)
+        {
+            try
+            {
+                if (request == null)
+                {
+                    return new ActionMessageResponse() { Success = false, Message = "Enter Valid Inputs", Content = "" };
+
+                }
+                var orgData = await GetOrganizationDataAsync(request.OrgCode);
+                if (orgData == null)
+                {
+                    return new ActionMessageResponse() { Success = false, Message = "Data against this OrgCode is not found!!", Content = "" };
+                }
+                request.OrgName = string.IsNullOrEmpty(request.OrgName) ? orgData.OrgName : request.OrgName;
+                request.Phone = string.IsNullOrEmpty(request.Phone) ? orgData.Phone : request.Phone;
+                request.Email = string.IsNullOrEmpty(request.Email) ? orgData.Email : request.Email;
+                request.Website = string.IsNullOrEmpty(request.Website) ? orgData.Website : request.Website;
+                request.EmpCount = request.EmpCount <= 0 ? orgData.EmpCount : request.EmpCount;
+                request.Description = string.IsNullOrEmpty(request.Description) ? orgData.Description : request.Description;
+                request.RegAddress = string.IsNullOrEmpty(request.RegAddress) ? orgData.RegAddress : request.RegAddress;
+
+                CompanyInfoRequest infoRequest = new CompanyInfoRequest();
+                infoRequest.OrgName = request.OrgName;
+                infoRequest.ContactMail = request.Email;
+                infoRequest.Portfolio = request.Description;
+                infoRequest.Website = request.Website;
+                infoRequest.Phone = request.Phone;
+                infoRequest.Strength = request.EmpCount.ToString();
+                await _organizationRepository.UpdateOrganizationByOrgCodeAsync(infoRequest, request.OrgCode);
+
+                if (request.OrgLocation != null)
+                {
+                    foreach (var orgLocation in request.OrgLocation)
+                    {
+                        OrgLocation location = new OrgLocation();
+                        location.City = orgLocation.City;
+                        location.State = orgLocation.State;
+                        location.OrgCode = request.OrgCode;
+
+                        var res = await _organizationLocationRepository.UpsertLocation(location);
+                    }
+
+                }
+                if (request.Social != null)
+                {
+                    foreach (var social in request.Social)
+                    {
+                        OrgSocial socials = new OrgSocial();
+                        socials.Platform = social.Platform;
+                        socials.Name = social.Name;
+                        socials.URL = social.URL;
+                        socials.OrgCode = request.OrgCode;
+                        var response = await _organizationSocialRepository.UpsertSocialProfile(socials);
+                    }
+                }
+                return new ActionMessageResponse() { Success = true, Message = "Data against this OrgCode is Update!!", Content = "" };
+
+            }
+            catch (Exception ex)
+            {
+                return new ActionMessageResponse() { Success = false, Message = ex.Message, Content = "" };
+            }
+
+        }
+
+
     }
 }
