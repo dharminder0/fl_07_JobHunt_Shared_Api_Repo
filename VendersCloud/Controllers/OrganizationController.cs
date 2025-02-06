@@ -69,5 +69,25 @@ namespace VendersCloud.WebApi.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [HttpPost]
+        [Route("api/V1/Upsert/Organization/Profile")]
+        public async Task<IActionResult>UpsertOrganizationProfile(OrganizationProfileRequest request)
+        {
+            try
+            {
+                var result = await _organizationService.UpsertOrganizationProfile(request);
+                return Json(result);
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
     }
 }
