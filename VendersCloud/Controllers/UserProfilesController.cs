@@ -19,7 +19,7 @@ namespace VendersCloud.WebApi.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [HttpPost]
-        [Route("api/V1/UserProfiles/Insert")]
+        [Route("api/V1/UserProfiles/Add")]
 
         public async Task<IActionResult> InsertUserProfileAsync(int userId, int profileId)
         {
