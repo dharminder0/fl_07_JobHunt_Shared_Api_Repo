@@ -115,8 +115,12 @@ namespace VendersCloud.Data.Repositories.Concrete
                     UpdatedOn = DateTime.UtcNow,
                     IsDeleted = false
                 }).Where("OrgCode", orgCode);
-                await dbInstance.ExecuteAsync(updateQuery);
-                return true;
+                var res=await dbInstance.ExecuteAsync(updateQuery);
+                if (res != null)
+                {
+                    return true;
+                }
+                return false;
             }
             catch(Exception ex)
             {

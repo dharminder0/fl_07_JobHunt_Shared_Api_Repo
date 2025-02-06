@@ -26,7 +26,7 @@ namespace VendersCloud.WebApi.Controllers
                 var result = await _organizationService.GetOrganizationDataAsync(orgCode);
                 return Json(result);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
@@ -76,11 +76,30 @@ namespace VendersCloud.WebApi.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [HttpPost]
         [Route("api/V1/Upsert/Organization/Profile")]
-        public async Task<IActionResult>UpsertOrganizationProfile(OrganizationProfileRequest request)
+        public async Task<IActionResult> UpsertOrganizationProfile(OrganizationProfileRequest request)
         {
             try
             {
                 var result = await _organizationService.UpsertOrganizationProfile(request);
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [HttpGet]
+        [Route("api/V1/Get/Organization/Profile")]
+         public async Task<IActionResult> GetOrganizationProfile(string orgCode)
+        {
+            try
+            {
+                var result= await _organizationService.GetOrganizationProfile(orgCode);
                 return Json(result);
             }
             catch(Exception ex)

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using DapperExtensions;
+using Microsoft.Extensions.Configuration;
 using SqlKata;
 using VendersCloud.Business.Entities.DataModels;
 using VendersCloud.Data.Data;
@@ -60,6 +61,22 @@ namespace VendersCloud.Data.Repositories.Concrete
             {
                 // Optionally log the exception here
                 return false;
+            }
+        }
+
+        public async Task<List<OrgSocial>> GetOrgSocialProfile(string orgCode)
+        {
+            try
+            {
+                var dbInstance = GetDbInstance();
+                var sql = "SELECT * FROM OrgSocial Where OrgCode=@orgCode";
+
+                var orgdata = dbInstance.Select<OrgSocial>(sql, new {orgCode}).ToList();
+                return orgdata;
+            }
+            catch (Exception ex)
+            {
+                return new List<OrgSocial>();
             }
         }
 

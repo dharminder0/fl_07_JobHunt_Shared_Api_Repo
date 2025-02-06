@@ -17,9 +17,10 @@ namespace VendersCloud.Business.Service.Concrete
         private readonly IOrgProfilesRepository _orgProfilesService;
         private readonly IOrgLocationRepository _organizationLocationRepository;
         private readonly IOrgSocialRepository _organizationSocialRepository;
-        public OrganizationService(IOrganizationRepository organizationRepository, IUserProfilesRepository userProfilesRepository, IOrgProfilesRepository _orgProfilesRepository, IOrgLocationRepository organizationLocationRepository, IOrgSocialRepository organizationSocialRepository) {
+        public OrganizationService(IOrganizationRepository organizationRepository, IUserProfilesRepository userProfilesRepository, IOrgProfilesRepository _orgProfilesRepository, IOrgLocationRepository organizationLocationRepository, IOrgSocialRepository organizationSocialRepository)
+        {
             _organizationRepository = organizationRepository;
-            _userProfilesRepository= userProfilesRepository;
+            _userProfilesRepository = userProfilesRepository;
             _orgProfilesService = _orgProfilesRepository;
             _organizationLocationRepository = organizationLocationRepository;
             _organizationSocialRepository = organizationSocialRepository;
@@ -29,11 +30,12 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-               string companyCode = GenerateRandomOrgCode();
-               string orgcode= await _organizationRepository.RegisterNewOrganizationAsync(request, companyCode);
+                string companyCode = GenerateRandomOrgCode();
+                string orgcode = await _organizationRepository.RegisterNewOrganizationAsync(request, companyCode);
                 return orgcode;
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 return null;
             }
         }
@@ -60,7 +62,7 @@ namespace VendersCloud.Business.Service.Concrete
                 var response = await _organizationRepository.GetOrganizationData(orgCode);
                 return response;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return null;
             }
@@ -93,22 +95,24 @@ namespace VendersCloud.Business.Service.Concrete
                 if (dbUser != null)
                 {
                     bool response = await _organizationRepository.UpdateOrganizationByOrgCodeAsync(infoRequest, dbUser.OrgCode);
-                    if (response) { 
-                        foreach(var item in infoRequest.registrationType)
+                    if (response)
+                    {
+                        foreach (var item in infoRequest.registrationType)
                         {
                             int pId = Convert.ToInt32(item);
                             var uPres = await _userProfilesRepository.InsertUserProfileAsync(userId, pId);
                             var oPres = await _orgProfilesService.AddOrganizationProfileAsync(dbUser.OrgCode, pId);
-                          
+
                         }
                         return new ActionMessageResponse() { Success = true, Message = "Organization Information is updated", Content = "" };
-                      
+
                     }
                     return new ActionMessageResponse() { Success = false, Message = "Organization Information is not updated", Content = "" };
                 }
                 return new ActionMessageResponse() { Success = false, Message = "Data not found!!", Content = "" };
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 return new ActionMessageResponse() { Success = false, Message = ex.Message, Content = "" };
             }
         }
@@ -180,9 +184,9 @@ namespace VendersCloud.Business.Service.Concrete
                 infoRequest.Strength = request.EmpCount.ToString();
                 await _organizationRepository.UpdateOrganizationByOrgCodeAsync(infoRequest, request.OrgCode);
 
-                if (request.OrgLocation != null)
+                if (request.OfficeLocation != null)
                 {
-                    foreach (var orgLocation in request.OrgLocation)
+                    foreach (var orgLocation in request.OfficeLocation)
                     {
                         OrgLocation location = new OrgLocation();
                         location.City = orgLocation.City;
@@ -193,9 +197,9 @@ namespace VendersCloud.Business.Service.Concrete
                     }
 
                 }
-                if (request.Social != null)
+                if (request.SocialLinks != null)
                 {
-                    foreach (var social in request.Social)
+                    foreach (var social in request.SocialLinks)
                     {
                         OrgSocial socials = new OrgSocial();
                         socials.Platform = social.Platform;
@@ -215,6 +219,85 @@ namespace VendersCloud.Business.Service.Concrete
 
         }
 
+        public async Task<ActionMessageResponse> GetOrganizationProfile(string orgCode)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(orgCode))
+                {
+                    return new ActionMessageResponse() { Success = false, Message = "Enter Valid Input!!", Content = "" };
+                }
+
+                var response = await _organizationRepository.GetOrganizationData(orgCode);
+                if (response != null)
+                {
+                    // Await the tasks to get actual data
+                    var socialData = await _organizationSocialRepository.GetOrgSocialProfile(orgCode);
+                    var orgLocationData = await _organizationLocationRepository.GetOrgLocation(orgCode);
+
+                    // Initialize the profile response
+                    OrganizationProfileResponse profileResponse = new OrganizationProfileResponse
+                    {
+                        OrgCode = orgCode,
+                        OrgName = response.OrgName,
+                        Phone = response.Phone,
+                        Email = response.Email,
+                        Website = response.Website,
+                        EmpCount = response.EmpCount,
+                        Logo = response.Logo,
+                        Description = response.Description,
+                        RegAddress = response.RegAddress,
+                        IsDeleted = response.IsDeleted,
+                        SocialLinks = new List<VendersCloud.Business.Entities.ResponseModels.SocialProfiles>(), // Use fully qualified name
+                        OfficeLocation = new List<VendersCloud.Business.Entities.ResponseModels.OfficeLocations>() // Use fully qualified name
+                    };
+
+                    // Add social profiles to the list
+                    foreach (var social in socialData)
+                    {
+                        profileResponse.SocialLinks.Add(new VendersCloud.Business.Entities.ResponseModels.SocialProfiles
+                        {
+                            Platform = social.Platform,
+                            Name = social.Name,
+                            URL = social.URL
+                        });
+                    }
+
+                    // Add organization locations to the list
+                    foreach (var dataLocation in orgLocationData)
+                    {
+                        profileResponse.OfficeLocation.Add(new VendersCloud.Business.Entities.ResponseModels.OfficeLocations
+                        {
+                            City = dataLocation.City,
+                            State = dataLocation.State
+                        });
+                    }
+
+                    return new ActionMessageResponse()
+                    {
+                        Success = true,
+                        Message = "Organization Profile",
+                        Content = profileResponse
+                    };
+                }
+
+                return new ActionMessageResponse()
+                {
+                    Success = false,
+                    Message = "Enter Valid Input!!",
+                    Content = ""
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ActionMessageResponse()
+                {
+                    Success = false,
+                    Message = ex.Message,
+                    Content = ""
+                };
+            }
+        }
 
     }
 }

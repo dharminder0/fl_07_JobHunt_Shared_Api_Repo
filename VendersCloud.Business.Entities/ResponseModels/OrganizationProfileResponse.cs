@@ -1,12 +1,14 @@
-﻿namespace VendersCloud.Business.Entities.RequestModels
+﻿
+namespace VendersCloud.Business.Entities.ResponseModels
 {
-    public class OrganizationProfileRequest
+    public class OrganizationProfileResponse
     {
         public string OrgCode { get; set; }
         public string OrgName { get; set; }
         public string Phone { get; set; }
         public string Email { get; set; }
         public string Website { get; set; }
+        public string Logo { get; set; }
         public int EmpCount { get; set; }
         public string Description { get; set; }
         public string RegAddress { get; set; }
