@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using DapperExtensions;
 using Microsoft.Extensions.Configuration;
 using SqlKata;
 using VendersCloud.Business.Entities.DataModels;
@@ -51,6 +52,22 @@ namespace VendersCloud.Data.Repositories.Concrete
             catch(Exception ex)
             {
                 return false;
+            }
+        }
+
+        public async Task<List<OrgLocation>> GetOrgLocation(string orgCode)
+        {
+            try
+            {
+                var dbInstance = GetDbInstance();
+                var sql = "SELECT * FROM OrgLocation Where OrgCode=@orgCode";
+
+                var orgdata = dbInstance.Select<OrgLocation>(sql, new {orgCode}).ToList();
+                return orgdata;
+            }
+            catch (Exception ex)
+            {
+                return new List<OrgLocation>();
             }
         }
     }
