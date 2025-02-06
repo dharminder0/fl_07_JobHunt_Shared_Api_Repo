@@ -1,6 +1,4 @@
-﻿using AutoMapper;
-using System;
-using System.Text;
+﻿using System.Text;
 using VendersCloud.Business.Entities.DataModels;
 using VendersCloud.Business.Entities.Dtos;
 using VendersCloud.Business.Entities.RequestModels;
@@ -15,9 +13,11 @@ namespace VendersCloud.Business.Service.Concrete
     {
         private readonly IOrganizationRepository _organizationRepository;
         private readonly IUserProfilesRepository _userProfilesRepository;
-        public OrganizationService(IOrganizationRepository organizationRepository, IUserProfilesRepository userProfilesRepository) {
+        private readonly IOrgProfilesRepository _orgProfilesService;
+        public OrganizationService(IOrganizationRepository organizationRepository, IUserProfilesRepository userProfilesRepository, IOrgProfilesRepository _orgProfilesRepository) {
         _organizationRepository = organizationRepository;
             _userProfilesRepository= userProfilesRepository;
+            _orgProfilesService = _orgProfilesRepository;
         }
 
         public async Task<string> RegisterNewOrganizationAsync(RegistrationRequest request)
@@ -92,11 +92,12 @@ namespace VendersCloud.Business.Service.Concrete
                         foreach(var item in infoRequest.registrationType)
                         {
                             int pId = Convert.ToInt32(item);
-                            var res = await _userProfilesRepository.InsertUserProfileAsync(userId, pId);
-                            
+                            var uPres = await _userProfilesRepository.InsertUserProfileAsync(userId, pId);
+                            var oPres = await _orgProfilesService.AddOrganizationProfileAsync(dbUser.OrgCode, pId);
+                          
                         }
-                       
                         return new ActionMessageResponse() { Success = true, Message = "Organization Information is updated", Content = "" };
+                      
                     }
                     return new ActionMessageResponse() { Success = false, Message = "Organization Information is not updated", Content = "" };
                 }
