@@ -113,6 +113,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                     Phone= infoRequest.Phone,
                     EmpCount=infoRequest.Strength,
                     UpdatedOn = DateTime.UtcNow,
+                    RegAddress=infoRequest.RegAddress,
                     IsDeleted = false
                 }).Where("OrgCode", orgCode);
                 var res=await dbInstance.ExecuteAsync(updateQuery);

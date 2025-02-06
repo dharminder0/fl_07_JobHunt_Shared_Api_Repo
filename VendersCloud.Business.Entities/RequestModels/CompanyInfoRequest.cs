@@ -10,5 +10,6 @@
         public string Phone { get; set; }
         public string Website { get; set; }
         public string Strength { get; set; }
+        public string RegAddress { get; set; }
     }
 }
