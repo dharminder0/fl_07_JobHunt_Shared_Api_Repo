@@ -39,15 +39,12 @@ namespace VendersCloud.Data.Repositories.Concrete
                     State=location.State,
                     CreatedOn= DateTime.UtcNow,
                     IsDeleted = false
-                }).Select("Id");
+                });
 
-                var res= await dbInstance.ExecuteScalarAsync<string>(insertQuery);
-                if(res!=null)
-                {
-                    return true;
-                }
+                await dbInstance.ExecuteScalarAsync<string>(insertQuery);
+              
 
-                return false;
+                return true;
             }
             catch(Exception ex)
             {
