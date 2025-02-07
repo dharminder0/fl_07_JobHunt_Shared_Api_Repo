@@ -192,6 +192,7 @@ namespace VendersCloud.Business.Service.Concrete
 
                 if (request.OfficeLocation != null)
                 {
+                    await _organizationLocationRepository.DeleteOrgLocationAsync(request.OrgCode);
                     foreach (var orgLocation in request.OfficeLocation)
                     {
                         OrgLocation location = new OrgLocation();
