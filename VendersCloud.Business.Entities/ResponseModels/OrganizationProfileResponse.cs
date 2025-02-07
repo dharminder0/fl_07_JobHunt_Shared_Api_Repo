@@ -28,5 +28,6 @@ namespace VendersCloud.Business.Entities.ResponseModels
     {
         public string City { get; set; }
         public int State { get; set; }
+        public string StateName { get; set; }
     }
 }

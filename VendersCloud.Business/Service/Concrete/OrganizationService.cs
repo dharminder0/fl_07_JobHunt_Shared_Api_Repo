@@ -17,13 +17,15 @@ namespace VendersCloud.Business.Service.Concrete
         private readonly IOrgProfilesRepository _orgProfilesService;
         private readonly IOrgLocationRepository _organizationLocationRepository;
         private readonly IOrgSocialRepository _organizationSocialRepository;
-        public OrganizationService(IOrganizationRepository organizationRepository, IUserProfilesRepository userProfilesRepository, IOrgProfilesRepository _orgProfilesRepository, IOrgLocationRepository organizationLocationRepository, IOrgSocialRepository organizationSocialRepository)
+        private readonly IListValuesRepository _listValuesRepository;
+        public OrganizationService(IOrganizationRepository organizationRepository, IUserProfilesRepository userProfilesRepository, IOrgProfilesRepository _orgProfilesRepository, IOrgLocationRepository organizationLocationRepository, IOrgSocialRepository organizationSocialRepository, IListValuesRepository listValuesRepository)
         {
             _organizationRepository = organizationRepository;
             _userProfilesRepository = userProfilesRepository;
             _orgProfilesService = _orgProfilesRepository;
             _organizationLocationRepository = organizationLocationRepository;
             _organizationSocialRepository = organizationSocialRepository;
+            _listValuesRepository = listValuesRepository;
         }
 
         public async Task<string> RegisterNewOrganizationAsync(RegistrationRequest request)
@@ -270,10 +272,14 @@ namespace VendersCloud.Business.Service.Concrete
                     // Add organization locations to the list
                     foreach (var dataLocation in orgLocationData)
                     {
+                        var data = await _listValuesRepository.GetListValuesAsync();
+                        var selectedValues = data.Where(x => x.Id == dataLocation.State).Select(x => x.Value).FirstOrDefault();
+
                         profileResponse.OfficeLocation.Add(new VendersCloud.Business.Entities.ResponseModels.OfficeLocations
                         {
                             City = dataLocation.City,
-                            State = dataLocation.State
+                            State = dataLocation.State,
+                            StateName = selectedValues
                         });
                     }
 
