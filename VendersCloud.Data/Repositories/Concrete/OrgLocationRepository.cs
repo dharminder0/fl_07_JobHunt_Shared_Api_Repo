@@ -23,7 +23,8 @@ namespace VendersCloud.Data.Repositories.Concrete
                 var tableName = new Table<OrgLocation>();
                 var checkUserExist = new Query(tableName.TableName)
                       .Where("OrgCode", location.OrgCode)
-                      .Where("City", location.City)
+                      .Where("City",location.City)
+                      .Where("IsDeleted",false)
                       .Select("Id");
 
                 var existing = await dbInstance.ExecuteScalarAsync<string>(checkUserExist);
@@ -57,7 +58,7 @@ namespace VendersCloud.Data.Repositories.Concrete
             try
             {
                 var dbInstance = GetDbInstance();
-                var sql = "SELECT * FROM OrgLocation Where OrgCode=@orgCode";
+                var sql = "SELECT * FROM OrgLocation Where OrgCode=@orgCode And IsDeleted='0'";
 
                 var orgdata = dbInstance.Select<OrgLocation>(sql, new {orgCode}).ToList();
                 return orgdata;
@@ -66,6 +67,30 @@ namespace VendersCloud.Data.Repositories.Concrete
             {
                 return new List<OrgLocation>();
             }
+        }
+
+        public async Task<bool> DeleteOrgLocationAsync(string orgCode)
+        {
+            var dbInstance = GetDbInstance();
+            var tableName = new Table<OrgLocation>();
+            var checkUserExist = new Query(tableName.TableName)
+                  .Where("OrgCode", orgCode)
+                  .Select("Id");
+
+            var existing = await dbInstance.ExecuteScalarAsync<string>(checkUserExist);
+            if (existing != null)
+            {
+                var updateQuery = new Query(tableName.TableName)
+                     .AsUpdate(new
+                     {
+                         IsDeleted = true
+                     })
+                     .Where("OrgCode", orgCode);
+
+                await dbInstance.ExecuteAsync(updateQuery);
+            }
+            return true;
+
         }
     }
 }

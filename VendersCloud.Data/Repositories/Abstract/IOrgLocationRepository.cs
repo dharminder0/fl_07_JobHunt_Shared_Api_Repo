@@ -6,5 +6,6 @@ namespace VendersCloud.Data.Repositories.Abstract
     {
         Task<bool> UpsertLocation(OrgLocation location);
         Task<List<OrgLocation>> GetOrgLocation(string orgCode);
+        Task<bool> DeleteOrgLocationAsync(string orgCode);
     }
 }
