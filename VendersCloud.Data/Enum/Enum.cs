@@ -33,5 +33,10 @@
             Hybrid = 2,
             Remote = 3
         }
+
+        public enum MasterListValues
+        {
+            State=1
+        }
     }
 }
