@@ -20,8 +20,8 @@ namespace VendersCloud.Data.Repositories.Concrete
                 var tableName = new Table<Organization>();
 
                 var query = new Query(tableName.TableName)
-                    .Where("IsDeleted",false)
-                    .Where("OrgName",request.CompanyName)
+                    .Where("IsDeleted", false)
+                    .Where("OrgName", request.CompanyName)
                     .Select("OrgCode");
 
                 var existingOrgCode = await dbInstance.ExecuteScalarAsync<string>(query);
@@ -74,7 +74,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                     }
                 });
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return null;
             }
@@ -98,37 +98,53 @@ namespace VendersCloud.Data.Repositories.Concrete
             }
         }
 
-        public async Task<bool>UpdateOrganizationByOrgCodeAsync(CompanyInfoRequest infoRequest, string orgCode)
+        public async Task<bool> UpdateOrganizationByOrgCodeAsync(CompanyInfoRequest infoRequest, string orgCode)
         {
             try
             {
-                var dbInstance= GetDbInstance();
+                var dbInstance = GetDbInstance();
                 var tableName = new Table<Organization>();
                 var updateQuery = new Query(tableName.TableName).AsUpdate(new
                 {
                     OrgName = infoRequest.OrgName,
                     Email = infoRequest.ContactMail,
-                    Description= infoRequest.Portfolio,
-                    Website= infoRequest.Website,
-                    Phone= infoRequest.Phone,
-                    EmpCount=infoRequest.Strength,
+                    Description = infoRequest.Portfolio,
+                    Website = infoRequest.Website,
+                    Phone = infoRequest.Phone,
+                    EmpCount = infoRequest.Strength,
                     UpdatedOn = DateTime.UtcNow,
-                    RegAddress=infoRequest.RegAddress,
                     IsDeleted = false
                 }).Where("OrgCode", orgCode);
-                var res=await dbInstance.ExecuteAsync(updateQuery);
+                var res = await dbInstance.ExecuteAsync(updateQuery);
                 if (res != null)
                 {
                     return true;
                 }
                 return false;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return false;
             }
         }
 
+        public async Task<bool> UpdateOrganizationAddressByOrgCodeAsync(string regAddress, string orgCode)
+        {
+            var dbInstance = GetDbInstance();
+            var tableName = new Table<Organization>();
+            var updateQuery = new Query(tableName.TableName).AsUpdate(new
+            {
+                RegAddress=regAddress,
+                UpdatedOn = DateTime.UtcNow,
+                IsDeleted = false
+            }).Where("OrgCode", orgCode);
+            var res = await dbInstance.ExecuteAsync(updateQuery);
+            if (res != null)
+            {
+                return true;
+            }
+            return false;
+        }
         public async Task<Users> GetUserByIdAsync(int Id)
         {
             try
@@ -140,12 +156,12 @@ namespace VendersCloud.Data.Repositories.Concrete
                 return users?.FirstOrDefault();
             }
             catch (Exception ex)
-            { 
+            {
                 return null;
             }
         }
 
-        
+
 
     }
 

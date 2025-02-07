@@ -182,8 +182,11 @@ namespace VendersCloud.Business.Service.Concrete
                 infoRequest.Website = request.Website;
                 infoRequest.Phone = request.Phone;
                 infoRequest.Strength = request.EmpCount.ToString();
-                infoRequest.RegAddress = request.RegAddress;
                 await _organizationRepository.UpdateOrganizationByOrgCodeAsync(infoRequest, request.OrgCode);
+                if(string.IsNullOrEmpty(request.RegAddress))
+                {
+                    await _organizationRepository.UpdateOrganizationAddressByOrgCodeAsync(request.RegAddress, request.OrgCode);
+                }
 
                 if (request.OfficeLocation != null)
                 {
