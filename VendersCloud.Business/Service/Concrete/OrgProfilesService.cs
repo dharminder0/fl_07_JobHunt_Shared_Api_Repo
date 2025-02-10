@@ -1,4 +1,7 @@
-﻿using VendersCloud.Business.Service.Abstract;
+﻿using VendersCloud.Business.Entities.DataModels;
+using VendersCloud.Business.Entities.Dtos;
+using VendersCloud.Business.Entities.RequestModels;
+using VendersCloud.Business.Service.Abstract;
 using VendersCloud.Data.Repositories.Abstract;
 
 namespace VendersCloud.Business.Service.Concrete
@@ -26,6 +29,17 @@ namespace VendersCloud.Business.Service.Concrete
                 return false;
             }
 
+        }
+
+        public async Task<PaginationDto<Organization>> SearchOrganizationsDetails(SearchRequest request)
+        {
+            try
+            {
+                return await _orgProfilesRepository.SearchOrganizationsDetails(request);
+            }
+            catch (Exception ex) {
+                throw ex;
+            }
         }
     }
 

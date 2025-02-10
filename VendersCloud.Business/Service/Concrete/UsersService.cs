@@ -91,6 +91,10 @@ namespace VendersCloud.Business.Service.Concrete
                     if (hashedPassword== dbUser.Password)
                     {
                         LoginResponseDto login = new LoginResponseDto();
+                        login.FirstName= dbUser.FirstName;
+                        login.LastName= dbUser.LastName;
+                        login.Phone = companyData.Phone;
+                        login.Gender= dbUser.Gender;
                         login.UserId = dbUser.Id.ToString();
                         login.Email = dbUser.UserName;
                         login.OrgCode = dbUser.OrgCode;
@@ -163,7 +167,7 @@ namespace VendersCloud.Business.Service.Concrete
                     LastLoginTime = dbUser.LastLoginTime,
                     IsDeleted = dbUser.IsDeleted
                 };
-                return new ActionMessageResponse { Success = false, Message = "User  Found!!", Content = userdto };
+                return new ActionMessageResponse { Success = true, Message = "User  Found!!", Content = userdto };
             }
             catch (Exception ex) {
                 return new ActionMessageResponse { Success = false, Message = ex.Message, Content = "" };
