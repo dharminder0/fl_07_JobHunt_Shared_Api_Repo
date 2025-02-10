@@ -11,6 +11,7 @@ namespace VendersCloud.Business.Entities.DataModels
         public string Platform { get; set; }
         public string Name { get; set; }
         public string URL { get; set; }
+        public bool isDeleted {  get; set; }
 
     }
     public class OrgSocialMapper : ClassMapper<OrgSocial>
