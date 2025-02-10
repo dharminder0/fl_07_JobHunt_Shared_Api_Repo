@@ -50,7 +50,8 @@ namespace VendersCloud.Data.Repositories.Concrete
                         OrgCode = social.OrgCode,
                         Platform = social.Platform,
                         Name = social.Name,
-                        URL = social.URL
+                        URL = social.URL,
+                        IsDeleted=false
                     });
 
                     await dbInstance.ExecuteScalarAsync<string>(insertQuery); // Execute the insert
@@ -87,7 +88,7 @@ namespace VendersCloud.Data.Repositories.Concrete
             var tableName = new Table<OrgSocial>();
             var checkUserExist = new Query(tableName.TableName)
                   .Where("OrgCode", orgCode)
-                  .Where("IsDeleted",false)
+                  .Where("IsDeleted",true)
                   .Select("Id");
 
             var existing = await dbInstance.ExecuteScalarAsync<string>(checkUserExist);
