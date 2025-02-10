@@ -143,6 +143,27 @@ namespace VendersCloud.WebApi
 
             services.AddScoped<IpHelper>();
 
+            services.AddMvc().AddNewtonsoftJson(options =>
+            {
+                options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+                options.SerializerSettings.PreserveReferencesHandling = PreserveReferencesHandling.Objects;
+                options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+            });
+            //// for handling error The collection type 'Newtonsoft.Json.Linq.JObject or JToken or JArray' is not supported
+            //// requires https://www.nuget.org/packages/Microsoft.AspNetCore.Mvc.NewtonsoftJson/
+
+
+            services.Configure<Microsoft.AspNetCore.Mvc.MvcOptions>(options =>
+            {
+                options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
+            });
+
+            services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+                });
+
             //add CORS for origins to be allowed
 
             services.AddCors(options => {
@@ -161,19 +182,9 @@ namespace VendersCloud.WebApi
                             }
                         });
             });
-            services.AddMvc().AddNewtonsoftJson(options => {
-                options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-                options.SerializerSettings.PreserveReferencesHandling = PreserveReferencesHandling.Objects;
-                options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
-            });
-            // for handling error The collection type 'Newtonsoft.Json.Linq.JObject or JToken or JArray' is not supported
-            // requires https://www.nuget.org/packages/Microsoft.AspNetCore.Mvc.NewtonsoftJson/
-       
-            services.AddControllers()
-                .AddJsonOptions(options =>
-                {
-                    options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
-                });
+
+           
+
         }
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
