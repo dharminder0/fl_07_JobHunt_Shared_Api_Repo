@@ -75,6 +75,7 @@ namespace VendersCloud.Data.Repositories.Concrete
             var tableName = new Table<OrgLocation>();
             var checkUserExist = new Query(tableName.TableName)
                   .Where("OrgCode", orgCode)
+                  .Where("IsDeleted",false)
                   .Select("Id");
 
             var existing = await dbInstance.ExecuteScalarAsync<string>(checkUserExist);

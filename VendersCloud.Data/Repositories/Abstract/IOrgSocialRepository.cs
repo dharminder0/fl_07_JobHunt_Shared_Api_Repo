@@ -6,5 +6,6 @@ namespace VendersCloud.Data.Repositories.Abstract
     {
         Task<bool> UpsertSocialProfile(OrgSocial social);
         Task<List<OrgSocial>> GetOrgSocialProfile(string orgCode);
+        Task<bool> DeleteOrgSocialAsync(string orgCode);
     }
 }

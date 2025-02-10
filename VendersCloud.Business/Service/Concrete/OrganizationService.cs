@@ -206,6 +206,7 @@ namespace VendersCloud.Business.Service.Concrete
                 }
                 if (request.SocialLinks != null)
                 {
+                    await _organizationSocialRepository.DeleteOrgSocialAsync(request.OrgCode);
                     foreach (var social in request.SocialLinks)
                     {
                         OrgSocial socials = new OrgSocial();
