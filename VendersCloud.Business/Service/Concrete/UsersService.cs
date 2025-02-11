@@ -165,6 +165,7 @@ namespace VendersCloud.Business.Service.Concrete
                     CreatedOn = dbUser.CreatedOn,
                     UpdatedOn = dbUser.UpdatedOn,
                     LastLoginTime = dbUser.LastLoginTime,
+                    DOB = dbUser.DOB,
                     IsDeleted = dbUser.IsDeleted
                 };
                 return new ActionMessageResponse { Success = true, Message = "User  Found!!", Content = userdto };
@@ -200,6 +201,7 @@ namespace VendersCloud.Business.Service.Concrete
                     CreatedOn = dbUser.CreatedOn,
                     UpdatedOn = dbUser.UpdatedOn,
                     LastLoginTime = dbUser.LastLoginTime,
+                    DOB = dbUser.DOB,
                     IsDeleted = dbUser.IsDeleted
                 };
                 return userdto;
@@ -231,6 +233,7 @@ namespace VendersCloud.Business.Service.Concrete
                             ProfileAvatar = dbUser.ProfileAvatar,
                             CreatedOn = dbUser.CreatedOn,
                             UpdatedOn = dbUser.UpdatedOn,
+                            DOB = dbUser.DOB,
                             LastLoginTime = dbUser.LastLoginTime,
                             IsDeleted = dbUser.IsDeleted
                         };
@@ -274,6 +277,7 @@ namespace VendersCloud.Business.Service.Concrete
                         ProfileAvatar = user.ProfileAvatar,
                         CreatedOn = user.CreatedOn,
                         UpdatedOn = user.UpdatedOn,
+                        DOB = user.DOB,
                         LastLoginTime = user.LastLoginTime,
                         IsDeleted = user.IsDeleted
                     };
@@ -360,6 +364,23 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
+
+        public async Task<ActionMessageResponse> UpdateUserProfileAsync(UpdateUserProfileRequest request)
+        {
+            try
+            {
+                var res = await _usersRepository.UpdateUserProfileAsync(request);
+                if (res)
+                {
+                    return new ActionMessageResponse { Success = true, Message = "Profile is Updated!!", Content = "" };
+                }
+                return new ActionMessageResponse { Success = false, Message = "Profile is not Updated!!", Content = "" };
+            }
+            catch (Exception ex)
+            {
+                return new ActionMessageResponse { Success = false, Message = ex.Message, Content = "" };
+            }
+        }
         public static string GenerateOTP()
         {
             var random = new Random();

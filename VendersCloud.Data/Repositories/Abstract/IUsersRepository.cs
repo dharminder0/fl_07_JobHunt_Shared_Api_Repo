@@ -13,5 +13,6 @@ namespace VendersCloud.Data.Repositories.Abstract
         Task<Users> GetUserByIdAsync(int Id);
         Task<bool> VerifyUserEmailAsync(string userToken, string Otp);
         Task<bool> UpdateOtpAndTokenAsync(string otp, string token, string email);
+        Task<bool> UpdateUserProfileAsync(UpdateUserProfileRequest request);
     }
 }
