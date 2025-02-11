@@ -166,6 +166,7 @@ namespace VendersCloud.Business.Service.Concrete
                     UpdatedOn = dbUser.UpdatedOn,
                     LastLoginTime = dbUser.LastLoginTime,
                     DOB = dbUser.DOB,
+                    Phone= dbUser.Phone,
                     IsDeleted = dbUser.IsDeleted
                 };
                 return new ActionMessageResponse { Success = true, Message = "User  Found!!", Content = userdto };
@@ -202,6 +203,7 @@ namespace VendersCloud.Business.Service.Concrete
                     UpdatedOn = dbUser.UpdatedOn,
                     LastLoginTime = dbUser.LastLoginTime,
                     DOB = dbUser.DOB,
+                    Phone= dbUser.Phone,
                     IsDeleted = dbUser.IsDeleted
                 };
                 return userdto;
@@ -234,6 +236,7 @@ namespace VendersCloud.Business.Service.Concrete
                             CreatedOn = dbUser.CreatedOn,
                             UpdatedOn = dbUser.UpdatedOn,
                             DOB = dbUser.DOB,
+                            Phone= dbUser.Phone,
                             LastLoginTime = dbUser.LastLoginTime,
                             IsDeleted = dbUser.IsDeleted
                         };
@@ -278,6 +281,7 @@ namespace VendersCloud.Business.Service.Concrete
                         CreatedOn = user.CreatedOn,
                         UpdatedOn = user.UpdatedOn,
                         DOB = user.DOB,
+                        Phone= user.Phone,
                         LastLoginTime = user.LastLoginTime,
                         IsDeleted = user.IsDeleted
                     };
