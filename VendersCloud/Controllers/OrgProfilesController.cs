@@ -38,7 +38,7 @@ namespace VendersCloud.WebApi.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [HttpPost]
-        [Route("api/V1/OrgProfiles/Search/OrganizationDetails")]
+        [Route("api/V1/OrgProfiles/Search")]
         public async Task<IActionResult> SearchOrganizationsDetails(SearchRequest request)
         {
             try

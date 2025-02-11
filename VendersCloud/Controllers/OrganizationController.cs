@@ -75,7 +75,7 @@ namespace VendersCloud.WebApi.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [HttpPost]
-        [Route("api/V1/Upsert/Organization/Profile")]
+        [Route("api/V1/Organization/UpsertProfile")]
         public async Task<IActionResult> UpsertOrganizationProfile(OrganizationProfileRequest request)
         {
             try
@@ -94,7 +94,7 @@ namespace VendersCloud.WebApi.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [HttpGet]
-        [Route("api/V1/Get/Organization/Profile")]
+        [Route("api/V1/Organization/GetProfile")]
          public async Task<IActionResult> GetOrganizationProfile(string orgCode)
         {
             try

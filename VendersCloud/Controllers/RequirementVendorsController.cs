@@ -19,7 +19,7 @@ namespace VendersCloud.WebApi.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [HttpPost]
-        [Route("api/V1/RequirementVendors/Share/Requirement")]
+        [Route("api/V1/RequirementVendors/ShareRequirement")]
 
         public async Task<IActionResult> AddRequirementShareData(RequirementSharedRequest request)
         {

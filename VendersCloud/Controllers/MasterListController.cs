@@ -57,7 +57,7 @@ namespace VendersCloud.WebApi.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [HttpGet]
-        [Route("api/v1/MasterList/Getby-Name")]
+        [Route("api/v1/MasterList/{name}")]
         public async Task<IActionResult> GetMasterListByIdAndNameAsync(string name )
         {
             try
