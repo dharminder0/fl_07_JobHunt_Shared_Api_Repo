@@ -13,6 +13,7 @@
         public DateTime CreatedOn { get; set; }
         public DateTime UpdatedOn { get; set; }
         public DateTime LastLoginTime { get; set; }
+        public DateTime DOB { get; set; }
         public bool IsDeleted { get; set; }
     }
 }

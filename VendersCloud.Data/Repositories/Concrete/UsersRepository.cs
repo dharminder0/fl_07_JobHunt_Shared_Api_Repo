@@ -15,8 +15,6 @@ namespace VendersCloud.Data.Repositories.Concrete
         }
         public async Task<string> InsertUserAsync(RegistrationRequest request, string hashedPassword, byte[] salt, string orgCode,string verificationOtp,string token)
         {
-            try
-            {
                 var dbInstance = GetDbInstance();
                 var tableName = new Table<Users>();
 
@@ -62,18 +60,12 @@ namespace VendersCloud.Data.Repositories.Concrete
                 var insertedOrgCode = await dbInstance.ExecuteScalarAsync<string>(query2);
 
                 return !string.IsNullOrEmpty(insertedOrgCode) ? insertedOrgCode : insertedUserId;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error: {ex.Message}");
-                return null;
-            }
+            
         }
 
         public async Task<Users> GetUserByEmailAsync(string email)
         {
-            try
-            {
+            
                 return await GetByAsync(new PredicateGroup
                 {
                     Operator = GroupOperator.And,
@@ -82,20 +74,12 @@ namespace VendersCloud.Data.Repositories.Concrete
                         Predicates.Field<Users>(f=>f.IsDeleted,Operator.Eq,false),
                     }
                 });
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Exception: {ex.Message}");
-                // Log the exception (optional)
-                return null;
-            }
+            
         }
 
        
         public async Task<bool> DeleteUserByEmailAndOrgCodeAsync(string email, string organizationCode)
         {
-            try
-            {
                 var dbInstance = GetDbInstance();
                 var tableName = new Table<Users>();
                 var updateQuery = new Query(tableName.TableName)
@@ -110,55 +94,36 @@ namespace VendersCloud.Data.Repositories.Concrete
 
                 await dbInstance.ExecuteAsync(updateQuery);
                 return true;
-            }
-            catch (Exception ex)
-            {
-                return false;
-            }
+            
+            
         }
 
         public async Task<List<Users>> GetAllUserAsync()
         {
-            try
-            {
+            
                 var dbInstance = GetDbInstance();
                 var sql = "SELECT * FROM Users";
 
                 var users = dbInstance.Select<Users>(sql).ToList();
                 return users;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Exception: {ex.Message}");
-                // Log the exception (optional)
-                return null;
-            }
+            
+          
         }
 
         public async Task<List<Users>> GetUserByOrgCodeAsync(string orgCode)
         {
-            try
-            {
                 var dbInstance = GetDbInstance();
                 var sql = "SELECT * FROM Users Where OrgCode=@orgCode";
 
                 var users = dbInstance.Select<Users>(sql, new {orgCode}).ToList();
                 return users;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Exception: {ex.Message}");
-                // Log the exception (optional)
-                return null;
-            }
+            
 
         }
 
         public async Task<Users> GetUserByIdAsync(int Id)
         {
-            try
-            {
-                return await GetByAsync(new PredicateGroup
+              return await GetByAsync(new PredicateGroup
                 {
                     Operator = GroupOperator.And,
                     Predicates = new List<IPredicate> {
@@ -166,19 +131,12 @@ namespace VendersCloud.Data.Repositories.Concrete
                         Predicates.Field<Users>(f=>f.IsDeleted,Operator.Eq,false),
                     }
                 });
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Exception: {ex.Message}");
-                // Log the exception (optional)
-                return null;
-            }
+            
         }
 
         public async Task<bool> VerifyUserEmailAsync(string userToken, string Otp)
         {
-            try
-            {
+            
                 var res= await GetByAsync(new PredicateGroup
                 {
                     Operator = GroupOperator.And,
@@ -207,19 +165,11 @@ namespace VendersCloud.Data.Repositories.Concrete
                     return true;
                 }
                 return false;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Exception: {ex.Message}");
-                // Log the exception (optional)
-                return false;
-            }
+            
         }
 
         public async Task<bool> UpdateOtpAndTokenAsync(string otp,string token,string email)
         {
-            try
-            {
                 var dbInstance = GetDbInstance();
                 var tableName = new Table<Users>();
                 var updateQuery = new Query(tableName.TableName)
@@ -234,11 +184,25 @@ namespace VendersCloud.Data.Repositories.Concrete
 
                 await dbInstance.ExecuteAsync(updateQuery);
                 return true;
-            }
-            catch(Exception ex)
-            {
-                return false;
-            }
+        }
+
+        public async Task<bool> UpdateUserProfileAsync(UpdateUserProfileRequest request)
+        {
+            var dbInstance = GetDbInstance();
+            var tableName = new Table<Users>();
+            var insertQuery = new Query(tableName.TableName)
+                .AsUpdate(new
+                {
+                    FirstName = request.FirstName,
+                    LastName = request.LastName,
+                    Gender = request.Gender,
+                    Phone = request.Phone,
+                    DOB = request.DOB,
+                    IsDeleted = false
+                })
+                .Where("Username", request.Email);
+            await dbInstance.ExecuteAsync(insertQuery);
+            return true;
         }
     }
 

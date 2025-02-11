@@ -21,7 +21,9 @@ namespace VendersCloud.Business.Entities.DataModels
         public DateTime UpdatedOn { get; set; }
         public DateTime LastLoginTime {  get; set; }
         public bool IsDeleted { get; set; }
-        public string VerificationToken { get; set; }   
+        public string VerificationToken { get; set; }  
+        public DateTime DOB {  get; set; }
+        public string Phone { get; set; }
     }
 
     public class UserMapper : ClassMapper<Users>
