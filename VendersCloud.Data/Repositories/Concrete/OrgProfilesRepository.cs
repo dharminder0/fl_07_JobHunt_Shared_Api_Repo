@@ -57,10 +57,17 @@ namespace VendersCloud.Data.Repositories.Concrete
                 parameters.Add("searchText", $"%{request.SearchText}%");
             }
 
-            if (!string.IsNullOrEmpty(request.Technology))
+            if (request.Technology != null && request.Technology.Any())
             {
-               
+                var techPlaceholders = string.Join(", ", request.Technology.Select((tech, index) => $"@Tech{index}"));
+                predicates.Add($"EXISTS ( ))");
+
+                for (int i = 0; i < request.Technology.Count; i++)
+                {
+                    parameters.Add($"Tech{i}", request.Technology[i]);
+                }
             }
+
             if (request.Role != null && request.Role.Any())
             {
                 var rolePlaceholders = string.Join(", ", request.Role.Select((role, index) => $"@Role{index}"));
@@ -73,47 +80,43 @@ namespace VendersCloud.Data.Repositories.Concrete
                 parameters.Add("IsDeleted", false);
             }
 
-            if (request.Resource.HasValue)
+            if (request.Resource != null && request.Resource.Any())
             {
-                predicates.Add("EXISTS (SELECT 1 FROM Requirement op WHERE op.OrgCode = o.OrgCode AND op.LocationType = @resource)");
-                parameters.Add("resource", request.Resource);
+                var resourcePlaceholders = string.Join(", ", request.Resource.Select((r, index) => $"@Resource{index}"));
+                predicates.Add($"EXISTS (SELECT 1 FROM Requirement op WHERE op.OrgCode = o.OrgCode AND op.LocationType IN ({resourcePlaceholders}))");
+
+                for (int i = 0; i < request.Resource.Count; i++)
+                {
+                    parameters.Add($"Resource{i}", request.Resource[i]);
+                }
             }
 
-            if (request.Strength.HasValue)
+
+            if (request.Strength != null && request.Strength.Any())
             {
-                int minStrength = 0, maxStrength = int.MaxValue;
+                var strengthConditions = new List<string>();
+                for (int i = 0; i < request.Strength.Count; i++)
+                {
+                    if (int.TryParse(request.Strength[i], out int strength))
+                    {
+                        int minStrength = 0, maxStrength = int.MaxValue;
 
-                if (request.Strength == 0)
-                {
-                    minStrength = 0;
-                    maxStrength = 50;
-                }
-                else if (request.Strength == 50)
-                {
-                    minStrength = 50;
-                    maxStrength = 100;
-                }
-                else if (request.Strength == 100)
-                {
-                    minStrength = 100;
-                    maxStrength = 200;
-                }
-                else if (request.Strength == 200)
-                {
-                    minStrength = 200;
-                    maxStrength = 500;
-                }
-                else if (request.Strength == 500)
-                {
-                    minStrength = 500;
-                    maxStrength = int.MaxValue; // 500+ means no upper limit
-                }
+                        if (strength == 0) { minStrength = 0; maxStrength = 50; }
+                        else if (strength == 50) { minStrength = 50; maxStrength = 100; }
+                        else if (strength == 100) { minStrength = 100; maxStrength = 200; }
+                        else if (strength == 200) { minStrength = 200; maxStrength = 500; }
+                        else if (strength == 500) { minStrength = 500; maxStrength = int.MaxValue; }
 
-                predicates.Add("o.EmpCount BETWEEN @minStrength AND @maxStrength");
-                parameters.Add("minStrength", minStrength);
-                parameters.Add("maxStrength", maxStrength);
+                        strengthConditions.Add($"(o.EmpCount BETWEEN @minStrength{i} AND @maxStrength{i})");
+                        parameters.Add($"minStrength{i}", minStrength);
+                        parameters.Add($"maxStrength{i}", maxStrength);
+                    }
+                }
+                if (strengthConditions.Any())
+                {
+                    predicates.Add($"({string.Join(" OR ", strengthConditions)})");
+                }
             }
-
 
             string whereClause = predicates.Any() ? "WHERE " + string.Join(" AND ", predicates) : "";
 
