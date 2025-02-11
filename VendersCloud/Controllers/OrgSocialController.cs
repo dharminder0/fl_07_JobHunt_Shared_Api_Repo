@@ -19,7 +19,7 @@ namespace VendersCloud.WebApi.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [HttpPost]
-        [Route("api/v1/orgSocial/upsert-profile")]
+        [Route("api/v1/orgSocial/UpsertProfile")]
 
         public async Task<IActionResult> UpsertSocialProfile(OrgSocial social)
         {
@@ -38,7 +38,7 @@ namespace VendersCloud.WebApi.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [HttpGet]
-        [Route("api/v1/orgSocial/get-profile")]
+        [Route("api/v1/orgSocial/GetProfile")]
         public async Task<IActionResult> GetOrgSocialProfile(string orgCode)
         {
             try { 
