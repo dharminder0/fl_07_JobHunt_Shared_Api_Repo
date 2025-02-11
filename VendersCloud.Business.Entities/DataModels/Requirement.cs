@@ -18,7 +18,7 @@ namespace VendersCloud.Business.Entities.DataModels
         public string Location { get; set; }
         public int ClientId {  get; set; }
         public string Remarks { get; set; }
-        public int Visibilty {  get; set; }
+        public int Visibility {  get; set; }
         public bool Hot { get; set; }
         public int Status { get; set; }
         public DateTime CreatedOn { get; set; }
