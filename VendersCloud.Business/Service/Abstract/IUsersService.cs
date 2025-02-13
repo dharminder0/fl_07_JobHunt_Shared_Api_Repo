@@ -17,5 +17,6 @@ namespace VendersCloud.Business.Service.Abstract
         Task<ActionMessageResponse> VerifyUserEmailAsync(string userToken, string Otp);
         Task<ActionMessageResponse> ResendEmailVerificationAsync(string email);
         Task<ActionMessageResponse> UpdateUserProfileAsync(UpdateUserProfileRequest request);
+        Task<ActionMessageResponse> UpdateUserPasswordAsync(ChangePasswordRequest request);
     }
 }

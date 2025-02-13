@@ -204,6 +204,23 @@ namespace VendersCloud.Data.Repositories.Concrete
             await dbInstance.ExecuteAsync(insertQuery);
             return true;
         }
+
+        public async Task<bool> UpdateChangePasswordAsync(ChangePasswordRequest request, string hashedPassword, byte[] salt)
+        {
+            var dbInstance = GetDbInstance();
+            var tableName = new Table<Users>();
+            var insertQuery = new Query(tableName.TableName)
+                .AsUpdate(new
+                {
+                   Password= hashedPassword,
+                   PasswordSalt= salt,
+                    IsDeleted = false
+                })
+                .Where("Username", request.Email);
+            await dbInstance.ExecuteAsync(insertQuery);
+            return true;
+        }
+
     }
 
 }

@@ -385,6 +385,40 @@ namespace VendersCloud.Business.Service.Concrete
                 return new ActionMessageResponse { Success = false, Message = ex.Message, Content = "" };
             }
         }
+
+        public async Task<ActionMessageResponse> UpdateUserPasswordAsync(ChangePasswordRequest request)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(request.Email) || (string.IsNullOrEmpty(request.OldPassword)) || (string.IsNullOrEmpty(request.NewPassword)))
+                {
+                    return new ActionMessageResponse { Success = false, Message = "Enter Valid Inputs", Content = "" };
+                }
+                var dbUser = await _usersRepository.GetUserByEmailAsync(request.Email);
+                if (dbUser != null && dbUser.PasswordSalt != null)
+                {
+                    var saltBytes = dbUser.PasswordSalt;
+                    string salt = Convert.ToBase64String(saltBytes);
+                    var hashedPassword = Hasher.HashPassword(salt, request.OldPassword);
+                    if (hashedPassword == dbUser.Password)
+                    {
+                        string salts = Hasher.GenerateSalt();
+                        byte[] saltBytess = Convert.FromBase64String(salts);
+                        var hashedNewPassword = Hasher.HashPassword(salts, request.NewPassword);
+                        var res= await _usersRepository.UpdateChangePasswordAsync(request,hashedNewPassword, saltBytess);
+                        if (res)
+                            return new ActionMessageResponse { Success = true, Message = "Password Changed Successfully!!", Content = "" };
+                        return new ActionMessageResponse { Success = false, Message = "Password Not Changed!!", Content = "" };
+                    }
+                    return new ActionMessageResponse { Success = false, Message = "Password Not Matched!!", Content = "" };
+                }
+                return new ActionMessageResponse { Success = false, Message = "User Not Found!!", Content = "" };
+            }
+            catch (Exception ex)
+            {
+                return new ActionMessageResponse { Success = false, Message = ex.Message, Content = "" };
+            }
+        }
         public static string GenerateOTP()
         {
             var random = new Random();
