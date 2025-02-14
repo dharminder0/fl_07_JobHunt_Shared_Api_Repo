@@ -107,5 +107,25 @@ namespace VendersCloud.WebApi.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [HttpPost]
+        [Route("api/V1/Organization/DispatchedInvitation")]
+        public async Task<IActionResult> DispatchedOrganizationInvitationAsync(DispatchedInvitationRequest request )
+        {
+            try
+            {
+                var result = await _organizationService.DispatchedOrganizationInvitationAsync(request);
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
     }
 }

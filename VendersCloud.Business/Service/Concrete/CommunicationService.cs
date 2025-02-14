@@ -59,6 +59,44 @@ namespace VendersCloud.Business.Service.Concrete
             return res;
         }
 
+        public async Task<bool> DispatchedInvitationMailAsync(string reciverOrgName,string senderOrgName, string senderEmail ,string recevierEmail,  string senderMessage)
+        {
+            var emailMessage = new EmailMessage
+            {
+                To = recevierEmail,
+                Subject = $"📩 Invitation from {senderOrgName}",
+                Body = $@"
+<html>
+<body style=""font-family: Arial, sans-serif; color: #2C3E50; background-color: #f3f3f3; padding: 20px;"">
+    <div style=""max-width: 600px; margin: auto; background: #ffffff; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);"">
+        <h2 style=""color: #4640DE; text-align: center;"">📩 Invitation from {senderOrgName}</h2>
+        <hr style=""border: none; border-top: 2px solid #eee; margin: 10px 0;"">
+        
+        <p style=""font-size: 16px; color: #555;""><strong>Hello {reciverOrgName} Team,</strong></p>
+        <p style=""font-size: 15px; color: #555;"">You have received an invitation from <strong>{senderOrgName}</strong>.</p>
+
+        <div style=""background-color: #f3f3f3; padding: 15px; border-radius: 5px; font-size: 14px; color: #333;"">
+            <strong>Message from {senderOrgName}:</strong><br/>
+            <i>{(string.IsNullOrWhiteSpace(senderMessage) ? "We would like to invite you to collaborate with us." : senderMessage)}</i>
+        </div>
+
+        <p style=""margin-top: 20px; font-size: 14px; color: #555;"">Looking forward to your response.</p>
+
+        <hr style=""border: none; border-top: 1px solid #ddd; margin: 20px 0;"">
+        <p style=""text-align: center; font-size: 13px; color: #777;"">
+            Best Regards, <br> <strong>{senderOrgName} Team</strong>
+        </p>
+    </div>
+</body>
+</html>"
+            };
+
+        
+
+            var res = await SendEmailAsync(emailMessage);
+            return res;
+        }
+
 
         private async Task<bool> SendEmailAsync(EmailMessage emailMessage)
         {

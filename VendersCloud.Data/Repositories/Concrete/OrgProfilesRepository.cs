@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using DapperExtensions;
 using Microsoft.Extensions.Configuration;
 using SqlKata;
 using VendersCloud.Business.Entities.DataModels;
@@ -9,40 +10,50 @@ using VendersCloud.Data.Repositories.Abstract;
 
 namespace VendersCloud.Data.Repositories.Concrete
 {
-    public class OrgProfilesRepository:StaticBaseRepository<OrgProfiles>, IOrgProfilesRepository
+    public class OrgProfilesRepository : StaticBaseRepository<OrgProfiles>, IOrgProfilesRepository
     {
-        public OrgProfilesRepository(IConfiguration configuration):base(configuration)
+        public OrgProfilesRepository(IConfiguration configuration) : base(configuration)
         {
 
         }
 
         public async Task<bool> AddOrganizationProfileAsync(string orgCode, int profileId)
         {
-                var dbInstance = GetDbInstance();
-                var tableName = new Table<OrgProfiles>();
-                var checkUserExist = new Query(tableName.TableName)
-                      .Where("OrgCode", orgCode)
-                      .Where("ProfileId", profileId)
-                      .Select("ProfileId");
+            var dbInstance = GetDbInstance();
+            var tableName = new Table<OrgProfiles>();
+            var checkUserExist = new Query(tableName.TableName)
+                  .Where("OrgCode", orgCode)
+                  .Where("ProfileId", profileId)
+                  .Select("ProfileId");
 
-                var existing = await dbInstance.ExecuteScalarAsync<string>(checkUserExist);
-                if (existing != null)
-                {
-                    return true;
-                }
-                // Insert new user
-                var insertQuery = new Query(tableName.TableName).AsInsert(new
-                {
-                    OrgCode = orgCode,
-                    ProfileId = profileId,
-                    IsDeleted = false
-                });
-
-                await dbInstance.ExecuteScalarAsync<string>(insertQuery);
-
+            var existing = await dbInstance.ExecuteScalarAsync<string>(checkUserExist);
+            if (existing != null)
+            {
                 return true;
-           
+            }
+            // Insert new user
+            var insertQuery = new Query(tableName.TableName).AsInsert(new
+            {
+                OrgCode = orgCode,
+                ProfileId = profileId,
+                IsDeleted = false
+            });
+
+            await dbInstance.ExecuteScalarAsync<string>(insertQuery);
+
+            return true;
+
         }
+
+        public async Task<List<OrgProfiles>> GetOrgProfilesByOrgCodeAsync(string orgCode)
+        {
+            var dbInstance = GetDbInstance();
+            var sql = "SELECT * FROM OrgProfiles Where OrgCode=@orgCode";
+
+            var profile = dbInstance.Select<OrgProfiles>(sql, new {orgCode}).ToList();
+            return profile;
+        }
+
 
 
         public async Task<PaginationDto<Organization>> SearchOrganizationsDetails(SearchRequest request)
@@ -147,4 +158,3 @@ namespace VendersCloud.Data.Repositories.Concrete
 
     }
 }
- 

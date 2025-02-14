@@ -80,6 +80,8 @@ namespace VendersCloud.Data.Repositories.Concrete
             }
         }
 
+
+
         public async Task<List<Organization>> GetOrganizationListAsync()
         {
             try
@@ -161,7 +163,20 @@ namespace VendersCloud.Data.Repositories.Concrete
             }
         }
 
+        public async Task<Organization> GetOrganizationByEmailAndOrgCodeAsync(string email, string orgCode)
+        {
 
+            return await GetByAsync(new PredicateGroup
+            {
+                Operator = GroupOperator.And,
+                Predicates = new List<IPredicate> {
+                        Predicates.Field<Organization>(f=>f.Email,Operator.Eq,email),
+                        Predicates.Field<Organization>(f=>f.OrgCode,Operator.Eq,orgCode),
+                        Predicates.Field<Organization>(f=>f.IsDeleted,Operator.Eq,false),
+                    }
+            });
+
+        }
 
     }
 

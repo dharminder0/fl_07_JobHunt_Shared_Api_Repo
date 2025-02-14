@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Identity.Data;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.Extensions.Configuration;
+using System.Data;
 using System.Text;
 using VendersCloud.Business.Entities.DataModels;
 using VendersCloud.Business.Entities.Dtos;
@@ -6,7 +8,7 @@ using VendersCloud.Business.Entities.RequestModels;
 using VendersCloud.Business.Entities.ResponseModels;
 using VendersCloud.Business.Service.Abstract;
 using VendersCloud.Data.Repositories.Abstract;
-using VendersCloud.Data.Repositories.Concrete;
+using static VendersCloud.Data.Enum.Enum;
 
 namespace VendersCloud.Business.Service.Concrete
 {
@@ -18,7 +20,11 @@ namespace VendersCloud.Business.Service.Concrete
         private readonly IOrgLocationRepository _organizationLocationRepository;
         private readonly IOrgSocialRepository _organizationSocialRepository;
         private readonly IListValuesRepository _listValuesRepository;
-        public OrganizationService(IOrganizationRepository organizationRepository, IUserProfilesRepository userProfilesRepository, IOrgProfilesRepository _orgProfilesRepository, IOrgLocationRepository organizationLocationRepository, IOrgSocialRepository organizationSocialRepository, IListValuesRepository listValuesRepository)
+        private readonly IUsersRepository _usersRepository;
+        private readonly IOrgRelationshipsRepository _organizationRelationshipsRepository;
+        private readonly CommunicationService _communicationService;
+        private IConfiguration _configuration;
+        public OrganizationService(IConfiguration configuration,IOrganizationRepository organizationRepository, IUserProfilesRepository userProfilesRepository, IOrgProfilesRepository _orgProfilesRepository, IOrgLocationRepository organizationLocationRepository, IOrgSocialRepository organizationSocialRepository, IListValuesRepository listValuesRepository,IUsersRepository usersRepository, IOrgRelationshipsRepository organizationRelationshipsRepository)
         {
             _organizationRepository = organizationRepository;
             _userProfilesRepository = userProfilesRepository;
@@ -26,6 +32,10 @@ namespace VendersCloud.Business.Service.Concrete
             _organizationLocationRepository = organizationLocationRepository;
             _organizationSocialRepository = organizationSocialRepository;
             _listValuesRepository = listValuesRepository;
+            _usersRepository = usersRepository;
+            _configuration = configuration;
+            _organizationRelationshipsRepository =organizationRelationshipsRepository;
+            _communicationService = new CommunicationService(configuration);
         }
 
         public async Task<string> RegisterNewOrganizationAsync(RegistrationRequest request)
@@ -311,5 +321,49 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
+        public async Task<bool> DispatchedOrganizationInvitationAsync(DispatchedInvitationRequest request)
+        {
+            try
+            {
+                if(string.IsNullOrEmpty(request.Sender.Email)|| string.IsNullOrEmpty(request.Sender.OrgCode)|| string.IsNullOrEmpty(request.Recevier.Email)|| string.IsNullOrEmpty(request.Recevier.OrgCode)|| string.IsNullOrEmpty(request.Message))
+                {
+                    throw new ArgumentException("Enter Valid Inputs!!!");
+                }
+                int status = 0;
+                var dbuser = await _usersRepository.GetUserByEmailAndOrgCodeAsync(request.Sender.Email, request.Sender.OrgCode);
+                var relationshipType = Enum.GetName(typeof(RoleType), request.Sender.RoleType);
+                var roleMapping = new Dictionary<string, string>
+                    {
+                        { "Vendor", "2" },
+                        { "Client", "1" }
+                    };
+                if (roleMapping.ContainsKey(relationshipType))
+                {
+                    relationshipType = roleMapping[relationshipType];
+                }
+                //Checking OrgCode is Vendor/Client
+                var orgProfiles = await _orgProfilesService.GetOrgProfilesByOrgCodeAsync(request.Recevier.OrgCode);
+                var userProfiles = await _userProfilesRepository.GetProfileRole(dbuser.Id);
+                var selectedOrgProfile = orgProfiles.Where(x => x.ProfileId != request.Sender.RoleType).ToList();
+                if (selectedOrgProfile == null)
+                {
+                    throw new ArgumentException("Organization as per your request is not found !!");
+                }
+                var selectedUserProfile= userProfiles.Where(x=>x.ProfileId==(request.Sender.RoleType)).ToList();
+                var dbOrgReciver = await _organizationRepository.GetOrganizationByEmailAndOrgCodeAsync(request.Recevier.Email, request.Recevier.OrgCode);
+                var dbOrgSender = await _organizationRepository.GetOrganizationData(request.Sender.OrgCode);
+                if (await _communicationService.DispatchedInvitationMailAsync(dbOrgReciver.OrgName, dbOrgSender.OrgName,request.Sender.Email, request.Recevier.Email,request.Message))
+                {
+                    status = 1;
+                }
+                    var res = await _organizationRelationshipsRepository.AddOrgRelationshipDataAsync(request.Sender.OrgCode, request.Recevier.OrgCode, relationshipType, status, dbuser.Id);
+                return true;
+
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
+        }
     }
 }
