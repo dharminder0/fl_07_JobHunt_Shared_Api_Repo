@@ -127,5 +127,23 @@ namespace VendersCloud.WebApi.Controllers
             }
         }
 
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [HttpPost]
+        [Route("api/V1/Organization/manageInvitation")]
+        public async Task<IActionResult> ManageRelationshipStatusAsync(int id, int status)
+        {
+            try
+            {
+                var result= await _organizationService.ManageRelationshipStatusAsync(id, status);
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }

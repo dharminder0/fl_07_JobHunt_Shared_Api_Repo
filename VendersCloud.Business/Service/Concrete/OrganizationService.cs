@@ -325,7 +325,7 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-                if(string.IsNullOrEmpty(request.Sender.Email)|| string.IsNullOrEmpty(request.Sender.OrgCode)|| string.IsNullOrEmpty(request.Recevier.Email)|| string.IsNullOrEmpty(request.Recevier.OrgCode)|| string.IsNullOrEmpty(request.Message))
+                if(string.IsNullOrEmpty(request.Sender.Email)|| string.IsNullOrEmpty(request.Sender.OrgCode)|| string.IsNullOrEmpty(request.Receiver.Email)|| string.IsNullOrEmpty(request.Receiver.OrgCode)|| string.IsNullOrEmpty(request.Message))
                 {
                     throw new ArgumentException("Enter Valid Inputs!!!");
                 }
@@ -342,7 +342,7 @@ namespace VendersCloud.Business.Service.Concrete
                     relationshipType = roleMapping[relationshipType];
                 }
                 //Checking OrgCode is Vendor/Client
-                var orgProfiles = await _orgProfilesService.GetOrgProfilesByOrgCodeAsync(request.Recevier.OrgCode);
+                var orgProfiles = await _orgProfilesService.GetOrgProfilesByOrgCodeAsync(request.Receiver.OrgCode);
                 var userProfiles = await _userProfilesRepository.GetProfileRole(dbuser.Id);
                 var selectedOrgProfile = orgProfiles.Where(x => x.ProfileId != request.Sender.RoleType).ToList();
                 if (selectedOrgProfile == null)
@@ -350,17 +350,39 @@ namespace VendersCloud.Business.Service.Concrete
                     throw new ArgumentException("Organization as per your request is not found !!");
                 }
                 var selectedUserProfile= userProfiles.Where(x=>x.ProfileId==(request.Sender.RoleType)).ToList();
-                var dbOrgReciver = await _organizationRepository.GetOrganizationByEmailAndOrgCodeAsync(request.Recevier.Email, request.Recevier.OrgCode);
+                var dbOrgReciver = await _organizationRepository.GetOrganizationByEmailAndOrgCodeAsync(request.Receiver.Email, request.Receiver.OrgCode);
                 var dbOrgSender = await _organizationRepository.GetOrganizationData(request.Sender.OrgCode);
-                if (await _communicationService.DispatchedInvitationMailAsync(dbOrgReciver.OrgName, dbOrgSender.OrgName,request.Sender.Email, request.Recevier.Email,request.Message))
+                if (await _communicationService.DispatchedInvitationMailAsync(dbOrgReciver.OrgName, dbOrgSender.OrgName,request.Sender.Email, request.Receiver.Email,request.Message))
                 {
                     status = 1;
                 }
-                    var res = await _organizationRelationshipsRepository.AddOrgRelationshipDataAsync(request.Sender.OrgCode, request.Recevier.OrgCode, relationshipType, status, dbuser.Id);
+                    var res = await _organizationRelationshipsRepository.AddOrgRelationshipDataAsync(request.Sender.OrgCode, request.Receiver.OrgCode, relationshipType, status, dbuser.Id);
                 return true;
 
             }
             catch(Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public async Task<bool> ManageRelationshipStatusAsync(int orgRelationshipId, int status)
+        {
+            try
+            {
+                if(orgRelationshipId<=0||status<=0)
+                {
+                    throw new ArgumentException("Provide Valid Input!!");
+                }
+
+                var result= await _organizationRelationshipsRepository.ManageRelationshipStatusAsync(orgRelationshipId, status);
+                if (result)
+                {
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
             {
                 throw ex;
             }
