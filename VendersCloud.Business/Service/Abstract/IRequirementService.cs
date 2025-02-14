@@ -10,5 +10,6 @@ namespace VendersCloud.Business.Service.Abstract
         Task<ActionMessageResponse> DeleteRequirementAsync(int requirementId, string orgCode);
         Task<List<Requirement>> GetRequirementListAsync();
         Task<List<Requirement>> GetRequirementListByIdAsync(int requirementId);
+        Task<ActionMessageResponse> UpdateStatusByIdAsync(int requirementId, int status);
     }
 }

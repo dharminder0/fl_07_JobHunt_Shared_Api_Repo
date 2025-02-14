@@ -5,6 +5,7 @@ using SqlKata;
 using VendersCloud.Business.Entities.DataModels;
 using VendersCloud.Business.Entities.Dtos;
 using VendersCloud.Business.Entities.RequestModels;
+using VendersCloud.Business.Entities.ResponseModels;
 using VendersCloud.Data.Data;
 using VendersCloud.Data.Repositories.Abstract;
 
@@ -194,6 +195,21 @@ namespace VendersCloud.Data.Repositories.Concrete
                 var list = dbInstance.Select<Requirement>(sql, new { requirementId}).ToList();
                 return list;
            
+        }
+
+        public async Task<bool> UpdateStatusByIdAsync(int requirementId, int status)
+        {
+            var dbInstance = GetDbInstance();
+            var tableName = new Table<Requirement>();
+            var insertQuery = new Query(tableName.TableName)
+                .AsUpdate(new
+                {
+                    Status=status,
+                    IsDeleted = false
+                })
+                .Where("Id", requirementId);
+            await dbInstance.ExecuteAsync(insertQuery);
+            return true;
         }
     }
 }
