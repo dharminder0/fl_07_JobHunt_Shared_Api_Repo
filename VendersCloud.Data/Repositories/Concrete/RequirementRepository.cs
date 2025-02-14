@@ -21,8 +21,8 @@ namespace VendersCloud.Data.Repositories.Concrete
         public async Task<string> RequirementUpsertAsync(RequirementRequest request)
         {
             var dbInstance = GetDbInstance();
-            var tableName = new Table<Requirement>();
-            var sql = "SELECT * FROM Requirement WHERE Title=@Title AND OrgCode=@OrgCode";
+            var tableName = new Table<Requirement>().TableName;
+            var sql = "SELECT * FROM Requirement WHERE Title = @Title AND OrgCode = @OrgCode";
 
             // Trim and validate input data
             var cleanedTitle = request.Title.Trim();
@@ -33,7 +33,8 @@ namespace VendersCloud.Data.Repositories.Concrete
 
             if (response.Any())
             {
-                var updateQuery = new Query(tableName.TableName).AsUpdate(new
+                // Update query
+                var updateQuery = new Query(tableName).AsUpdate(new
                 {
                     Title = cleanedTitle,
                     OrgCode = cleanedOrgCode,
@@ -52,12 +53,18 @@ namespace VendersCloud.Data.Repositories.Concrete
                     CreatedBy = "",
                     UpdatedBy = "",
                     IsDeleted = false
-                }).Where("Title", cleanedTitle).Where("OrgCode", cleanedOrgCode).Select("Id");
-                result = await dbInstance.ExecuteScalarAsync<string>(updateQuery);
+                }).Where("Title", cleanedTitle).Where("OrgCode", cleanedOrgCode);
+
+                await dbInstance.ExecuteAsync(updateQuery);
+
+                // Fetch the Id
+                var idResponse = await dbInstance.SelectAsync<Requirement>(sql, new { Title = cleanedTitle, OrgCode = cleanedOrgCode });
+                result = idResponse.FirstOrDefault()?.Id.ToString() ?? string.Empty;
             }
             else
             {
-                var insertQuery = new Query(tableName.TableName).AsInsert(new
+                // Insert query
+                var insertQuery = new Query(tableName).AsInsert(new
                 {
                     Title = cleanedTitle,
                     OrgCode = cleanedOrgCode,
@@ -76,12 +83,19 @@ namespace VendersCloud.Data.Repositories.Concrete
                     CreatedBy = "",
                     UpdatedBy = "",
                     IsDeleted = false
-                }).Select("Id");
-                result = await dbInstance.ExecuteScalarAsync<string>(insertQuery);
+                });
+
+                await dbInstance.ExecuteAsync(insertQuery);
+
+                // Fetch the Id
+                var idResponse = await dbInstance.SelectAsync<Requirement>(sql, new { Title = cleanedTitle, OrgCode = cleanedOrgCode });
+                result = idResponse.FirstOrDefault()?.Id.ToString() ?? string.Empty;
             }
 
             return result;
         }
+
+
 
 
         public async Task<bool> RequirementUpsertV2Async(RequirementDto request)
