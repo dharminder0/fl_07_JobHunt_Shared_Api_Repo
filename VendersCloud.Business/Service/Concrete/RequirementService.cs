@@ -85,5 +85,24 @@ namespace VendersCloud.Business.Service.Concrete
                 throw ex;
             }
         }
+
+        public async Task<ActionMessageResponse> UpdateStatusByIdAsync(int requirementId, int status)
+        {
+            try
+            {
+                if(requirementId<=0 || status <=0)
+                {
+                    return new ActionMessageResponse { Success = false, Message = "Enter Valid Input!!", Content = "" };
+                }
+                var res = await _requirementRepository.UpdateStatusByIdAsync(requirementId, status);
+                if(res)
+                    return new ActionMessageResponse { Success = true, Message = "Status Updated Successfully!!", Content = "" };
+                return new ActionMessageResponse { Success = false, Message = "Status Not Updated", Content = "" };
+            }
+            catch(Exception ex)
+            {
+                return new ActionMessageResponse { Success = false, Message = ex.Message, Content = "" };
+            }
+        }
     }
 }
