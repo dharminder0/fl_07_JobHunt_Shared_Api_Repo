@@ -8,7 +8,7 @@
     public class DispatchedInvitationRequest
     {
         public Dispatchers Sender { get; set; }
-        public Recipient Recevier { get; set; }
+        public Recipient Receiver { get; set; }
         public string Message { get; set; }
 
     }
