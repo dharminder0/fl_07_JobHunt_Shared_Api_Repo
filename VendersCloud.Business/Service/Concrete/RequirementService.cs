@@ -22,10 +22,11 @@ namespace VendersCloud.Business.Service.Concrete
                 {
                     return new ActionMessageResponse() { Success = false, Message = "Values cann't be null ", Content = "" };
                 }
-                bool response = await _requirementRepository.RequirementUpsertAsync(request);
-                if(response)
+                var response = await _requirementRepository.RequirementUpsertAsync(request);
+                if(response !=null)
                 {
-                    return new ActionMessageResponse() { Success = true, Message = "Requirement Submitted Successfully!! ", Content = "" };
+                    var res = Convert.ToInt64(response);
+                    return new ActionMessageResponse() { Success = true, Message = "Requirement Submitted Successfully!! ", Content = response };
                 }
                 return new ActionMessageResponse() { Success = false, Message = "Requirement Not Submitted  ", Content = "" };
 
