@@ -59,11 +59,11 @@ namespace VendersCloud.Business.Service.Concrete
             return res;
         }
 
-        public async Task<bool> DispatchedInvitationMailAsync(string reciverOrgName,string senderOrgName, string senderEmail ,string recevierEmail,  string senderMessage)
+        public async Task<bool> DispatchedInvitationMailAsync(string receiverOrgName,string senderOrgName, string senderEmail ,string receiverEmail,  string senderMessage)
         {
             var emailMessage = new EmailMessage
             {
-                To = recevierEmail,
+                To = receiverEmail,
                 Subject = $"📩 Invitation from {senderOrgName}",
                 Body = $@"
 <html>
@@ -72,7 +72,7 @@ namespace VendersCloud.Business.Service.Concrete
         <h2 style=""color: #4640DE; text-align: center;"">📩 Invitation from {senderOrgName}</h2>
         <hr style=""border: none; border-top: 2px solid #eee; margin: 10px 0;"">
         
-        <p style=""font-size: 16px; color: #555;""><strong>Hello {reciverOrgName} Team,</strong></p>
+        <p style=""font-size: 16px; color: #555;""><strong>Hello {receiverOrgName} Team,</strong></p>
         <p style=""font-size: 15px; color: #555;"">You have received an invitation from <strong>{senderOrgName}</strong>.</p>
 
         <div style=""background-color: #f3f3f3; padding: 15px; border-radius: 5px; font-size: 14px; color: #333;"">

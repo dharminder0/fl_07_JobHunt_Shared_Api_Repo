@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.Extensions.Configuration;
 using SqlKata;
 using VendersCloud.Business.Entities.DataModels;
 using VendersCloud.Data.Data;
@@ -44,6 +45,22 @@ namespace VendersCloud.Data.Repositories.Concrete
             });
 
             var insertedOrgCode = await dbInstance.ExecuteScalarAsync<string>(insertQuery);
+            return true;
+        }
+
+        public async Task<bool> ManageRelationshipStatusAsync(int orgRelationshipId, int status)
+        {
+            var dbInstance = GetDbInstance();
+            var tableName = new Table<OrgRelationships>();
+            var updateQuery = new Query(tableName.TableName).AsUpdate(new
+            {
+                Status = status,
+                CreatedOn = DateTime.UtcNow,
+                UpdatedOn = DateTime.UtcNow,
+                IsDeleted = false
+            }).Where("Id", orgRelationshipId);
+
+            var insertedOrgCode = await dbInstance.ExecuteScalarAsync<string>(updateQuery);
             return true;
         }
     }

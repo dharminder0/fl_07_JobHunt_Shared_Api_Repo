@@ -13,5 +13,6 @@ namespace VendersCloud.Business.Service.Abstract
         Task<ActionMessageResponse> UpsertOrganizationProfile(OrganizationProfileRequest request);
         Task<ActionMessageResponse> GetOrganizationProfile(string orgCode);
         Task<bool> DispatchedOrganizationInvitationAsync(DispatchedInvitationRequest request);
+        Task<bool> ManageRelationshipStatusAsync(int orgRelationshipId, int status);
     }
 }
