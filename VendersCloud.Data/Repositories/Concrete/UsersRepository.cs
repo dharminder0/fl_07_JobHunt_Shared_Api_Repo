@@ -77,7 +77,21 @@ namespace VendersCloud.Data.Repositories.Concrete
             
         }
 
-       
+        public async Task<Users> GetUserByEmailAndOrgCodeAsync(string email,string orgCode)
+        {
+
+            return await GetByAsync(new PredicateGroup
+            {
+                Operator = GroupOperator.And,
+                Predicates = new List<IPredicate> {
+                        Predicates.Field<Users>(f=>f.UserName,Operator.Eq,email),
+                        Predicates.Field<Users>(f=>f.OrgCode,Operator.Eq,orgCode),
+                        Predicates.Field<Users>(f=>f.IsDeleted,Operator.Eq,false),
+                    }
+            });
+
+        }
+
         public async Task<bool> DeleteUserByEmailAndOrgCodeAsync(string email, string organizationCode)
         {
                 var dbInstance = GetDbInstance();

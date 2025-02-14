@@ -8,5 +8,6 @@ namespace VendersCloud.Data.Repositories.Abstract
     {
         Task<bool> AddOrganizationProfileAsync(string orgCode, int profileId);
         Task<PaginationDto<Organization>> SearchOrganizationsDetails(SearchRequest request);
+        Task<List<OrgProfiles>> GetOrgProfilesByOrgCodeAsync(string orgCode);
     }
 }
