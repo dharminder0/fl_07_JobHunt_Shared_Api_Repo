@@ -12,5 +12,6 @@ namespace VendersCloud.Data.Repositories.Abstract
         Task<List<Requirement>> GetRequirementListByIdAsync(int requirementId);
         Task<bool> RequirementUpsertV2Async(RequirementDto request);
         Task<bool> UpdateStatusByIdAsync(int requirementId, int status);
+        Task<List<Requirement>> GetRequirementByOrgCodeAsync(string orgCode);
     }
 }

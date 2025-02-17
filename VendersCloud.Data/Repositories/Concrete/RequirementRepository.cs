@@ -192,7 +192,7 @@ namespace VendersCloud.Data.Repositories.Concrete
         public async Task<List<Requirement>> GetRequirementListAsync()
         {
                 var dbInstance = GetDbInstance();
-                var sql = "SELECT * FROM Requirement Where IsDeleted<>1";
+                var sql = "SELECT * FROM Requirement Where IsDeleted<>1 Order By 1 Desc";
 
                 var list = dbInstance.Select<Requirement>(sql).ToList();
                 return list;
@@ -224,6 +224,16 @@ namespace VendersCloud.Data.Repositories.Concrete
                 .Where("Id", requirementId);
             await dbInstance.ExecuteAsync(insertQuery);
             return true;
+        }
+
+        public async Task<List<Requirement>> GetRequirementByOrgCodeAsync(string orgCode)
+        {
+            var dbInstance = GetDbInstance();
+            var sql = "SELECT * FROM Requirement Where IsDeleted<>1 and OrgCode=@orgCode";
+
+            var list = dbInstance.Select<Requirement>(sql, new { orgCode }).ToList();
+            return list;
+
         }
     }
 }
