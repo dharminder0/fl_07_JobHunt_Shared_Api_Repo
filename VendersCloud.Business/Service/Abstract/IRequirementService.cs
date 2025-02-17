@@ -9,7 +9,8 @@ namespace VendersCloud.Business.Service.Abstract
         Task<ActionMessageResponse> RequirmentUpsertAsync(RequirementRequest request);
         Task<ActionMessageResponse> DeleteRequirementAsync(int requirementId, string orgCode);
         Task<List<Requirement>> GetRequirementListAsync();
-        Task<List<Requirement>> GetRequirementListByIdAsync(int requirementId);
+        Task<RequirementResponse> GetRequirementListByIdAsync(int requirementId);
         Task<ActionMessageResponse> UpdateStatusByIdAsync(int requirementId, int status);
+        Task<List<RequirementResponse>> GetRequirementByOrgCodeAsync(string orgCode);
     }
 }

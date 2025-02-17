@@ -80,7 +80,24 @@ namespace VendersCloud.Data.Repositories.Concrete
             }
         }
 
-
+        public async Task<Organization> GetOrganizationDataByIdAsync(int Id)
+        {
+            try
+            {
+                return await GetByAsync(new PredicateGroup
+                {
+                    Operator = GroupOperator.And,
+                    Predicates = new List<IPredicate> {
+                        Predicates.Field<Organization>(f=>f.Id,Operator.Eq,Id),
+                        Predicates.Field<Organization>(f=>f.IsDeleted,Operator.Eq,false),
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
 
         public async Task<List<Organization>> GetOrganizationListAsync()
         {
