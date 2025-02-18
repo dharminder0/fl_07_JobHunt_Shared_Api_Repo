@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Text;
 using VendersCloud.Business.Entities.DataModels;
+using VendersCloud.Business.Entities.Dtos;
 using VendersCloud.Business.Entities.RequestModels;
 using VendersCloud.Business.Entities.ResponseModels;
 using VendersCloud.Business.Service.Abstract;
@@ -110,6 +111,16 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
+        public async Task<PaginationDto<Clients>> GetClientsListAsync(string searchText, int page, int pageSize)
+        {
+            try
+            {
+                return await _clientsRepository.GetClientsListAsync(searchText, page, pageSize);
+            }
+            catch (Exception ex) {
+                throw ex;
+            }
+        }
         public string GenerateRandomClientCode()
         {
             Random _random = new Random();
