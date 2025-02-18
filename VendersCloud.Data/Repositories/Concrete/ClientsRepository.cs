@@ -1,6 +1,7 @@
 ﻿using DapperExtensions;
 using Microsoft.Extensions.Configuration;
 using SqlKata;
+using System.Xml.Linq;
 using VendersCloud.Business.Entities.DataModels;
 using VendersCloud.Business.Entities.RequestModels;
 using VendersCloud.Business.Entities.ResponseModels;
@@ -101,6 +102,19 @@ namespace VendersCloud.Data.Repositories.Concrete
 
             var clients = dbInstance.Select<Clients>(sql, new { orgCode }).ToList();
             return clients;
+
+        }
+        public async Task<Clients> GetClientsByClientCodeAsync(string clientCode)
+        {
+
+            return await GetByAsync(new PredicateGroup
+            {
+                Operator = GroupOperator.And,
+                Predicates = new List<IPredicate> {
+                        Predicates.Field<Clients>(f=>f.ClientCode,Operator.Eq,clientCode),
+                        Predicates.Field<Clients>(f=>f.IsDeleted,Operator.Eq,false),
+                    }
+            });
 
         }
 
