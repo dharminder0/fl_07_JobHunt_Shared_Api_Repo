@@ -26,7 +26,8 @@ namespace VendersCloud.Business.Service.Concrete
                 {
                     return new ActionMessageResponse() { Success = false, Message = "Values cann't be null ", Content = "" };
                 }
-                var response = await _requirementRepository.RequirementUpsertAsync(request);
+                var uniqueId = Guid.NewGuid().ToString().Substring(0, 12);
+                var response = await _requirementRepository.RequirementUpsertAsync(request,uniqueId);
                 if(response !=null)
                 {
                     var res = Convert.ToInt64(response);
@@ -116,11 +117,11 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
-        public async Task<RequirementResponse> GetRequirementListByIdAsync(int requirementId)
+        public async Task<RequirementResponse> GetRequirementListByIdAsync(string requirementId)
         {
             try
             {
-                if (requirementId <= 0)
+                if (string.IsNullOrEmpty(requirementId))
                 {
                     return new RequirementResponse();
                 }

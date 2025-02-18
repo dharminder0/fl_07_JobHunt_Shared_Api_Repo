@@ -2,7 +2,7 @@
 {
     public class RequirementSharedRequest
     {
-        public int RequirementId {  get; set; }
+        public string RequirementId {  get; set; }
         public int Visibility {  get; set; }
         public List<string> OrgCode {  get; set; }
     }

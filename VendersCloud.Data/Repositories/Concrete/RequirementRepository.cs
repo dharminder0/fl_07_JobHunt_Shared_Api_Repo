@@ -1,11 +1,8 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Identity.Data;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using SqlKata;
 using VendersCloud.Business.Entities.DataModels;
 using VendersCloud.Business.Entities.Dtos;
 using VendersCloud.Business.Entities.RequestModels;
-using VendersCloud.Business.Entities.ResponseModels;
 using VendersCloud.Data.Data;
 using VendersCloud.Data.Repositories.Abstract;
 
@@ -18,7 +15,7 @@ namespace VendersCloud.Data.Repositories.Concrete
 
         }
 
-        public async Task<string> RequirementUpsertAsync(RequirementRequest request)
+        public async Task<string> RequirementUpsertAsync(RequirementRequest request,string uniqueId)
         {
             var dbInstance = GetDbInstance();
             var tableName = new Table<Requirement>().TableName;
@@ -52,7 +49,8 @@ namespace VendersCloud.Data.Repositories.Concrete
                     UpdatedOn = DateTime.UtcNow,
                     CreatedBy = "",
                     UpdatedBy = "",
-                    IsDeleted = false
+                    IsDeleted = false,
+                    UniqueId= uniqueId,
                 }).Where("Title", cleanedTitle).Where("OrgCode", cleanedOrgCode);
 
                 await dbInstance.ExecuteAsync(updateQuery);
@@ -82,14 +80,15 @@ namespace VendersCloud.Data.Repositories.Concrete
                     UpdatedOn = DateTime.UtcNow,
                     CreatedBy = "",
                     UpdatedBy = "",
-                    IsDeleted = false
+                    IsDeleted = false,
+                    UniqueId = uniqueId,
                 });
 
                 await dbInstance.ExecuteAsync(insertQuery);
 
                 // Fetch the Id
                 var idResponse = await dbInstance.SelectAsync<Requirement>(sql, new { Title = cleanedTitle, OrgCode = cleanedOrgCode });
-                result = idResponse.FirstOrDefault()?.Id.ToString() ?? string.Empty;
+                result = idResponse.FirstOrDefault()?.UniqueId.ToString() ?? string.Empty;
             }
 
             return result;
@@ -98,7 +97,7 @@ namespace VendersCloud.Data.Repositories.Concrete
 
 
 
-        public async Task<bool> RequirementUpsertV2Async(RequirementDto request)
+        public async Task<bool> RequirementUpsertV2Async(RequirementDto request, string uniqueId)
         {
                 var dbInstance = GetDbInstance();
                 var tableName = new Table<Requirement>();
@@ -200,11 +199,11 @@ namespace VendersCloud.Data.Repositories.Concrete
          
         }
 
-        public async Task<List<Requirement>> GetRequirementListByIdAsync(int requirementId)
+        public async Task<List<Requirement>> GetRequirementListByIdAsync(string requirementId)
         {
            
                 var dbInstance = GetDbInstance();
-                var sql = "SELECT * FROM Requirement Where IsDeleted<>1 and Id=@requirementId";
+                var sql = "SELECT * FROM Requirement Where IsDeleted<>1 and UniqueId=@requirementId";
 
                 var list = dbInstance.Select<Requirement>(sql, new { requirementId}).ToList();
                 return list;

@@ -76,7 +76,7 @@ namespace VendersCloud.WebApi.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [HttpGet]
         [Route("api/V1/Requirement/GetList/{requirementId}")]
-        public async Task<IActionResult> GetRequirementListByIdAsync(int requirementId)
+        public async Task<IActionResult> GetRequirementListByIdAsync(string requirementId)
         {
             try
             {

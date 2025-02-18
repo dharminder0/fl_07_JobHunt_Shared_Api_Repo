@@ -26,6 +26,7 @@ namespace VendersCloud.Business.Entities.DataModels
         public int CreatedBy {  get; set; }
         public int UpdatedBy { get; set; }
         public bool IsDeleted {  get; set; }
+        public string UniqueId { get; set; }
 
     }
 
