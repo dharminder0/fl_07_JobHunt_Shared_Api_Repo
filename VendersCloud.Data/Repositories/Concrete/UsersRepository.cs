@@ -169,7 +169,6 @@ namespace VendersCloud.Data.Repositories.Concrete
                             {
                                 Verificationtoken = "",
                                 IsVerified = true,
-                                Token = "",
                                 UpdatedOn = DateTime.UtcNow,
                                 LastLoginTime = DateTime.UtcNow
                             })
