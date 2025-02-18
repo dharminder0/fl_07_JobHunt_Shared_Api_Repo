@@ -21,7 +21,8 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-                if (request.RequirementId <=0) throw new ArgumentNullException("RequirementId can't be null!!");
+                int id = 0;
+                if (string.IsNullOrEmpty(request.RequirementId )) throw new ArgumentNullException("RequirementId can't be null!!");
                 var data = await _requirementRepository.GetRequirementListByIdAsync(request.RequirementId);
                 if (data == null)throw new ArgumentException("Data Related this Id Is Not Found!!");
                 RequirementDto dto= new RequirementDto();
@@ -40,14 +41,15 @@ namespace VendersCloud.Business.Service.Concrete
                     dto.Visibility = request.Visibility;
                     dto.Hot = item.Hot;
                     dto.Status = item.Status;
-
+                    id = item.Id;
                 }
-                var res= await _requirementRepository.RequirementUpsertV2Async(dto);
+                var uniqueId = Guid.NewGuid().ToString().Substring(0, 12);
+                var res= await _requirementRepository.RequirementUpsertV2Async(dto, uniqueId);
                 if (res)
                 {
                     foreach (var orgcode in request.OrgCode)
                     {
-                        var response = await _requirementVendorsRepository.AddRequirementVendorsDataAsync(request.RequirementId, orgcode);
+                        var response = await _requirementVendorsRepository.AddRequirementVendorsDataAsync(id, orgcode);
                     }
                     return true;
                 }
