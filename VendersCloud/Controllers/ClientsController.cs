@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using VendersCloud.Business.Entities.DataModels;
 using VendersCloud.Business.Entities.RequestModels;
 using VendersCloud.Business.Service.Abstract;
 using VendersCloud.Business.Service.Concrete;
@@ -107,6 +108,26 @@ namespace VendersCloud.WebApi.Controllers
             try
             {
                 var results = await _clientsService.DeleteClientsByIdAsync(orgCode,id, clientName);
+
+                return Json(results);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [HttpPost]
+        [Route("api/V1/Clients/Search")]
+        public async Task<IActionResult> GetClientsListAsync(string searchText, int page, int pageSize)
+        {
+            try
+            {
+                var results = await _clientsService.GetClientsListAsync(searchText, page, pageSize);
 
                 return Json(results);
             }

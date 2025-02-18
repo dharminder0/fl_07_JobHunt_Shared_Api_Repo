@@ -1,10 +1,10 @@
-﻿using DapperExtensions;
+﻿using Dapper;
+using DapperExtensions;
 using Microsoft.Extensions.Configuration;
 using SqlKata;
-using System.Xml.Linq;
 using VendersCloud.Business.Entities.DataModels;
+using VendersCloud.Business.Entities.Dtos;
 using VendersCloud.Business.Entities.RequestModels;
-using VendersCloud.Business.Entities.ResponseModels;
 using VendersCloud.Data.Data;
 using VendersCloud.Data.Repositories.Abstract;
 
@@ -118,8 +118,53 @@ namespace VendersCloud.Data.Repositories.Concrete
 
         }
 
-        public async Task<bool> DeleteClientsByIdAsync(string orgCode, int id, string clientName)
+        public async Task<PaginationDto<Clients>> GetClientsListAsync(string searchText,int page,int pageSize)
         {
+            using var connection = GetConnection(); // Ensure this returns IDbConnection
+            var predicates = new List<string>();
+            var parameters = new DynamicParameters();
+
+            // Search by ClientName or ClientCode
+            if (!string.IsNullOrWhiteSpace(searchText))
+            {
+                predicates.Add("(c.ClientName LIKE @searchText OR c.ClientCode LIKE @searchText)");
+                parameters.Add("searchText", $"%{searchText}%");
+            }
+
+            // Ensure we only get non-deleted clients
+            predicates.Add("c.isDeleted = 0");
+
+            // Construct WHERE clause
+            string whereClause = predicates.Any() ? "WHERE " + string.Join(" AND ", predicates) : "";
+
+            // Build the query with pagination
+            string query = $@"
+            SELECT * FROM Clients c
+            {whereClause}
+            ORDER BY c.CreatedOn DESC
+            OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY;
+            
+            SELECT COUNT(*) FROM Clients c {whereClause};";
+
+            parameters.Add("offset", (page - 1) * pageSize);
+            parameters.Add("pageSize", pageSize);
+
+            using var multi = await connection.QueryMultipleAsync(query, parameters);
+            var clients = (await multi.ReadAsync<Clients>()).ToList();
+            int totalRecords = await multi.ReadFirstOrDefaultAsync<int>();
+
+            return new PaginationDto<Clients>
+            {
+                Count = totalRecords,
+                Page = page,
+                TotalPages = (int)Math.Ceiling(totalRecords / (double)pageSize),
+                List = clients
+            };
+        }
+
+
+        public async Task<bool> DeleteClientsByIdAsync(string orgCode, int id, string clientName)
+        {   
             var dbInstance = GetDbInstance();
             var table = new Table<Clients>();
             var query = new Query(table.TableName)

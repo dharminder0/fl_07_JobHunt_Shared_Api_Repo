@@ -1,4 +1,5 @@
 ﻿using VendersCloud.Business.Entities.DataModels;
+using VendersCloud.Business.Entities.Dtos;
 using VendersCloud.Business.Entities.RequestModels;
 
 namespace VendersCloud.Data.Repositories.Abstract
@@ -11,5 +12,6 @@ namespace VendersCloud.Data.Repositories.Abstract
         Task<Clients> GetClientsByNameAsync(string name);
         Task<bool> DeleteClientsByIdAsync(string orgCode, int id, string clientName);
         Task<Clients> GetClientsByClientCodeAsync(string clientCode);
+        Task<PaginationDto<Clients>> GetClientsListAsync(string searchText, int page, int pageSize);
     }
 }
