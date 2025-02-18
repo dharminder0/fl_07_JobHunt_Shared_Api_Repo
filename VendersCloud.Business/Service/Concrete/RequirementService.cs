@@ -93,15 +93,14 @@ namespace VendersCloud.Business.Service.Concrete
                             CreatedBy = item.CreatedBy,
                             UpdatedBy = item.UpdatedBy,
                             IsDeleted = item.IsDeleted,
-                            UniqueId = item.UniqueId,
-                            Client = new Client() // Ensure the Client object is instantiated
+                            UniqueId = item.UniqueId
                         };
 
                         //var orgData = await _organizationRepository.GetOrganizationDataByIdAsync(item.ClientId);
                         //if (orgData != null)
                         //{
-                        //    requirementResponse.Client.ClientName = orgData.OrgName;
-                        //    requirementResponse.Client.ClientLogo = orgData.Logo;
+                        //    requirementResponse.ClientName = orgData.OrgName;
+                        //    requirementResponse.ClientLogo = orgData.Logo;
                         //}
 
                         res.Add(requirementResponse);
@@ -125,10 +124,8 @@ namespace VendersCloud.Business.Service.Concrete
                     return new RequirementResponse();
                 }
 
-                RequirementResponse res = new RequirementResponse
-                {
-                    Client = new Client() // Ensure the Client object is instantiated
-                };
+                RequirementResponse res = new RequirementResponse();
+                
 
                 var response = await _requirementRepository.GetRequirementListByIdAsync(requirementId);
 
@@ -139,8 +136,8 @@ namespace VendersCloud.Business.Service.Concrete
                         //var orgData = await _organizationRepository.GetOrganizationDataByIdAsync(item.ClientId);
                         //if (orgData != null)
                         //{
-                        //    res.Client.ClientName = orgData.OrgName;
-                        //    res.Client.ClientLogo = orgData.Logo;
+                        //    res.ClientName = orgData.OrgName;
+                        //    res.ClientLogo = orgData.Logo;
                         //}
 
                         res.Id = item.Id;
@@ -238,15 +235,14 @@ namespace VendersCloud.Business.Service.Concrete
                             CreatedBy = item.CreatedBy,
                             UpdatedBy = item.UpdatedBy,
                             IsDeleted = item.IsDeleted,
-                            UniqueId = item.UniqueId,
-                            Client = new Client() // Ensure the Client object is instantiated
+                            UniqueId = item.UniqueId
                         };
 
                        //var orgData = await _organizationRepository.GetOrganizationDataByIdAsync(item.ClientCode);
                        // if (orgData != null)
                        // {
-                       //     requirementResponse.Client.ClientName = orgData.OrgName;
-                       //     requirementResponse.Client.ClientLogo = orgData.Logo;
+                       //     requirementResponse.ClientName = orgData.OrgName;
+                       //     requirementResponse.ClientLogo = orgData.Logo;
                        // }
 
                         res.Add(requirementResponse);
