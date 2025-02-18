@@ -12,7 +12,7 @@
         public string Duration { get; set; }
         public int LocationType { get; set; }
         public string Location { get; set; }
-        public int ClientId { get; set; }
+        public string ClientCode { get; set; }
         public string Remarks { get; set; }
         public int Visibility { get; set; }
         public bool Hot { get; set; }
