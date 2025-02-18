@@ -36,7 +36,7 @@ namespace VendersCloud.Business.Service.Concrete
                     dto.Positions= item.Positions;
                     dto.LocationType= item.LocationType;
                     dto.Location= item.Location;
-                    dto.ClientId= item.ClientId;
+                    dto.ClientCode = item.ClientCode;
                     dto.Remarks= item.Remarks;
                     dto.Visibility = request.Visibility;
                     dto.Hot = item.Hot;

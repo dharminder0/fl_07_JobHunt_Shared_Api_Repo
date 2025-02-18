@@ -13,7 +13,7 @@
         public int LocationType { get; set; }
         public string LocationTypeName { get; set; }
         public string Location { get; set; }
-        public int ClientId { get; set; }
+        public string ClientCode { get; set; }
         public Client Client { get; set; }
         public string Remarks { get; set; }
         public int Visibility { get; set; }
@@ -25,6 +25,7 @@
         public int CreatedBy { get; set; }
         public int UpdatedBy { get; set; }
         public bool IsDeleted { get; set; }
+        public string UniqueId { get; set; }
     }
     public class Client
     {
