@@ -60,12 +60,55 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
-        public async Task<List<Requirement>> GetRequirementListAsync()
+        public async Task<List<RequirementResponse>> GetRequirementListAsync()
         {
             try
             {
+                var res = new List<RequirementResponse>();
                 var response = await _requirementRepository.GetRequirementListAsync();
-                return response;
+                if (response != null)
+                {
+                    foreach (var item in response)
+                    {
+                        var requirementResponse = new RequirementResponse
+                        {
+                            Id = item.Id,
+                            Title = item.Title,
+                            OrgCode = item.OrgCode,
+                            Description = item.Description,
+                            Experience = item.Experience,
+                            Budget = item.Budget,
+                            Positions = item.Positions,
+                            Duration = item.Duration,
+                            LocationType = item.LocationType,
+                            LocationTypeName = Enum.GetName(typeof(LocationType), item.LocationType),
+                            Location = item.Location,
+                            ClientId = item.ClientId,
+                            Remarks = item.Remarks,
+                            Visibility = item.Visibility,
+                            VisibilityName = Enum.GetName(typeof(Visibility), item.Visibility),
+                            Hot = item.Hot,
+                            Status = item.Status,
+                            CreatedOn = item.CreatedOn,
+                            UpdatedOn = item.UpdatedOn,
+                            CreatedBy = item.CreatedBy,
+                            UpdatedBy = item.UpdatedBy,
+                            IsDeleted = item.IsDeleted,
+                            Client = new Client() // Ensure the Client object is instantiated
+                        };
+
+                        var orgData = await _organizationRepository.GetOrganizationDataByIdAsync(item.ClientId);
+                        if (orgData != null)
+                        {
+                            requirementResponse.Client.ClientName = orgData.OrgName;
+                            requirementResponse.Client.ClientLogo = orgData.Logo;
+                        }
+
+                        res.Add(requirementResponse);
+                    }
+                }
+
+                return res;
             }
             catch(Exception ex)
             {
