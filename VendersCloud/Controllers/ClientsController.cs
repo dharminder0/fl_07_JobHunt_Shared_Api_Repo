@@ -127,7 +127,6 @@ namespace VendersCloud.WebApi.Controllers
             try
             {
                 var results = await _clientsService.GetClientsListAsync(request);
-
                 return Json(results);
             }
             catch (Exception ex)
