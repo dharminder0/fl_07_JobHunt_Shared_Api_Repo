@@ -12,5 +12,6 @@
         public string LogoURL { get; set; }
         public string FaviconURL { get; set; }
         public int Status { get; set; }
+        public int UserId { get; set; }
     }
 }

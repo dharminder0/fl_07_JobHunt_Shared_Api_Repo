@@ -37,7 +37,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                     LogoURL = request.LogoURL,
                     FaviconURL = request.FaviconURL,
                     UpdatedOn = DateTime.UtcNow,
-                    UpdatedBy = "",
+                    UpdatedBy = request.UserId,
                     Status = request.Status,
                     isDeleted = false
                 }).Where("ClientName", request.ClientName);
@@ -59,7 +59,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                 LogoURL = request.LogoURL,
                 FaviconURL = request.FaviconURL,
                 CreatedOn = DateTime.UtcNow,
-                CreatedBy = "",
+                CreatedBy = request.UserId,
                 Status = request.Status,
                 isDeleted = false
             });
