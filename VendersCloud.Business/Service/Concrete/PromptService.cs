@@ -26,7 +26,7 @@ public class PromptService : ExternalServiceBase, IPromptService
         _configReader = new ExternalConfigReader(configuration);
     }
 
-    public async Task<JobPostingResponse> GenerateUpdatedContent(PromptRequest request)
+    public async Task<UpdatedJobPostingResponse> GenerateUpdatedContent(PromptRequest request)
     {
         try
         {
@@ -101,8 +101,20 @@ public class PromptService : ExternalServiceBase, IPromptService
             {
                 // Handle any exception that occurs during logging
             }
-
-            return job;
+            UpdatedJobPostingResponse res = new UpdatedJobPostingResponse();
+            if (job!=null)
+            {
+                res.Title = job.Title;
+                res.Description = job.Description;
+                res.Experience = job.Experience;
+                res.Positions = job.Positions;
+                res.Durations = job.Contract_Period;
+                res.LocationType = job.Location_Type;
+                res.Location = job.Location;
+                res.Remarks = job.Remark;
+                res.Budget = job.Budget;
+            }
+            return res;
         }
         catch (Exception ex)
         {
