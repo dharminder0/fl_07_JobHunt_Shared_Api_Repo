@@ -134,6 +134,41 @@ namespace VendersCloud.Business
 
             return GetValueFromExternalAppSettingsFile("WebAppUrl");
         }
+
+        public string GetBlobContainerName()
+        {
+            string BlobContainerName = _configuration["BlobContainerName"];
+
+            if (!string.IsNullOrEmpty(BlobContainerName))
+            {
+                return BlobContainerName;
+            }
+
+            return GetValueFromExternalAppSettingsFile("BlobContainerName");
+        }
+        public string GetBlobStorageAccount()
+        {
+            string BlobStorageAccount = _configuration["BlobStorageAccount"];
+
+            if (!string.IsNullOrEmpty(BlobStorageAccount))
+            {
+                return BlobStorageAccount;
+            }
+
+            return GetValueFromExternalAppSettingsFile("BlobStorageAccount");
+        }
+
+        public string GetBlobSymmetricSecretKey()
+        {
+            string BlobSymmetricSecretKey = _configuration["BlobSymmetricSecretKey"];
+
+            if (!string.IsNullOrEmpty(BlobSymmetricSecretKey))
+            {
+                return BlobSymmetricSecretKey;
+            }
+
+            return GetValueFromExternalAppSettingsFile("BlobStorageAccount");
+        }
         // Helper method to get values from the external file
         private string GetValueFromExternalAppSettingsFile(string key)
         {

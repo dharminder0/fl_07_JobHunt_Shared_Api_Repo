@@ -45,5 +45,11 @@
             Accepted =2,
             Declined=3
         }
+
+        public enum ClientStatus
+        {
+            Active= 1,
+            InActive=2,
+        }
     }
 }
