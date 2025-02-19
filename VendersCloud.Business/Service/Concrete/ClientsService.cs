@@ -6,38 +6,57 @@ using VendersCloud.Business.Entities.RequestModels;
 using VendersCloud.Business.Entities.ResponseModels;
 using VendersCloud.Business.Service.Abstract;
 using VendersCloud.Data.Repositories.Abstract;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace VendersCloud.Business.Service.Concrete
 {
     public class ClientsService :IClientsService
     {
         private readonly IClientsRepository _clientsRepository;
-        public ClientsService(IClientsRepository clientsRepository)
+        private readonly IBlobStorageService _blobStorageService;
+        public ClientsService(IClientsRepository clientsRepository, IBlobStorageService blobStorageService)
         {
             _clientsRepository = clientsRepository;
-
+            _blobStorageService = blobStorageService;
         }
 
         public async Task<ActionMessageResponse> UpsertClientAsync(ClientsRequest request)
         {
             try
             {
-                if(request==null|| string.IsNullOrEmpty(request.OrgCode))
+                if (request == null || string.IsNullOrEmpty(request.OrgCode))
                 {
-                    return new ActionMessageResponse() { Success = false, Message = "Enter Valids Input", Content = "" };
-                    
+                    return new ActionMessageResponse() { Success = false, Message = "Invalid input", Content = "" };
                 }
-                
+
+                // Upload logo (if provided)
+                if (!string.IsNullOrEmpty(request.LogoURL))
+                {
+                    request.LogoURL = await _blobStorageService.DownloadAndUploadToBlobAsync(request.LogoURL);
+                }
+
+                // Upload favicon (if provided)
+                if (!string.IsNullOrEmpty(request.FaviconURL))
+                {
+                    request.FaviconURL = await _blobStorageService.DownloadAndUploadToBlobAsync(request.FaviconURL);
+                }
+
                 string ClientCode = GenerateRandomClientCode();
-                var res= await _clientsRepository.UpsertClientAsync(request,ClientCode);
+                var res = await _clientsRepository.UpsertClientAsync(request, ClientCode);
+
                 if (res)
                     return new ActionMessageResponse() { Success = true, Message = "Client Added/Updated", Content = "" };
+
                 return new ActionMessageResponse() { Success = false, Message = "Client Not Added", Content = "" };
             }
-            catch (Exception ex) {
-                 return new ActionMessageResponse { Success=false, Message=ex.Message,Content=""};
+            catch (Exception ex)
+            {
+                return new ActionMessageResponse { Success = false, Message = ex.Message, Content = "" };
             }
         }
+
+
+
 
 
         public async Task<Clients> GetClientsByIdAsync(int id)
