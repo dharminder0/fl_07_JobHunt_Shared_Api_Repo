@@ -13,6 +13,6 @@
         public string Remarks { get; set; }
         public string OrgCode { get; set; }
         public int Status {  get; set; }
-        public int ClientId { get; set; }
+        public string ClientCode { get; set; }
     }
 }
