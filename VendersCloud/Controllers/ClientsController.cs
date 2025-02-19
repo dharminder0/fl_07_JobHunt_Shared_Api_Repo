@@ -7,7 +7,7 @@ using VendersCloud.Business.Service.Concrete;
 
 namespace VendersCloud.WebApi.Controllers
 {
-    [Route("api/[controller]")]
+   
     [ApiController]
     public class ClientsController : BaseApiController
     {
@@ -123,7 +123,7 @@ namespace VendersCloud.WebApi.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [HttpPost]
         [Route("api/V1/Clients/Search")]
-        public async Task<IActionResult> GetClientsListAsync(string searchText, int page, int pageSize)
+        public async Task<IActionResult> GetClientsListAsync()
         {
             try
             {
