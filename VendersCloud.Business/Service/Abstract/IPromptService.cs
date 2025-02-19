@@ -5,6 +5,6 @@ namespace VendersCloud.Business.Service.Abstract
 {
     public interface IPromptService
     {
-        Task<JobPostingResponse> GenerateUpdatedContent(PromptRequest request);
+        Task<UpdatedJobPostingResponse> GenerateUpdatedContent(PromptRequest request);
     }
 }
