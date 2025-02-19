@@ -118,22 +118,28 @@ namespace VendersCloud.Data.Repositories.Concrete
 
         }
 
-        public async Task<PaginationDto<Clients>> GetClientsListAsync(string searchText,int page,int pageSize)
+        public async Task<PaginationDto<Clients>> GetClientsListAsync(ClientsSearchRequest request)
         {
             using var connection = GetConnection(); // Ensure this returns IDbConnection
             var predicates = new List<string>();
             var parameters = new DynamicParameters();
 
             // Search by ClientName or ClientCode
-            if (!string.IsNullOrWhiteSpace(searchText))
+            if (!string.IsNullOrWhiteSpace(request.searchText))
             {
                 predicates.Add("(c.ClientName LIKE @searchText OR c.ClientCode LIKE @searchText)");
-                parameters.Add("searchText", $"%{searchText}%");
+                parameters.Add("searchText", $"%{request.searchText}%");
             }
-
+            // Search by Status 
+            if (!string.IsNullOrWhiteSpace(request.Status))
+            {
+                predicates.Add("(c.Status = @status)");
+                parameters.Add("status", $"{request.Status}");
+            }
             // Ensure we only get non-deleted clients
             predicates.Add("c.isDeleted = 0");
-
+            predicates.Add("c.OrgCode= @orgCode");
+            parameters.Add("orgCode",request.OrgCode);
             // Construct WHERE clause
             string whereClause = predicates.Any() ? "WHERE " + string.Join(" AND ", predicates) : "";
 
@@ -146,8 +152,8 @@ namespace VendersCloud.Data.Repositories.Concrete
             
             SELECT COUNT(*) FROM Clients c {whereClause};";
 
-            parameters.Add("offset", (page - 1) * pageSize);
-            parameters.Add("pageSize", pageSize);
+            parameters.Add("offset", (request.page - 1) * request.pageSize);
+            parameters.Add("pageSize", request.pageSize);
 
             using var multi = await connection.QueryMultipleAsync(query, parameters);
             var clients = (await multi.ReadAsync<Clients>()).ToList();
@@ -156,8 +162,8 @@ namespace VendersCloud.Data.Repositories.Concrete
             return new PaginationDto<Clients>
             {
                 Count = totalRecords,
-                Page = page,
-                TotalPages = (int)Math.Ceiling(totalRecords / (double)pageSize),
+                Page = request.page,
+                TotalPages = (int)Math.Ceiling(totalRecords / (double)request.pageSize),
                 List = clients
             };
         }

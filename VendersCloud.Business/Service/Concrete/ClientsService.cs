@@ -111,11 +111,11 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
-        public async Task<PaginationDto<Clients>> GetClientsListAsync(string searchText, int page, int pageSize)
+        public async Task<PaginationDto<Clients>> GetClientsListAsync(ClientsSearchRequest request)
         {
             try
             {
-                return await _clientsRepository.GetClientsListAsync(searchText, page, pageSize);
+                return await _clientsRepository.GetClientsListAsync(request);
             }
             catch (Exception ex) {
                 throw ex;
