@@ -126,6 +126,25 @@ namespace VendersCloud.WebApi.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [HttpPost]
+        [Route("api/V1/Requirement/Search")]
+        public async Task<IActionResult> SearchRequirementAsync(SearchRequirementRequest request)
+        {
+            try
+            {
+                var result = await _requirementService.SearchRequirementAsync(request);
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }
 
