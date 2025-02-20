@@ -1,6 +1,7 @@
 ﻿using VendersCloud.Business.Entities.DataModels;
 using VendersCloud.Business.Entities.Dtos;
 using VendersCloud.Business.Entities.RequestModels;
+using VendersCloud.Business.Entities.ResponseModels;
 
 namespace VendersCloud.Data.Repositories.Abstract
 {
@@ -13,5 +14,6 @@ namespace VendersCloud.Data.Repositories.Abstract
         Task<bool> RequirementUpsertV2Async(RequirementDto request, string uniqueId);
         Task<bool> UpdateStatusByIdAsync(int requirementId, int status);
         Task<List<Requirement>> GetRequirementByOrgCodeAsync(string orgCode);
+        Task<PaginationDto<RequirementResponse>> GetRequirementsListAsync(SearchRequirementRequest request);
     }
 }

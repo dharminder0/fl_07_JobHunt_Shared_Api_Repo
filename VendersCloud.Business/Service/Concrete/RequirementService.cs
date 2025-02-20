@@ -1,4 +1,6 @@
-﻿using VendersCloud.Business.Entities.RequestModels;
+﻿using Microsoft.AspNetCore.Mvc;
+using VendersCloud.Business.Entities.Dtos;
+using VendersCloud.Business.Entities.RequestModels;
 using VendersCloud.Business.Entities.ResponseModels;
 using VendersCloud.Business.Service.Abstract;
 using VendersCloud.Data.Repositories.Abstract;
@@ -6,12 +8,12 @@ using static VendersCloud.Data.Enum.Enum;
 
 namespace VendersCloud.Business.Service.Concrete
 {
-    public class RequirementService:IRequirementService
+    public class RequirementService : IRequirementService
     {
         private readonly IRequirementRepository _requirementRepository;
         private readonly IOrganizationRepository _organizationRepository;
         private readonly IClientsRepository _clientsRepository;
-        public RequirementService(IRequirementRepository requirementRepository,IOrganizationRepository organizationRepository, IClientsRepository clientsRepository)
+        public RequirementService(IRequirementRepository requirementRepository, IOrganizationRepository organizationRepository, IClientsRepository clientsRepository)
         {
             _requirementRepository = requirementRepository;
             _organizationRepository = organizationRepository;
@@ -22,13 +24,13 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-                if (request == null || string.IsNullOrEmpty(request.Title)|| string.IsNullOrEmpty(request.OrgCode))
+                if (request == null || string.IsNullOrEmpty(request.Title) || string.IsNullOrEmpty(request.OrgCode))
                 {
                     return new ActionMessageResponse() { Success = false, Message = "Values cann't be null ", Content = "" };
                 }
                 var uniqueId = Guid.NewGuid().ToString().Substring(0, 12);
-                var response = await _requirementRepository.RequirementUpsertAsync(request,uniqueId);
-                if(response !=null)
+                var response = await _requirementRepository.RequirementUpsertAsync(request, uniqueId);
+                if (response != null)
                 {
                     var res = Convert.ToInt64(response);
                     return new ActionMessageResponse() { Success = true, Message = "Requirement Submitted Successfully!! ", Content = response };
@@ -36,7 +38,8 @@ namespace VendersCloud.Business.Service.Concrete
                 return new ActionMessageResponse() { Success = false, Message = "Requirement Not Submitted  ", Content = "" };
 
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 return new ActionMessageResponse() { Success = false, Message = ex.Message, Content = "" };
             }
         }
@@ -45,7 +48,7 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-                if((requirementId <=0)||(string.IsNullOrEmpty(orgCode)))
+                if ((requirementId <= 0) || (string.IsNullOrEmpty(orgCode)))
                 {
                     return new ActionMessageResponse() { Success = false, Message = "Values cann't be null ", Content = "" };
                 }
@@ -56,7 +59,8 @@ namespace VendersCloud.Business.Service.Concrete
                 }
                 return new ActionMessageResponse() { Success = false, Message = "Requirement Not Deleted!!  ", Content = "" };
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 return new ActionMessageResponse() { Success = false, Message = ex.Message, Content = "" };
             }
         }
@@ -90,7 +94,7 @@ namespace VendersCloud.Business.Service.Concrete
                             VisibilityName = Enum.GetName(typeof(Visibility), item.Visibility),
                             Hot = item.Hot,
                             Status = item.Status,
-                            StatusName= Enum.GetName(typeof(RequirementsStatus), item.Status),
+                            StatusName = Enum.GetName(typeof(RequirementsStatus), item.Status),
                             CreatedOn = item.CreatedOn,
                             UpdatedOn = item.UpdatedOn,
                             CreatedBy = item.CreatedBy,
@@ -112,7 +116,7 @@ namespace VendersCloud.Business.Service.Concrete
 
                 return res;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 throw ex;
             }
@@ -128,7 +132,7 @@ namespace VendersCloud.Business.Service.Concrete
                 }
 
                 RequirementResponse res = new RequirementResponse();
-                
+
 
                 var response = await _requirementRepository.GetRequirementListByIdAsync(requirementId);
 
@@ -184,16 +188,16 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-                if(requirementId<=0 || status <=0)
+                if (requirementId <= 0 || status <= 0)
                 {
                     return new ActionMessageResponse { Success = false, Message = "Enter Valid Input!!", Content = "" };
                 }
                 var res = await _requirementRepository.UpdateStatusByIdAsync(requirementId, status);
-                if(res)
+                if (res)
                     return new ActionMessageResponse { Success = true, Message = "Status Updated Successfully!!", Content = "" };
                 return new ActionMessageResponse { Success = false, Message = "Status Not Updated", Content = "" };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return new ActionMessageResponse { Success = false, Message = ex.Message, Content = "" };
             }
@@ -258,11 +262,24 @@ namespace VendersCloud.Business.Service.Concrete
             }
             catch (Exception ex)
             {
-                // Consider logging the exception or adding context here
-                throw new Exception("An error occurred while fetching requirements.", ex);
+                throw new Exception(ex.Message);
             }
         }
 
-
+        public async Task<PaginationDto<RequirementResponse>> SearchRequirementAsync(SearchRequirementRequest request)
+        {
+            try
+            {
+                if(string.IsNullOrEmpty(request.OrgCode))
+                {
+                    throw new Exception("OrgCode is Mandatory!! ");
+                }
+                return await _requirementRepository.GetRequirementsListAsync(request);
+            }
+            catch(Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
     }
 }
