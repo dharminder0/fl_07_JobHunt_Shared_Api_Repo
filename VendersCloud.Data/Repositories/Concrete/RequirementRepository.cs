@@ -313,7 +313,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                     VisibilityName = System.Enum.GetName(typeof(Visibility), r.Visibility),
                     Hot = r.Hot,
                     Status = r.Status,
-                    StatusName = System.Enum.GetName(typeof(RequirementsStatus), r.LocationType),
+                    StatusName = System.Enum.GetName(typeof(RequirementsStatus), r.Status),
                     CreatedOn = r.CreatedOn,
                     UpdatedOn = r.UpdatedOn,
                     CreatedBy = r.CreatedBy,
