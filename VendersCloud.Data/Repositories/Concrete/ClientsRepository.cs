@@ -1,12 +1,15 @@
 ﻿using Dapper;
 using DapperExtensions;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using SqlKata;
 using VendersCloud.Business.Entities.DataModels;
 using VendersCloud.Business.Entities.Dtos;
 using VendersCloud.Business.Entities.RequestModels;
+using VendersCloud.Business.Entities.ResponseModels;
 using VendersCloud.Data.Data;
 using VendersCloud.Data.Repositories.Abstract;
+using static VendersCloud.Data.Enum.Enum;
 
 namespace VendersCloud.Data.Repositories.Concrete
 {
@@ -15,18 +18,24 @@ namespace VendersCloud.Data.Repositories.Concrete
         public ClientsRepository(IConfiguration configuration) : base(configuration)
         {
         }
-        public async Task<bool> UpsertClientAsync(ClientsRequest request, string clientCode)
+        public async Task<bool> UpsertClientAsync(ClientsRequest request, string clientCode, string uploadedimageUrl, string uploadedUrl)
         {
             var dbInstance = GetDbInstance();
             var table = new Table<Clients>();
+
+            // Check if the client already exists
             var query = new Query(table.TableName)
                         .Where("ClientName", request.ClientName)
                         .Where("OrgCode", request.OrgCode)
                         .Select("Id");
+
             var existingOrgCode = await dbInstance.ExecuteScalarAsync<string>(query);
+
+           
 
             if (!string.IsNullOrEmpty(existingOrgCode))
             {
+                // Update existing client record
                 var updateQuery = new Query(table.TableName).AsUpdate(new
                 {
                     Description = request.Description,
@@ -34,8 +43,8 @@ namespace VendersCloud.Data.Repositories.Concrete
                     ContactEmail = request.ContactEmail,
                     Address = request.Address,
                     Website = request.Website,
-                    LogoURL = request.LogoURL,
-                    FaviconURL = request.FaviconURL,
+                    LogoURL = uploadedimageUrl,  
+                    FaviconURL = uploadedUrl, 
                     UpdatedOn = DateTime.UtcNow,
                     UpdatedBy = request.UserId,
                     Status = request.Status,
@@ -46,6 +55,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                 return true;
             }
 
+            // Insert new client record
             var insertQuery = new Query(table.TableName).AsInsert(new
             {
                 ClientCode = clientCode,
@@ -56,16 +66,18 @@ namespace VendersCloud.Data.Repositories.Concrete
                 ContactEmail = request.ContactEmail,
                 Address = request.Address,
                 Website = request.Website,
-                LogoURL = request.LogoURL,
-                FaviconURL = request.FaviconURL,
+                LogoURL = uploadedimageUrl,
+                FaviconURL = uploadedUrl,
                 CreatedOn = DateTime.UtcNow,
                 CreatedBy = request.UserId,
                 Status = request.Status,
                 isDeleted = false
             });
+
             await dbInstance.ExecuteScalarAsync<string>(insertQuery);
             return true;
         }
+
 
         public async Task<Clients> GetClientsByIdAsync(int id)
         {
@@ -118,39 +130,37 @@ namespace VendersCloud.Data.Repositories.Concrete
 
         }
 
-        public async Task<PaginationDto<Clients>> GetClientsListAsync(ClientsSearchRequest request)
+        public async Task<PaginationDto<ClientsResponse>> GetClientsListAsync(ClientsSearchRequest request)
         {
-            using var connection = GetConnection(); // Ensure this returns IDbConnection
+            using var connection = GetConnection();
             var predicates = new List<string>();
             var parameters = new DynamicParameters();
 
-            // Search by ClientName or ClientCode
             if (!string.IsNullOrWhiteSpace(request.searchText))
             {
                 predicates.Add("(c.ClientName LIKE @searchText OR c.ClientCode LIKE @searchText)");
                 parameters.Add("searchText", $"%{request.searchText}%");
             }
-            // Search by Status 
+
             if (!string.IsNullOrWhiteSpace(request.Status))
             {
                 predicates.Add("(c.Status = @status)");
-                parameters.Add("status", $"{request.Status}");
+                parameters.Add("status", request.Status);
             }
-            // Ensure we only get non-deleted clients
+
             predicates.Add("c.isDeleted = 0");
-            predicates.Add("c.OrgCode= @orgCode");
-            parameters.Add("orgCode",request.OrgCode);
-            // Construct WHERE clause
+            predicates.Add("c.OrgCode = @orgCode");
+            parameters.Add("orgCode", request.OrgCode);
+
             string whereClause = predicates.Any() ? "WHERE " + string.Join(" AND ", predicates) : "";
 
-            // Build the query with pagination
             string query = $@"
-            SELECT * FROM Clients c
-            {whereClause}
-            ORDER BY c.CreatedOn DESC
-            OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY;
-            
-            SELECT COUNT(*) FROM Clients c {whereClause};";
+    SELECT * FROM Clients c
+    {whereClause}
+    ORDER BY c.CreatedOn DESC
+    OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY;
+
+    SELECT COUNT(*) FROM Clients c {whereClause};";
 
             parameters.Add("offset", (request.page - 1) * request.pageSize);
             parameters.Add("pageSize", request.pageSize);
@@ -159,14 +169,37 @@ namespace VendersCloud.Data.Repositories.Concrete
             var clients = (await multi.ReadAsync<Clients>()).ToList();
             int totalRecords = await multi.ReadFirstOrDefaultAsync<int>();
 
-            return new PaginationDto<Clients>
+            var clientsResponseList = clients.Select(c => new ClientsResponse
+            {
+                Id = c.Id,
+                ClientCode = c.ClientCode,
+                OrgCode = c.OrgCode,
+                ClientName = c.ClientName,
+                Description = c.Description,
+                ContactPhone = c.ContactPhone,
+                ContactEmail = c.ContactEmail,
+                Address = c.Address,
+                Website = c.Website,
+                LogoURL = c.LogoURL,
+                FaviconURL = c.FaviconURL,
+                CreatedOn = c.CreatedOn,
+                UpdatedOn = c.UpdatedOn,
+                CreatedBy = c.CreatedBy,
+                UpdatedBy = c.UpdatedBy,
+                Status = c.Status,
+                StatusName = System.Enum.GetName(typeof(ClientStatus), c.Status),
+                IsDeleted = c.IsDeleted
+            }).ToList();
+
+            return new PaginationDto<ClientsResponse>
             {
                 Count = totalRecords,
                 Page = request.page,
                 TotalPages = (int)Math.Ceiling(totalRecords / (double)request.pageSize),
-                List = clients
+                List = clientsResponseList
             };
         }
+
 
 
         public async Task<bool> DeleteClientsByIdAsync(string orgCode, int id, string clientName)

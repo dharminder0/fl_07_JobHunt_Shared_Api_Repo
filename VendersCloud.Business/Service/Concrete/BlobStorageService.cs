@@ -1,61 +1,36 @@
 ﻿using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using System.Text;
+using VendersCloud.Business.Entities.RequestModels;
 using VendersCloud.Business.Service.Abstract;
 
 namespace VendersCloud.Business.Service.Concrete
 {
-    public class BlobStorageService: IBlobStorageService
+    public class BlobStorageService : IBlobStorageService
     {
-        private readonly string _blobConnectionString;
-        private readonly string _blobContainerName;
         public IConfiguration _configuration;
         private readonly ExternalConfigReader _externalConfig;
-        
+
         public BlobStorageService(IConfiguration configuration)
         {
             _configuration = configuration;
             _externalConfig = new ExternalConfigReader(configuration);
-            _blobConnectionString = _externalConfig.GetBlobStorageAccount();
-            _blobContainerName = _externalConfig.GetBlobContainerName();
         }
-
-        public async Task<string> DownloadAndUploadToBlobAsync(string fileUrl)
+        public async Task<string> UploadBase64ToBlobAsync(FileRequest fileRequest)
         {
             try
             {
-                using (HttpClient httpClient = new HttpClient())
-                {
-                    var response = await httpClient.GetAsync(fileUrl);
-                    if (!response.IsSuccessStatusCode)
-                        throw new Exception($"Failed to download image from URL: {fileUrl}");
+                if (string.IsNullOrEmpty(fileRequest?.FileData))
+                    throw new ArgumentException("File data is empty or null");
+                var files= Convert.FromBase64String(fileRequest.FileData);
+                var filesnames = fileRequest.FileName;
+                var fileNames = fileRequest.FileName.Trim('\"');
+                fileNames = fileNames.Replace(" ", "").Replace("-", "");
 
-                    using (Stream fileStream = await response.Content.ReadAsStreamAsync())
-                    {
-                        string fileName = Guid.NewGuid().ToString() + Path.GetExtension(new Uri(fileUrl).AbsolutePath);
-                        return await UploadStreamToBlobAsync(fileStream, fileName);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error processing image: {ex.Message}");
-                return fileUrl; // Fallback: Keep the original URL if upload fails
-            }
-        }
-
-        private async Task<string> UploadStreamToBlobAsync(Stream fileStream, string fileName)
-        {
-            try
-            {
-                BlobContainerClient containerClient = new BlobContainerClient(_blobConnectionString, _blobContainerName);
-                await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob); // Ensure container exists
-
-                BlobClient blobClient = containerClient.GetBlobClient(fileName);
-                await blobClient.UploadAsync(fileStream, overwrite: true);
-
-                return blobClient.Uri.ToString(); // Return public Blob URL
+                // Upload to Azure Blob Storage
+                var res= await UploadToBlobAsync(files, fileRequest.FileName);
+                return res;
             }
             catch (Exception ex)
             {
@@ -63,5 +38,27 @@ namespace VendersCloud.Business.Service.Concrete
                 throw;
             }
         }
+
+       
+
+        private async Task<string> UploadToBlobAsync(byte[] fileBytes, string originalFileName)
+        {
+            using (MemoryStream stream = new MemoryStream(fileBytes))
+            {
+                string connectionString = _externalConfig.GetBlobStorageAccount();
+                string containerName = _externalConfig.GetBlobContainerName();
+
+                BlobContainerClient containerClient = new BlobContainerClient(connectionString, containerName);
+                await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob);
+
+                string fileName = Guid.NewGuid().ToString() + Path.GetExtension(originalFileName);
+                BlobClient blobClient = containerClient.GetBlobClient(fileName);
+
+                await blobClient.UploadAsync(stream, overwrite: true);
+                return blobClient.Uri.ToString();
+            }
+        }
+
+
     }
 }

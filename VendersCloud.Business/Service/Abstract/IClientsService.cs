@@ -12,6 +12,6 @@ namespace VendersCloud.Business.Service.Abstract
         Task<Clients> GetClientsByNameAsync(string name);
         Task<List<Clients>> GetClientsByOrgCodeAsync(string orgCode);
         Task<ActionMessageResponse> DeleteClientsByIdAsync(string orgCode, int id, string clientName);
-        Task<PaginationDto<Clients>> GetClientsListAsync(ClientsSearchRequest request);
+        Task<PaginationDto<ClientsResponse>> GetClientsListAsync(ClientsSearchRequest request);
     }
 }
