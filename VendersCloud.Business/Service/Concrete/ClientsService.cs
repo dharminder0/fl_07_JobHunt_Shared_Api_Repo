@@ -69,10 +69,6 @@ namespace VendersCloud.Business.Service.Concrete
         }
 
 
-
-
-
-
         public async Task<Clients> GetClientsByIdAsync(int id)
         {
             try
@@ -90,6 +86,22 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
+        public async Task<Clients> GetClientsByClientCodeAsync(string clientCode)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(clientCode))
+                {
+                    throw new ArgumentNullException("ClientCode can't be null");
+                }
+                var response = await _clientsRepository.GetClientsByClientCodeAsync(clientCode);
+                return response;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
         public async Task<Clients> GetClientsByNameAsync(string name)
         {
             try
