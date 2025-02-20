@@ -26,7 +26,7 @@ namespace VendersCloud.Business.Entities.ResponseModels
         public string Experience { get; set; }
         public string Budget { get; set; }
         public string Positions { get; set; }
-        public string Durations { get; set; }
+        public string Duration { get; set; }
         public string LocationType { get; set; }
         public string Location { get; set; }
         public string Remarks { get; set; }

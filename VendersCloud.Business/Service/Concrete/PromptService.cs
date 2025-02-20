@@ -108,7 +108,7 @@ public class PromptService : ExternalServiceBase, IPromptService
                 res.Description = job.Description;
                 res.Experience = job.Experience;
                 res.Positions = job.Positions;
-                res.Durations = job.Contract_Period;
+                res.Duration = job.Contract_Period;
                 res.LocationType = job.Location_Type;
                 res.Location = job.Location;
                 res.Remarks = job.Remark;

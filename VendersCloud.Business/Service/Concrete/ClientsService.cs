@@ -24,27 +24,40 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
+                string uploadedimageUrl = string.Empty;
+                string uploadedUrl = string.Empty;
                 if (request == null || string.IsNullOrEmpty(request.OrgCode))
                 {
-                    return new ActionMessageResponse() { Success = false, Message = "Invalid input", Content = "" };
+                    return new ActionMessageResponse() { Success = false, Message = "Enter valid input", Content = "" };
                 }
 
-                // Upload logo (if provided)
-                if (!string.IsNullOrEmpty(request.LogoURL))
+                // Upload Logo files if provided
+                if (request.LogoURL != null && request.LogoURL.Count > 0)
                 {
-                    request.LogoURL = await _blobStorageService.DownloadAndUploadToBlobAsync(request.LogoURL);
+                    List<string> uploadedLogos = new List<string>();
+                    foreach (var file in request.LogoURL)
+                    {
+                         uploadedimageUrl = await _blobStorageService.UploadBase64ToBlobAsync(file);
+                        
+                    }
+                    
                 }
 
-                // Upload favicon (if provided)
-                if (!string.IsNullOrEmpty(request.FaviconURL))
+                // Upload Favicon files if provided
+                if (request.FaviconURL != null && request.FaviconURL.Count > 0)
                 {
-                    request.FaviconURL = await _blobStorageService.DownloadAndUploadToBlobAsync(request.FaviconURL);
+                    List<string> uploadedFavicons = new List<string>();
+                    foreach (var file in request.FaviconURL)
+                    {
+                         uploadedUrl = await _blobStorageService.UploadBase64ToBlobAsync(file);
+                    }
                 }
 
-                string ClientCode = GenerateRandomClientCode();
-                var res = await _clientsRepository.UpsertClientAsync(request, ClientCode);
+                // Generate Client Code
+                string clientCode = GenerateRandomClientCode();
+                bool result = await _clientsRepository.UpsertClientAsync(request, clientCode, uploadedimageUrl, uploadedUrl);
 
-                if (res)
+                if (result)
                     return new ActionMessageResponse() { Success = true, Message = "Client Added/Updated", Content = "" };
 
                 return new ActionMessageResponse() { Success = false, Message = "Client Not Added", Content = "" };
@@ -54,6 +67,7 @@ namespace VendersCloud.Business.Service.Concrete
                 return new ActionMessageResponse { Success = false, Message = ex.Message, Content = "" };
             }
         }
+
 
 
 
@@ -130,11 +144,11 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
-        public async Task<PaginationDto<Clients>> GetClientsListAsync(ClientsSearchRequest request)
+        public async Task<PaginationDto<ClientsResponse>> GetClientsListAsync(ClientsSearchRequest request)
         {
             try
             {
-                return await _clientsRepository.GetClientsListAsync(request);
+              return await _clientsRepository.GetClientsListAsync(request);
             }
             catch (Exception ex) {
                 throw ex;
