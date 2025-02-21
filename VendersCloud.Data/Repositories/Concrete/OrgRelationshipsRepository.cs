@@ -29,7 +29,18 @@ namespace VendersCloud.Data.Repositories.Concrete
             var existingOrgCode = await dbInstance.ExecuteScalarAsync<string>(query);
             if (!string.IsNullOrEmpty(existingOrgCode))
             {
-                return false;
+                var updateQuery = new Query(tableName.TableName).AsUpdate(new
+                {
+                    OrgCode = orgCode,
+                    RelatedOrgCode = relatedOrgCode,
+                    RelationshipType = relationshipType,
+                    Status = status,
+                    UpdatedBy = createdBy,
+                    UpdatedOn = DateTime.UtcNow,
+                    IsDeleted = false
+                });
+                await dbInstance.ExecuteScalarAsync<string>(updateQuery);
+                return true;
             }
             var insertQuery = new Query(tableName.TableName).AsInsert(new
             {
