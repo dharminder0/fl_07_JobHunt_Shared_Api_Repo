@@ -98,8 +98,16 @@ namespace VendersCloud.Data.Repositories.Concrete
             }
 
             predicates.Add("r.IsDeleted = 0");
-            predicates.Add("r.OrgCode = @orgCode");
-            parameters.Add("orgCode", request.OrgCode);
+            if (!string.IsNullOrWhiteSpace(request.OrgCode))
+            {
+                predicates.Add("r.OrgCode = @orgCode");
+                parameters.Add("orgCode", request.OrgCode);
+            }
+            if (!string.IsNullOrWhiteSpace(request.RelatedOrgCode))
+            {
+                predicates.Add("r.RelatedOrgCode = @relatedOrgCode");
+                parameters.Add("relatedOrgCode", request.RelatedOrgCode);
+            }
 
             string whereClause = predicates.Any() ? "WHERE " + string.Join(" AND ", predicates) : "";
 

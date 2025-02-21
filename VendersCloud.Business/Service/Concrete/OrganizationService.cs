@@ -393,10 +393,6 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-                if (string.IsNullOrEmpty(request.OrgCode))
-                {
-                    throw new Exception("OrgCode is Mandatory!!");
-                }
                 var response = new List<OrgRelationshipSearchResponse>();
                 OrgRelationshipSearchResponse searchResponse = new OrgRelationshipSearchResponse();
                 return await _organizationRelationshipsRepository.GetListRelationshipAsync(request);
