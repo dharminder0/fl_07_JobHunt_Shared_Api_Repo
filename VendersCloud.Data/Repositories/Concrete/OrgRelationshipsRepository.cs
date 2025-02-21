@@ -89,16 +89,13 @@ namespace VendersCloud.Data.Repositories.Concrete
             var predicates = new List<string>();
             var parameters = new DynamicParameters();
 
-            List<OrgLocation> orgLocationData = new();
-            Organization orgdata = null;
-
             if (!string.IsNullOrWhiteSpace(request.searchText))
             {
                 predicates.Add("(r.OrgCode LIKE @SearchText)");
                 parameters.Add("SearchText", $"%{request.searchText}%");
             }
 
-            if (request.Status >0)
+            if (request.Status != null)
             {
                 predicates.Add("r.Status = @statuses");
                 parameters.Add("statuses", request.Status);
@@ -110,39 +107,23 @@ namespace VendersCloud.Data.Repositories.Concrete
             {
                 predicates.Add("r.OrgCode = @orgCode");
                 parameters.Add("orgCode", request.OrgCode);
-                orgLocationData = await _organizationLocationRepository.GetOrgLocation(request.OrgCode);
-                orgdata = await _organizationRepository.GetOrganizationData(request.OrgCode);
             }
 
             if (!string.IsNullOrWhiteSpace(request.RelatedOrgCode))
             {
                 predicates.Add("r.RelatedOrgCode = @relatedOrgCode");
                 parameters.Add("relatedOrgCode", request.RelatedOrgCode);
-
-                // Merge location and org data
-                var relatedOrgLocationData = await _organizationLocationRepository.GetOrgLocation(request.RelatedOrgCode);
-                var relatedOrgData = await _organizationRepository.GetOrganizationData(request.RelatedOrgCode);
-
-                if (relatedOrgLocationData != null)
-                {
-                    orgLocationData.AddRange(relatedOrgLocationData);
-                }
-
-                if (relatedOrgData != null && orgdata == null)
-                {
-                    orgdata = relatedOrgData;
-                }
             }
 
             string whereClause = predicates.Any() ? "WHERE " + string.Join(" AND ", predicates) : "";
-
             string query = $@"
-SELECT * FROM OrgRelationships r
-{whereClause}
-ORDER BY r.CreatedOn DESC
-OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY;
-
-SELECT COUNT(*) FROM OrgRelationships r {whereClause};";
+    SELECT * FROM OrgRelationships r 
+    {whereClause} 
+    ORDER BY r.CreatedOn DESC 
+    OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY;
+    
+    SELECT COUNT(*) FROM OrgRelationships r {whereClause};
+    ";
 
             parameters.Add("offset", (request.Page - 1) * request.PageSize);
             parameters.Add("pageSize", request.PageSize);
@@ -151,33 +132,68 @@ SELECT COUNT(*) FROM OrgRelationships r {whereClause};";
             var relationships = (await multi.ReadAsync<OrgRelationships>()).ToList();
             int totalRecords = await multi.ReadFirstOrDefaultAsync<int>();
 
+            var responseList = new List<OrgRelationshipSearchResponse>();
+
+            foreach (var relationship in relationships)
+            {
+                List<Organization> selectedOrgDataList = new();
+                List<OrgLocation> selectedOrgLocationData = new();
+
+                if (!string.IsNullOrWhiteSpace(request.OrgCode))
+                {
+                    var orgDataResult = await _organizationRepository.GetOrganizationData(relationship.RelatedOrgCode);
+                    if (orgDataResult is IEnumerable<Organization> orgList)
+                        selectedOrgDataList = orgList.ToList();
+                    else if (orgDataResult != null)
+                        selectedOrgDataList.Add(orgDataResult);
+
+                    var locationResult = await _organizationLocationRepository.GetOrgLocation(relationship.RelatedOrgCode);
+                    selectedOrgLocationData = locationResult?.ToList() ?? new List<OrgLocation>();
+                }
+                else if (!string.IsNullOrWhiteSpace(request.RelatedOrgCode))
+                {
+                    var orgDataResult = await _organizationRepository.GetOrganizationData(relationship.OrgCode);
+                    if (orgDataResult is IEnumerable<Organization> orgList)
+                        selectedOrgDataList = orgList.ToList();
+                    else if (orgDataResult != null)
+                        selectedOrgDataList.Add(orgDataResult);
+
+                    var locationResult = await _organizationLocationRepository.GetOrgLocation(relationship.OrgCode);
+                    selectedOrgLocationData = locationResult?.ToList() ?? new List<OrgLocation>();
+                }
+
+                foreach (var orgData in selectedOrgDataList)
+                {
+                    responseList.Add(new OrgRelationshipSearchResponse
+                    {
+                        Id = relationship.Id,
+                        OrgCode = relationship.OrgCode,
+                        RelatedOrgCode = relationship.RelatedOrgCode,
+                        RelationshipType = relationship.RelationshipType,
+                        StatusName = System.Enum.GetName(typeof(InviteStatus), relationship.Status),
+                        Status = relationship.Status,
+                        Description = orgData.Description,
+                        OrgName = orgData.OrgName,
+                        EmpCount = orgData.EmpCount,
+                        Logo = orgData.Logo,
+                        Location = selectedOrgLocationData.Select(loc => loc.City).Distinct().ToList(),
+                        CreatedBy = relationship.CreatedBy,
+                        UpdatedBy = relationship.UpdatedBy,
+                        CreatedOn = relationship.CreatedOn,
+                        UpdatedOn = relationship.UpdatedOn,
+                        IsDeleted = relationship.IsDeleted
+                    });
+                }
+            }
+
             return new PaginationDto<OrgRelationshipSearchResponse>
             {
                 Count = totalRecords,
                 Page = request.Page,
                 TotalPages = (int)Math.Ceiling(totalRecords / (double)request.PageSize),
-                List = relationships.Select(item => new OrgRelationshipSearchResponse
-                {
-                    Id = item.Id,
-                    OrgCode = item.OrgCode,
-                    RelatedOrgCode = item.RelatedOrgCode,
-                    RelationshipType = item.RelationshipType,
-                    StatusName = System.Enum.GetName(typeof(InviteStatus), item.Status),
-                    Status = item.Status,
-                    Description = orgdata?.Description,
-                    OrgName = orgdata?.OrgName,
-                    EmpCount = orgdata.EmpCount,
-                    Logo = orgdata?.Logo,
-                    Location = orgLocationData.Select(loc => loc.City).ToList(), // Support multiple locations
-                    CreatedBy = item.CreatedBy,
-                    UpdatedBy = item.UpdatedBy,
-                    CreatedOn = item.CreatedOn,
-                    UpdatedOn = item.UpdatedOn,
-                    IsDeleted = item.IsDeleted
-                }).ToList()
+                List = responseList
             };
         }
-
 
     }
 }
