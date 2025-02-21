@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using System.Data;
 using System.Text;
@@ -381,6 +382,25 @@ namespace VendersCloud.Business.Service.Concrete
                     return true;
                 }
                 return false;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public async Task<PaginationDto<OrgRelationshipSearchResponse>> GetListRelationshipAsync(OrgRelationshipSearchRequest request)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(request.OrgCode))
+                {
+                    throw new Exception("OrgCode is Mandatory!!");
+                }
+                var response = new List<OrgRelationshipSearchResponse>();
+                OrgRelationshipSearchResponse searchResponse = new OrgRelationshipSearchResponse();
+                return await _organizationRelationshipsRepository.GetListRelationshipAsync(request);
+
             }
             catch (Exception ex)
             {
