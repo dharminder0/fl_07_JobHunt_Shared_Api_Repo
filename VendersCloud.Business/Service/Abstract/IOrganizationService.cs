@@ -1,4 +1,5 @@
 ﻿using VendersCloud.Business.Entities.DataModels;
+using VendersCloud.Business.Entities.Dtos;
 using VendersCloud.Business.Entities.RequestModels;
 using VendersCloud.Business.Entities.ResponseModels;
 
@@ -14,5 +15,6 @@ namespace VendersCloud.Business.Service.Abstract
         Task<ActionMessageResponse> GetOrganizationProfile(string orgCode);
         Task<bool> DispatchedOrganizationInvitationAsync(DispatchedInvitationRequest request);
         Task<bool> ManageRelationshipStatusAsync(int orgRelationshipId, int status);
+        Task<PaginationDto<OrgRelationshipSearchResponse>> GetListRelationshipAsync(OrgRelationshipSearchRequest request);
     }
 }
