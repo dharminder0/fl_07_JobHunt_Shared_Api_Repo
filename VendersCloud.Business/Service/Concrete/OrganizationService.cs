@@ -334,8 +334,8 @@ namespace VendersCloud.Business.Service.Concrete
                 var relationshipType = Enum.GetName(typeof(RoleType), request.Sender.RoleType);
                 var roleMapping = new Dictionary<string, string>
                     {
-                        { "Vendor", "2" },
-                        { "Client", "1" }
+                        { "Vendor", "1" },
+                        { "Client", "2" }
                     };
                 if (roleMapping.ContainsKey(relationshipType))
                 {
