@@ -10,6 +10,11 @@
         public int Status { get; set; }
         public int CreatedBy { get; set; }
         public int UpdatedBy { get; set; }
+        public string OrgName { get; set; }
+        public string Description { get; set; }
+        public int EmpCount { get; set; }
+        public string Logo { get; set; }
+        public List<string> Location { get; set; }
         public DateTime CreatedOn { get; set; }
         public DateTime UpdatedOn { get; set; }
         public bool IsDeleted { get; set; }
