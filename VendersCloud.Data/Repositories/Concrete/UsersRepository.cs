@@ -199,7 +199,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                 return true;
         }
 
-        public async Task<bool> UpdateUserProfileAsync(UpdateUserProfileRequest request)
+        public async Task<bool> UpdateUserProfileAsync(UpdateUserProfileRequest request,string uploadedimageUrl)
         {
             var dbInstance = GetDbInstance();
             var tableName = new Table<Users>();
@@ -211,6 +211,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                     Gender = request.Gender,
                     Phone = request.Phone,
                     DOB = request.DOB,
+                    ProfileAvatar= uploadedimageUrl,
                     IsDeleted = false
                 })
                 .Where("Username", request.Email);

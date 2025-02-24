@@ -16,13 +16,15 @@ namespace VendersCloud.Business.Service.Concrete
         private readonly IUserProfilesService _userProfilesService;
         private IConfiguration _configuration;
         private CommunicationService _communicationService;
-        public UsersService(IConfiguration configuration,IUsersRepository usersRepository, IOrganizationService organizationService, IUserProfilesService userProfilesService)
+        private readonly IBlobStorageService _blobStorageService;
+        public UsersService(IConfiguration configuration,IUsersRepository usersRepository, IOrganizationService organizationService, IUserProfilesService userProfilesService, IBlobStorageService blobStorageService)
         {
             _usersRepository = usersRepository;
             _organizationService = organizationService;
-            _userProfilesService= userProfilesService;
+            _userProfilesService = userProfilesService;
             _configuration = configuration;
             _communicationService = new CommunicationService(configuration);
+            _blobStorageService = blobStorageService;
         }
 
         public async Task<ActionMessageResponse>RegisterNewUserAsync(RegistrationRequest request)
@@ -373,7 +375,18 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-                var res = await _usersRepository.UpdateUserProfileAsync(request);
+                string uploadedimageUrl = string.Empty;
+                if (request.ProfileAvatar != null && request.ProfileAvatar.Count > 0)
+                {
+                    List<string> uploadedLogos = new List<string>();
+                    foreach (var file in request.ProfileAvatar)
+                    {
+                        uploadedimageUrl = await _blobStorageService.UploadBase64ToBlobAsync(file);
+
+                    }
+
+                }
+                var res = await _usersRepository.UpdateUserProfileAsync(request, uploadedimageUrl);
                 if (res)
                 {
                     return new ActionMessageResponse { Success = true, Message = "Profile is Updated!!", Content = "" };
