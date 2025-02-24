@@ -117,7 +117,7 @@ namespace VendersCloud.Data.Repositories.Concrete
             }
         }
 
-        public async Task<bool> UpdateOrganizationByOrgCodeAsync(CompanyInfoRequest infoRequest, string orgCode)
+        public async Task<bool> UpdateOrganizationByOrgCodeAsync(CompanyInfoRequest infoRequest, string orgCode,string uploadedimageUrl)
         {
             try
             {
@@ -132,6 +132,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                     Phone = infoRequest.Phone,
                     EmpCount = infoRequest.Strength,
                     UpdatedOn = DateTime.UtcNow,
+                    Logo= uploadedimageUrl,
                     IsDeleted = false
                 }).Where("OrgCode", orgCode);
                 var res = await dbInstance.ExecuteAsync(updateQuery);

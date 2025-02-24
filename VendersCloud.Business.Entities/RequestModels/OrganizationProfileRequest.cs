@@ -10,6 +10,7 @@
         public int EmpCount { get; set; }
         public string Description { get; set; }
         public string RegAddress { get; set; }
+        public List<FileRequest> Logo { get; set; }
         public bool IsDeleted { get; set; }
         public List<SocialProfiles> SocialLinks { get; set; }
         public List<OfficeLocations> OfficeLocation { get; set; }
