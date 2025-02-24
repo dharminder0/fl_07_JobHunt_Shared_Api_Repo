@@ -24,8 +24,9 @@ namespace VendersCloud.Business.Service.Concrete
         private readonly IUsersRepository _usersRepository;
         private readonly IOrgRelationshipsRepository _organizationRelationshipsRepository;
         private readonly CommunicationService _communicationService;
+        private readonly IBlobStorageService _blobStorageService;
         private IConfiguration _configuration;
-        public OrganizationService(IConfiguration configuration,IOrganizationRepository organizationRepository, IUserProfilesRepository userProfilesRepository, IOrgProfilesRepository _orgProfilesRepository, IOrgLocationRepository organizationLocationRepository, IOrgSocialRepository organizationSocialRepository, IListValuesRepository listValuesRepository,IUsersRepository usersRepository, IOrgRelationshipsRepository organizationRelationshipsRepository)
+        public OrganizationService(IConfiguration configuration,IOrganizationRepository organizationRepository, IUserProfilesRepository userProfilesRepository, IOrgProfilesRepository _orgProfilesRepository, IOrgLocationRepository organizationLocationRepository, IOrgSocialRepository organizationSocialRepository, IListValuesRepository listValuesRepository,IUsersRepository usersRepository, IOrgRelationshipsRepository organizationRelationshipsRepository,IBlobStorageService blobStorageService)
         {
             _organizationRepository = organizationRepository;
             _userProfilesRepository = userProfilesRepository;
@@ -37,6 +38,7 @@ namespace VendersCloud.Business.Service.Concrete
             _configuration = configuration;
             _organizationRelationshipsRepository =organizationRelationshipsRepository;
             _communicationService = new CommunicationService(configuration);
+            _blobStorageService = blobStorageService;
         }
 
         public async Task<string> RegisterNewOrganizationAsync(RegistrationRequest request)
@@ -107,7 +109,7 @@ namespace VendersCloud.Business.Service.Concrete
                 var dbUser = await GetUserByIdAsync(userId);
                 if (dbUser != null)
                 {
-                    bool response = await _organizationRepository.UpdateOrganizationByOrgCodeAsync(infoRequest, dbUser.OrgCode);
+                    bool response = await _organizationRepository.UpdateOrganizationByOrgCodeAsync(infoRequest, dbUser.OrgCode,string.Empty);
                     if (response)
                     {
                         foreach (var item in infoRequest.registrationType)
@@ -170,6 +172,7 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
+                var uploadedimageUrl = string.Empty;
                 if (request == null)
                 {
                     return new ActionMessageResponse() { Success = false, Message = "Enter Valid Inputs", Content = "" };
@@ -187,7 +190,16 @@ namespace VendersCloud.Business.Service.Concrete
                 request.EmpCount = request.EmpCount <= 0 ? orgData.EmpCount : request.EmpCount;
                 request.Description = string.IsNullOrEmpty(request.Description) ? orgData.Description : request.Description;
                 request.RegAddress = string.IsNullOrEmpty(request.RegAddress) ? orgData.RegAddress : request.RegAddress;
+                if (request.Logo != null && request.Logo.Count > 0)
+                {
+                    List<string> uploadedLogos = new List<string>();
+                    foreach (var file in request.Logo)
+                    {
+                        uploadedimageUrl = await _blobStorageService.UploadBase64ToBlobAsync(file);
 
+                    }
+
+                }
                 CompanyInfoRequest infoRequest = new CompanyInfoRequest();
                 infoRequest.OrgName = request.OrgName;
                 infoRequest.ContactMail = request.Email;
@@ -195,7 +207,7 @@ namespace VendersCloud.Business.Service.Concrete
                 infoRequest.Website = request.Website;
                 infoRequest.Phone = request.Phone;
                 infoRequest.Strength = request.EmpCount.ToString();
-                await _organizationRepository.UpdateOrganizationByOrgCodeAsync(infoRequest, request.OrgCode);
+                await _organizationRepository.UpdateOrganizationByOrgCodeAsync(infoRequest, request.OrgCode, uploadedimageUrl);
                 if(!string.IsNullOrEmpty(request.RegAddress))
                 {
                     await _organizationRepository.UpdateOrganizationAddressByOrgCodeAsync(request.RegAddress, request.OrgCode);
