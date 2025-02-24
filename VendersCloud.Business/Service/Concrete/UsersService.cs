@@ -1,11 +1,11 @@
 ﻿using Microsoft.Extensions.Configuration;
+using System.Text;
 using VendersCloud.Business.Entities.Dtos;
 using VendersCloud.Business.Entities.RequestModels;
 using VendersCloud.Business.Entities.ResponseModels;
 using VendersCloud.Business.Service.Abstract;
 using VendersCloud.Common.Utils;
 using VendersCloud.Data.Repositories.Abstract;
-using VendersCloud.Data.Repositories.Concrete;
 
 namespace VendersCloud.Business.Service.Concrete
 {
@@ -430,6 +430,57 @@ namespace VendersCloud.Business.Service.Concrete
             catch (Exception ex)
             {
                 return new ActionMessageResponse { Success = false, Message = ex.Message, Content = "" };
+            }
+        }
+
+
+        public async Task<ActionMessageResponse> AddOrganizationMemberAsync(AddMemberRequest request)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(request.FirstName) || string.IsNullOrEmpty(request.LastName) || string.IsNullOrEmpty(request.Email)|| string.IsNullOrEmpty(request.OrgCode))
+                {
+                    return new ActionMessageResponse()
+                    {
+                        Success = false,
+                        Message = "Enter Valid Inputs",
+                        Content = ""
+                    };
+                }
+                string salt = string.Empty;
+                byte[] saltBytes = Convert.FromBase64String(salt);
+                var verificationOtp = GenerateOTP();
+                string token = Guid.NewGuid().ToString().ToLower();
+                var companyData = await _organizationService.GetOrganizationDataAsync(request.OrgCode);
+                RegistrationRequest registration = new RegistrationRequest();
+                registration.Email = request.Email;
+                registration.FirstName = request.FirstName;
+                registration.LastName = request.LastName;
+                registration.CompanyName = companyData.OrgName;
+                var data = await _usersRepository.InsertUserAsync(registration, string.Empty, saltBytes, request.OrgCode, verificationOtp, token);
+                if (data != null)
+                {
+                    var dbUser = await _usersRepository.GetUserByEmailAsync(request.Email);
+                    var res = await _userProfilesService.InsertUserProfileAsync(dbUser.Id, request.Access);
+                    if (data.Equals("User Already Exists!!"))
+                    {
+                        return new ActionMessageResponse { Success = false, Message = "Member Already Exists!!", Content = "" };
+                    }
+                    if (await _communicationService.SendUserVerificationEmail(request.FirstName, request.LastName, request.Email, verificationOtp, token))
+                    {
+                        return new ActionMessageResponse { Success = true, Message = "New Member Added Successfully!!", Content = "" };
+                    }
+                }
+                return new ActionMessageResponse { Success = false, Message = "Not Added", Content = "" };
+            }
+            catch (Exception ex)
+            {
+                return new ActionMessageResponse()
+                {
+                    Success = false,
+                    Message = ex.Message,
+                    Content = ""
+                };
             }
         }
         public static string GenerateOTP()
