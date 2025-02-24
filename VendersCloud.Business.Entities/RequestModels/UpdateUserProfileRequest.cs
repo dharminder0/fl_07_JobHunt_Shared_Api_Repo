@@ -7,6 +7,7 @@
         public string Phone { get; set; }
         public string Gender { get; set; }
         public string Email { get; set; }
-        public DateTime DOB { get; set; } 
+        public DateTime DOB { get; set; }
+        public List<FileRequest> ProfileAvatar { get; set; }
     }
 }
