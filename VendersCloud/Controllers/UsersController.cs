@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using VendersCloud.Business.Entities.RequestModels;
 using VendersCloud.Business.Service.Abstract;
+using VendersCloud.Business.Service.Concrete;
 
 namespace VendersCloud.WebApi.Controllers
 {
@@ -219,6 +220,25 @@ namespace VendersCloud.WebApi.Controllers
             try
             {
                 var result = await _userService.UpdateUserPasswordAsync(request);
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [HttpPost]
+        [Route("api/V1/user/AddMember")]
+        public async Task<IActionResult> AddOrganizationMemberAsync(AddMemberRequest request)
+        {
+            try
+            {
+                var result = await _userService.AddOrganizationMemberAsync(request);
                 return Json(result);
             }
             catch (Exception ex)
