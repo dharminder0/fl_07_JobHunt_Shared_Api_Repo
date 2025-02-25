@@ -204,6 +204,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                     {
                         Password = hashedPassword,
                         PasswordSalt = salt,
+                        isVerified = true,
                         UpdatedOn = DateTime.UtcNow,
                         LastLoginTime = DateTime.UtcNow
                     })
