@@ -1,4 +1,5 @@
-﻿using VendersCloud.Business.Entities.Dtos;
+﻿using VendersCloud.Business.Entities.DataModels;
+using VendersCloud.Business.Entities.Dtos;
 using VendersCloud.Business.Entities.RequestModels;
 using VendersCloud.Business.Entities.ResponseModels;
 
@@ -20,5 +21,6 @@ namespace VendersCloud.Business.Service.Abstract
         Task<ActionMessageResponse> UpdateUserPasswordAsync(ChangePasswordRequest request);
         Task<ActionMessageResponse> AddOrganizationMemberAsync(AddMemberRequest request);
         Task<ActionMessageResponse> SetPasswordAsync(SetPasswordRequest request);
+        Task<PaginationDto<Users>> SearchMemberDetailsAsync(SearchMemberRequest request);
     }
 }

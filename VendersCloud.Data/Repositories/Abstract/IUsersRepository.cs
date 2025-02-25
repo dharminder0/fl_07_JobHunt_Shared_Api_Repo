@@ -1,4 +1,5 @@
 ﻿using VendersCloud.Business.Entities.DataModels;
+using VendersCloud.Business.Entities.Dtos;
 using VendersCloud.Business.Entities.RequestModels;
 
 namespace VendersCloud.Data.Repositories.Abstract
@@ -18,5 +19,6 @@ namespace VendersCloud.Data.Repositories.Abstract
         Task<Users> GetUserByEmailAndOrgCodeAsync(string email, string orgCode);
         Task<Users> GetUserByUserTokenAsync(string userToken);
         Task<bool> SetUserPasswordAsync(string hashedPassword, byte[] salt, string userToken);
+        Task<PaginationDto<Users>> SearchMemberDetailsAsync(SearchMemberRequest request);
     }
 }

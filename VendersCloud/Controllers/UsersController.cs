@@ -267,25 +267,25 @@ namespace VendersCloud.WebApi.Controllers
             }
         }
 
-        //[ProducesResponseType(StatusCodes.Status200OK)]
-        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
-        //[ProducesResponseType(StatusCodes.Status404NotFound)]
-        //[ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        //[HttpPost]
-        //[Route("api/V1/users/member/Search")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [HttpPost]
+        [Route("api/V1/users/member/Search")]
 
-        //public async Task<IActionResult> SearchMemberAsync(SearchMemberRequest request)
-        //{
-        //    try
-        //    {
-        //        var result = await _userService.SearchMemberAsync(request);
-        //        return Json(result);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return BadRequest(ex.Message);
-        //    }
-        //}
+        public async Task<IActionResult> SearchMemberDetailsAsync(SearchMemberRequest request)
+        {
+            try
+            {
+                var result = await _userService.SearchMemberDetailsAsync(request);
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }
  

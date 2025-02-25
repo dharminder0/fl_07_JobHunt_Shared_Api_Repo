@@ -1,7 +1,9 @@
-﻿using DapperExtensions;
+﻿using Dapper;
+using DapperExtensions;
 using Microsoft.Extensions.Configuration;
 using SqlKata;
 using VendersCloud.Business.Entities.DataModels;
+using VendersCloud.Business.Entities.Dtos;
 using VendersCloud.Business.Entities.RequestModels;
 using VendersCloud.Data.Data;
 using VendersCloud.Data.Repositories.Abstract;
@@ -267,6 +269,69 @@ namespace VendersCloud.Data.Repositories.Concrete
             await dbInstance.ExecuteAsync(insertQuery);
             return true;
         }
+
+        public async Task<PaginationDto<Users>> SearchMemberDetailsAsync(SearchMemberRequest request)
+        {
+            using var connection = GetConnection();
+            var predicates = new List<string>();
+            var parameters = new DynamicParameters();
+
+            if (!string.IsNullOrEmpty(request.OrgCode))
+            {
+                predicates.Add("(o.OrgCode LIKE @OrgCode)");
+                parameters.Add("OrgCode", request.OrgCode);
+            }
+            if (!string.IsNullOrEmpty(request.SearchText))
+            {
+                predicates.Add("(o.FirstName LIKE @searchText OR o.LastName LIKE @searchText)");
+                parameters.Add("searchText", $"%{request.SearchText}%");
+            }
+
+            if (request.Status >= 0)
+            {
+                predicates.Add("(o.isDeleted <> @Status)");
+                parameters.Add("Status", request.Status);
+            }
+
+            if (request.Access != null && request.Access.Any())
+            {
+                var rolePlaceholders = string.Join(", ", request.Access.Select((role, index) => $"@Role{index}"));
+                predicates.Add($"EXISTS (SELECT 1 FROM UserProfiles op WHERE op.ProfileId IN ({rolePlaceholders}))");
+
+                for (int i = 0; i < request.Access.Count; i++)
+                {
+                    parameters.Add($"Role{i}", request.Access[i]);
+                }
+                parameters.Add("IsDeleted", false);
+            }
+
+            string whereClause = predicates.Any() ? "WHERE " + string.Join(" AND ", predicates) : "";
+
+            string query = $@"
+SELECT * FROM Users o
+{whereClause}
+ORDER BY o.CreatedOn DESC
+OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY;
+
+SELECT COUNT(*) FROM Users o
+{whereClause};";
+
+            parameters.Add("offset", (request.Page - 1) * request.PageSize);
+            parameters.Add("pageSize", request.PageSize);
+
+            using var multi = await connection.QueryMultipleAsync(query, parameters);
+            var userdata = (await multi.ReadAsync<Users>()).ToList();
+            int totalRecords = await multi.ReadFirstOrDefaultAsync<int>();
+
+            return new PaginationDto<Users>
+            {
+                Count = totalRecords,
+                Page = request.Page,
+                TotalPages = (int)Math.Ceiling(totalRecords / (double)request.PageSize),
+                List = userdata
+            };
+        }
+
 
     }
 

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.Extensions.Configuration;
+using VendersCloud.Business.Entities.DataModels;
 using VendersCloud.Business.Entities.Dtos;
 using VendersCloud.Business.Entities.RequestModels;
 using VendersCloud.Business.Entities.ResponseModels;
@@ -530,6 +531,21 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
+        public async Task<PaginationDto<Users>> SearchMemberDetailsAsync(SearchMemberRequest request)
+        {
+            try
+            {
+                if(string.IsNullOrEmpty(request.OrgCode))
+                {
+                    throw new Exception("Enter OrgCode");
+                }
+                return await _usersRepository.SearchMemberDetailsAsync(request);
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
+        }
 
         public static string GenerateOTP()
         {
