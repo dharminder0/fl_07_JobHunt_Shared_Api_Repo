@@ -449,7 +449,6 @@ namespace VendersCloud.Business.Service.Concrete
                 }
                 string salt = string.Empty;
                 byte[] saltBytes = Convert.FromBase64String(salt);
-                var verificationOtp = GenerateOTP();
                 string token = Guid.NewGuid().ToString().ToLower();
                 var companyData = await _organizationService.GetOrganizationDataAsync(request.OrgCode);
                 RegistrationRequest registration = new RegistrationRequest();
@@ -457,7 +456,7 @@ namespace VendersCloud.Business.Service.Concrete
                 registration.FirstName = request.FirstName;
                 registration.LastName = request.LastName;
                 registration.CompanyName = companyData.OrgName;
-                var data = await _usersRepository.InsertUserAsync(registration, string.Empty, saltBytes, request.OrgCode, verificationOtp, token);
+                var data = await _usersRepository.InsertUserAsync(registration, string.Empty, saltBytes, request.OrgCode, string.Empty, token);
                 if (data != null)
                 {
                     var dbUser = await _usersRepository.GetUserByEmailAsync(request.Email);
@@ -466,7 +465,7 @@ namespace VendersCloud.Business.Service.Concrete
                     {
                         return new ActionMessageResponse { Success = false, Message = "Member Already Exists!!", Content = "" };
                     }
-                    if (await _communicationService.SendUserVerificationEmail(request.FirstName, request.LastName, request.Email, verificationOtp, token))
+                    if (await _communicationService.SendUserEmailVerification(request.FirstName, request.LastName, request.Email, token))
                     {
                         return new ActionMessageResponse { Success = true, Message = "New Member Added Successfully!!", Content = "" };
                     }
