@@ -59,6 +59,42 @@ namespace VendersCloud.Business.Service.Concrete
             return res;
         }
 
+        public async Task<bool> SendUserEmailVerification(string firstname, string lastname, string email, string usertoken)
+        {
+            var url = _externalConfig.GetVerifyEmailDomainUrl();
+            string fullname = $"{firstname} {lastname}";
+            var emailMessage = new EmailMessage
+            {
+                To = email,
+                Subject = "🔐 Verify Your Email - Welcome to VendorsCloud!",
+                Body = $@"
+                <html>
+                <body style=""font-family: Arial, sans-serif; line-height: 1.6; color: #333;"">
+                    <div style=""text-align: center; margin: 0 auto; width: 80%;"">
+                        <h2 style=""color: #2C3E50; background-color: #f3f3f3; padding: 15px; border-radius: 5px;"">Welcome to VendorsCloud, {fullname}! 🎉</h2>
+                        <p>We're thrilled to have you on board.Please set your credentials.</p>
+                        
+                
+                        <p style=""margin-top: 30px;"">Click the button below to set your credentials:</p>
+                
+                        <a href=""{url}/setpassword/{usertoken}"" style=""display: inline-block; padding: 8px 25px; background-color: #4640DE; color: #ffffff;
+                                  text-decoration: none; border-radius: 5px; font-size: 18px; font-weight: 600; margin-top: 20px;"">
+                            ✅ Set Credentials
+                        </a>
+                        <p>If the above link doesn't work, copy and paste the following into your browser:</p>
+                        <code>{url}/setpassword/{usertoken}</code>
+                
+                        <hr style=""margin-top: 30px; border: none; border-top: 1px solid #ddd;"" />
+                        <p style=""font-size: 14px; color: #777;"">Need help? Contact our <a href="""" style=""color: #3498db;"">support team</a>.</p>
+                        <p><strong>— The VendorsCloud Team</strong></p>
+                    </div>
+                </body>
+                </html>"
+            };
+
+            var res = await SendEmailAsync(emailMessage);
+            return res;
+        }
         public async Task<bool> DispatchedInvitationMailAsync(string receiverOrgName,string senderOrgName, string senderEmail ,string receiverEmail,  string senderMessage)
         {
             var emailMessage = new EmailMessage
