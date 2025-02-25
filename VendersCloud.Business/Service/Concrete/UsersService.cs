@@ -456,7 +456,7 @@ namespace VendersCloud.Business.Service.Concrete
                     {
                         return new ActionMessageResponse { Success = true, Message = "User Found!!", Content = "" };
                     }
-                    if (dbUser.Password != null)
+                    if (!string.IsNullOrEmpty(dbUser.Password))
                     {
                         return new ActionMessageResponse { Success = false, Message = "User Already Generated Password!!", Content = "" };
                     }
@@ -481,7 +481,7 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-                if (string.IsNullOrEmpty(request.FirstName) || string.IsNullOrEmpty(request.LastName) || string.IsNullOrEmpty(request.Email)|| string.IsNullOrEmpty(request.OrgCode))
+                if (string.IsNullOrEmpty(request.FirstName)  || string.IsNullOrEmpty(request.Email)|| string.IsNullOrEmpty(request.OrgCode))
                 {
                     return new ActionMessageResponse()
                     {
@@ -529,6 +529,8 @@ namespace VendersCloud.Business.Service.Concrete
                 };
             }
         }
+
+
         public static string GenerateOTP()
         {
             var random = new Random();
