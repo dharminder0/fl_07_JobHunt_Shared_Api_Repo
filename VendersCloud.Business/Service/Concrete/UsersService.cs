@@ -503,7 +503,11 @@ namespace VendersCloud.Business.Service.Concrete
                 if (data != null)
                 {
                     var dbUser = await _usersRepository.GetUserByEmailAsync(request.Email);
-                    var res = await _userProfilesService.InsertUserProfileAsync(dbUser.Id, request.Access);
+                    foreach (var pid in request.Access)
+                    {
+                        int profileId = Convert.ToInt32(pid);
+                        var res = await _userProfilesService.InsertUserProfileAsync(dbUser.Id, profileId);
+                    }
                     if (data.Equals("User Already Exists!!"))
                     {
                         return new ActionMessageResponse { Success = false, Message = "Member Already Exists!!", Content = "" };
