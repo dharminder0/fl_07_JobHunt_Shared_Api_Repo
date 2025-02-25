@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.AspNetCore.Identity.Data;
+using Microsoft.Extensions.Configuration;
 using VendersCloud.Business.Entities.Dtos;
 using VendersCloud.Business.Entities.RequestModels;
 using VendersCloud.Business.Entities.ResponseModels;
@@ -70,7 +71,7 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
-        public async Task<ActionMessageResponse> LoginUserAsync(LoginRequest request)
+        public async Task<ActionMessageResponse> LoginUserAsync(Entities.RequestModels.LoginRequest request)
         {
             try
             {
@@ -288,7 +289,7 @@ namespace VendersCloud.Business.Service.Concrete
                     };
                     userDtoList.Add(userDto);
                 }
-                return new ActionMessageResponse { Success = false, Message = "User  Found!!", Content = userDtoList };
+                return new ActionMessageResponse { Success = true, Message = "User  Found!!", Content = userDtoList };
             }
             catch (Exception ex)
             {
@@ -456,8 +457,12 @@ namespace VendersCloud.Business.Service.Concrete
                         return new ActionMessageResponse { Success = true, Message = "User Found!!", Content = "" };
                     }
                     var res = await _usersRepository.SetUserPasswordAsync(hashedPassword, saltBytes, request.UserToken);
-                    if(res)
-                        return new ActionMessageResponse { Success = true, Message = "Credientials Updated!!", Content = "" };
+                    if (res) {
+                        Entities.RequestModels.LoginRequest loginRequest = new Entities.RequestModels.LoginRequest();
+                        loginRequest.Email = dbUser.UserName;
+                        loginRequest.Password = request.NewPassword;
+                        return await LoginUserAsync(loginRequest);
+                    }
                     return new ActionMessageResponse { Success = false, Message = "Credientials Not Updated!!", Content = "" };
                 }
                 return new ActionMessageResponse { Success = false, Message = "New Password Doesn't Match With Confirm Password!!", Content = "" };
