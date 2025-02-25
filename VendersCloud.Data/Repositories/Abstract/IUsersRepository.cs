@@ -16,5 +16,7 @@ namespace VendersCloud.Data.Repositories.Abstract
         Task<bool> UpdateUserProfileAsync(UpdateUserProfileRequest request,string uploadedimageUrl);
         Task<bool> UpdateChangePasswordAsync(ChangePasswordRequest request, string hashedPassword, byte[] salt);
         Task<Users> GetUserByEmailAndOrgCodeAsync(string email, string orgCode);
+        Task<Users> GetUserByUserTokenAsync(string userToken);
+        Task<bool> SetUserPasswordAsync(string hashedPassword, byte[] salt, string userToken);
     }
 }

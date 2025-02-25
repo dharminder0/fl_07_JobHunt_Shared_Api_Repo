@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Configuration;
-using System.Text;
 using VendersCloud.Business.Entities.Dtos;
 using VendersCloud.Business.Entities.RequestModels;
 using VendersCloud.Business.Entities.ResponseModels;
@@ -433,6 +432,41 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
+        public async Task<ActionMessageResponse> SetPasswordAsync( SetPasswordRequest request)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(request.NewPassword) || string.IsNullOrEmpty(request.ConfirmPassword) || string.IsNullOrEmpty(request.UserToken))
+                {
+                    return new ActionMessageResponse()
+                    {
+                        Success = false,
+                        Message = "Enter Valid Inputs",
+                        Content = ""
+                    };
+                }
+                if (request.NewPassword.Equals(request.ConfirmPassword))
+                {
+                    string salt = Hasher.GenerateSalt();
+                    byte[] saltBytes = Convert.FromBase64String(salt);
+                    var hashedPassword = Hasher.HashPassword(salt, request.NewPassword);
+                    var dbUser = await _usersRepository.GetUserByUserTokenAsync(request.UserToken);
+                    if (dbUser == null)
+                    {
+                        return new ActionMessageResponse { Success = true, Message = "User Found!!", Content = "" };
+                    }
+                    var res = await _usersRepository.SetUserPasswordAsync(hashedPassword, saltBytes, request.UserToken);
+                    if(res)
+                        return new ActionMessageResponse { Success = true, Message = "Credientials Updated!!", Content = "" };
+                    return new ActionMessageResponse { Success = false, Message = "Credientials Not Updated!!", Content = "" };
+                }
+                return new ActionMessageResponse { Success = false, Message = "New Password Doesn't Match With Confirm Password!!", Content = "" };
+            }
+            catch(Exception ex)
+            {
+                return new ActionMessageResponse { Success = false, Message = ex.Message, Content = "" };
+            }
+        }
 
         public async Task<ActionMessageResponse> AddOrganizationMemberAsync(AddMemberRequest request)
         {
