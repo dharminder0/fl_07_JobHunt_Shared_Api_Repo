@@ -181,6 +181,38 @@ namespace VendersCloud.Data.Repositories.Concrete
             
         }
 
+        public async Task<Users> GetUserByUserTokenAsync(string userToken)
+        {
+
+            var res = await GetByAsync(new PredicateGroup
+            {
+                Operator = GroupOperator.And,
+                Predicates = new List<IPredicate> {
+                        Predicates.Field<Users>(f=>f.Token,Operator.Eq,userToken),
+                        Predicates.Field<Users>(f=>f.IsDeleted,Operator.Eq,false),
+                    }
+            });
+            return res;
+
+        }
+        public async Task<bool> SetUserPasswordAsync(string hashedPassword, byte[] salt,string userToken)
+        {
+            var dbInstance = GetDbInstance();
+            var tableName = new Table<Users>();
+            var updateQuery = new Query(tableName.TableName)
+                    .AsUpdate(new
+                    {
+                        Password = hashedPassword,
+                        PasswordSalt = salt,
+                        UpdatedOn = DateTime.UtcNow,
+                        LastLoginTime = DateTime.UtcNow
+                    })
+                    .Where("Token", userToken);
+
+            await dbInstance.ExecuteAsync(updateQuery);
+            return true;
+        }
+
         public async Task<bool> UpdateOtpAndTokenAsync(string otp,string token,string email)
         {
                 var dbInstance = GetDbInstance();
