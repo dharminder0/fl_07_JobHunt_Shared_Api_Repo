@@ -8,6 +8,7 @@ using VendersCloud.Business.Entities.RequestModels;
 using VendersCloud.Business.Entities.ResponseModels;
 using VendersCloud.Data.Data;
 using VendersCloud.Data.Repositories.Abstract;
+using static VendersCloud.Data.Enum.Enum;
 
 namespace VendersCloud.Data.Repositories.Concrete
 {
@@ -312,13 +313,13 @@ namespace VendersCloud.Data.Repositories.Concrete
             string whereClause = predicates.Any() ? "WHERE " + string.Join(" AND ", predicates) : "";
 
             string query = $@"
-SELECT * FROM Users o
-{whereClause}
-ORDER BY o.CreatedOn DESC
-OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY;
-
-SELECT COUNT(*) FROM Users o
-{whereClause};";
+                SELECT * FROM Users o
+                {whereClause}
+                ORDER BY o.CreatedOn DESC
+                OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY;
+                
+                SELECT COUNT(*) FROM Users o
+                {whereClause};";
 
             parameters.Add("offset", (request.Page - 1) * request.PageSize);
             parameters.Add("pageSize", request.PageSize);
@@ -332,7 +333,9 @@ SELECT COUNT(*) FROM Users o
             {
                 var userProfileRole = await _userProfilesRepository.GetProfileRole(user.Id);
                 List<string> userProfileRoles = userProfileRole.Select(role => role.ProfileId.ToString()).ToList();
-                if (user.IsDeleted = false)
+                var userRoleString = userProfileRoles.Select(role => System.Enum.GetName(typeof(RoleType), Convert.ToInt32(role))).ToList();
+
+                if (user.IsDeleted == false)
                 {
                     Status = "Active";
                 }
@@ -355,7 +358,7 @@ SELECT COUNT(*) FROM Users o
                     IsDeleted= user.IsDeleted,
                     DOB= user.DOB,
                     Phone= user.Phone,
-                    Role = userProfileRoles,
+                    Role = userRoleString,
                     Status= Status
                 };
                 UserDto.Add(res);
