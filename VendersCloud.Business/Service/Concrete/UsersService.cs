@@ -44,7 +44,7 @@ namespace VendersCloud.Business.Service.Concrete
                     var hashedPassword = Hasher.HashPassword(salt, request.Password);
                     var verificationOtp = GenerateOTP();
                     string token = Guid.NewGuid().ToString().ToLower();
-                    var data = await _usersRepository.InsertUserAsync(request, hashedPassword, saltBytes, orgCode,verificationOtp,token);
+                    var data = await _usersRepository.InsertUserAsync(request, hashedPassword, saltBytes, orgCode,verificationOtp,token,string.Empty);
                     if (data != null)
                     {
                         if(data.Equals("User Already Exists!!"))
@@ -500,7 +500,7 @@ namespace VendersCloud.Business.Service.Concrete
                 registration.FirstName = request.FirstName;
                 registration.LastName = request.LastName;
                 registration.CompanyName = companyData.OrgName;
-                var data = await _usersRepository.InsertUserAsync(registration, string.Empty, saltBytes, request.OrgCode, string.Empty, token);
+                var data = await _usersRepository.InsertUserAsync(registration, string.Empty, saltBytes, request.OrgCode, string.Empty, token,request.Phone);
                 if (data != null)
                 {
                     var dbUser = await _usersRepository.GetUserByEmailAsync(request.Email);

@@ -6,7 +6,7 @@ namespace VendersCloud.Data.Repositories.Abstract
 {
     public interface IUsersRepository : IBaseRepository<Users>
     {
-        Task<string> InsertUserAsync(RegistrationRequest request, string hashedPassword, byte[] salt, string orgCode, string verificationOtp, string token);
+        Task<string> InsertUserAsync(RegistrationRequest request, string hashedPassword, byte[] salt, string orgCode, string verificationOtp, string token, string phone);
         Task<Users> GetUserByEmailAsync(string email);
         Task<bool> DeleteUserByEmailAndOrgCodeAsync(string email, string organizationCode);
         Task<List<Users>> GetAllUserAsync();
