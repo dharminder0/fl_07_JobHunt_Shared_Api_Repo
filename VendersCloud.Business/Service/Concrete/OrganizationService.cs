@@ -155,9 +155,9 @@ namespace VendersCloud.Business.Service.Concrete
                     Gender = dbUser.Gender,
                     IsVerified = dbUser.IsVerified,
                     ProfileAvatar = dbUser.ProfileAvatar,
-                    CreatedOn = dbUser.CreatedOn,
-                    UpdatedOn = dbUser.UpdatedOn,
-                    LastLoginTime = dbUser.LastLoginTime,
+                    CreatedOn = dbUser.CreatedOn.ToString("dd/M/yyyy"),
+                    UpdatedOn = dbUser.UpdatedOn.ToString("dd/M/yyyy"),
+                    LastLoginTime = dbUser.LastLoginTime.ToString("dd/M/yyyy"),
                     IsDeleted = dbUser.IsDeleted
                 };
                 return userdto;

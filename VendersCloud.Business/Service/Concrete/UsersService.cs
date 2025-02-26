@@ -165,10 +165,10 @@ namespace VendersCloud.Business.Service.Concrete
                     Gender = dbUser.Gender,
                     IsVerified = dbUser.IsVerified,
                     ProfileAvatar = dbUser.ProfileAvatar,
-                    CreatedOn = dbUser.CreatedOn,
-                    UpdatedOn = dbUser.UpdatedOn,
-                    LastLoginTime = dbUser.LastLoginTime,
-                    DOB = dbUser.DOB,
+                    CreatedOn = dbUser.CreatedOn.ToString("dd/M/yyyy"),
+                    UpdatedOn = dbUser.UpdatedOn.ToString("dd/M/yyyy"),
+                    LastLoginTime = dbUser.LastLoginTime.ToString("dd/M/yyyy"),
+                    DOB = dbUser.DOB.ToString("dd/M/yyyy"),
                     Phone= dbUser.Phone,
                     IsDeleted = dbUser.IsDeleted
                 };
@@ -202,10 +202,10 @@ namespace VendersCloud.Business.Service.Concrete
                     Gender = dbUser.Gender,
                     IsVerified = dbUser.IsVerified,
                     ProfileAvatar = dbUser.ProfileAvatar,
-                    CreatedOn = dbUser.CreatedOn,
-                    UpdatedOn = dbUser.UpdatedOn,
-                    LastLoginTime = dbUser.LastLoginTime,
-                    DOB = dbUser.DOB,
+                    CreatedOn = dbUser.CreatedOn.ToString("dd/M/yyyy"),
+                    UpdatedOn = dbUser.UpdatedOn.ToString("dd/M/yyyy"),
+                    LastLoginTime = dbUser.LastLoginTime.ToString("dd/M/yyyy"),
+                    DOB = dbUser.DOB.ToString("dd/M/yyyy"),
                     Phone= dbUser.Phone,
                     IsDeleted = dbUser.IsDeleted
                 };
@@ -236,11 +236,11 @@ namespace VendersCloud.Business.Service.Concrete
                             Gender = dbUser.Gender,
                             IsVerified = dbUser.IsVerified,
                             ProfileAvatar = dbUser.ProfileAvatar,
-                            CreatedOn = dbUser.CreatedOn,
-                            UpdatedOn = dbUser.UpdatedOn,
-                            DOB = dbUser.DOB,
+                            CreatedOn = dbUser.CreatedOn.ToString("dd/M/yyyy"),
+                            UpdatedOn = dbUser.UpdatedOn.ToString("dd/M/yyyy"),
+                            DOB = dbUser.DOB.ToString("dd/M/yyyy"),
                             Phone= dbUser.Phone,
-                            LastLoginTime = dbUser.LastLoginTime,
+                            LastLoginTime = dbUser.LastLoginTime.ToString("dd/M/yyyy"),
                             IsDeleted = dbUser.IsDeleted
                         };
                         userDtoList.Add(userDto);
@@ -281,11 +281,11 @@ namespace VendersCloud.Business.Service.Concrete
                         Gender = user.Gender,
                         IsVerified = user.IsVerified,
                         ProfileAvatar = user.ProfileAvatar,
-                        CreatedOn = user.CreatedOn,
-                        UpdatedOn = user.UpdatedOn,
-                        DOB = user.DOB,
+                        CreatedOn = user.CreatedOn.ToString("dd/M/yyyy"),
+                        UpdatedOn = user.UpdatedOn.ToString("dd/M/yyyy"),
+                        DOB = user.DOB.ToString("dd/M/yyyy"),
                         Phone= user.Phone,
-                        LastLoginTime = user.LastLoginTime,
+                        LastLoginTime = user.LastLoginTime.ToString("dd/M/yyyy"),
                         IsDeleted = user.IsDeleted
                     };
                     userDtoList.Add(userDto);
