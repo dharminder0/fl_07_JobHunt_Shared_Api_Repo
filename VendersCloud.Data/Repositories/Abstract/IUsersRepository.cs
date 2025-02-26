@@ -19,6 +19,6 @@ namespace VendersCloud.Data.Repositories.Abstract
         Task<Users> GetUserByEmailAndOrgCodeAsync(string email, string orgCode);
         Task<Users> GetUserByUserTokenAsync(string userToken);
         Task<bool> SetUserPasswordAsync(string hashedPassword, byte[] salt, string userToken);
-        Task<PaginationDto<Users>> SearchMemberDetailsAsync(SearchMemberRequest request);
+        Task<PaginationDto<UsersDto>> SearchMemberDetailsAsync(SearchMemberRequest request);
     }
 }

@@ -5,6 +5,7 @@ using SqlKata;
 using VendersCloud.Business.Entities.DataModels;
 using VendersCloud.Business.Entities.Dtos;
 using VendersCloud.Business.Entities.RequestModels;
+using VendersCloud.Business.Entities.ResponseModels;
 using VendersCloud.Data.Data;
 using VendersCloud.Data.Repositories.Abstract;
 
@@ -12,8 +13,10 @@ namespace VendersCloud.Data.Repositories.Concrete
 {
     public class UsersRepository : StaticBaseRepository<Users>, IUsersRepository
     {
-        public UsersRepository(IConfiguration configuration) : base(configuration)
+        private readonly IUserProfilesRepository _userProfilesRepository;
+        public UsersRepository(IConfiguration configuration, IUserProfilesRepository userProfilesRepository) : base(configuration)
         {
+            _userProfilesRepository = userProfilesRepository;
         }
         public async Task<string> InsertUserAsync(RegistrationRequest request, string hashedPassword, byte[] salt, string orgCode,string verificationOtp,string token)
         {
@@ -270,7 +273,7 @@ namespace VendersCloud.Data.Repositories.Concrete
             return true;
         }
 
-        public async Task<PaginationDto<Users>> SearchMemberDetailsAsync(SearchMemberRequest request)
+        public async Task<PaginationDto<UsersDto>> SearchMemberDetailsAsync(SearchMemberRequest request)
         {
             using var connection = GetConnection();
             var predicates = new List<string>();
@@ -322,13 +325,37 @@ SELECT COUNT(*) FROM Users o
             using var multi = await connection.QueryMultipleAsync(query, parameters);
             var userdata = (await multi.ReadAsync<Users>()).ToList();
             int totalRecords = await multi.ReadFirstOrDefaultAsync<int>();
-
-            return new PaginationDto<Users>
+           
+            var UserDto = new List<UsersDto>();
+            foreach (var user in userdata)
+            {
+                var userProfileRole = await _userProfilesRepository.GetProfileRole(user.Id);
+                List<string> userProfileRoles = userProfileRole.Select(role => role.ProfileId.ToString()).ToList();
+                var res = new UsersDto {
+                    Id = user.Id,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    UserName= user.UserName,
+                    OrgCode= user.OrgCode,
+                    Gender= user.Gender,
+                    IsVerified= user.IsVerified,
+                    ProfileAvatar= user.ProfileAvatar,
+                    CreatedOn= user.CreatedOn,
+                    UpdatedOn= user.UpdatedOn,
+                    LastLoginTime= user.LastLoginTime,
+                    IsDeleted= user.IsDeleted,
+                    DOB= user.DOB,
+                    Phone= user.Phone,
+                    Role = userProfileRoles
+                };
+                UserDto.Add(res);
+            }
+            return new PaginationDto<UsersDto>
             {
                 Count = totalRecords,
                 Page = request.Page,
                 TotalPages = (int)Math.Ceiling(totalRecords / (double)request.PageSize),
-                List = userdata
+                List = UserDto
             };
         }
 

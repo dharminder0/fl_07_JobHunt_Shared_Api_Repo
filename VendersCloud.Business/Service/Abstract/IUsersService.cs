@@ -21,6 +21,6 @@ namespace VendersCloud.Business.Service.Abstract
         Task<ActionMessageResponse> UpdateUserPasswordAsync(ChangePasswordRequest request);
         Task<ActionMessageResponse> AddOrganizationMemberAsync(AddMemberRequest request);
         Task<ActionMessageResponse> SetPasswordAsync(SetPasswordRequest request);
-        Task<PaginationDto<Users>> SearchMemberDetailsAsync(SearchMemberRequest request);
+        Task<PaginationDto<UsersDto>> SearchMemberDetailsAsync(SearchMemberRequest request);
     }
 }
