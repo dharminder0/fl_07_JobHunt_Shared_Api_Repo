@@ -18,7 +18,7 @@ namespace VendersCloud.Data.Repositories.Concrete
         {
             _userProfilesRepository = userProfilesRepository;
         }
-        public async Task<string> InsertUserAsync(RegistrationRequest request, string hashedPassword, byte[] salt, string orgCode,string verificationOtp,string token)
+        public async Task<string> InsertUserAsync(RegistrationRequest request, string hashedPassword, byte[] salt, string orgCode,string verificationOtp,string token,string phone)
         {
                 var dbInstance = GetDbInstance();
                 var tableName = new Table<Users>();
@@ -42,6 +42,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                 // Insert new user
                 var insertQuery = new Query(tableName.TableName).AsInsert(new
                 {
+                    Phone= phone,
                     FirstName = request.FirstName,
                     LastName = request.LastName,
                     OrgCode = orgCode,
@@ -325,12 +326,20 @@ SELECT COUNT(*) FROM Users o
             using var multi = await connection.QueryMultipleAsync(query, parameters);
             var userdata = (await multi.ReadAsync<Users>()).ToList();
             int totalRecords = await multi.ReadFirstOrDefaultAsync<int>();
-           
+            string Status = string.Empty;
             var UserDto = new List<UsersDto>();
             foreach (var user in userdata)
             {
                 var userProfileRole = await _userProfilesRepository.GetProfileRole(user.Id);
                 List<string> userProfileRoles = userProfileRole.Select(role => role.ProfileId.ToString()).ToList();
+                if (user.IsDeleted = false)
+                {
+                    Status = "Active";
+                }
+                else
+                {
+                    Status = "InActive";
+                }
                 var res = new UsersDto {
                     Id = user.Id,
                     FirstName = user.FirstName,
@@ -346,7 +355,8 @@ SELECT COUNT(*) FROM Users o
                     IsDeleted= user.IsDeleted,
                     DOB= user.DOB,
                     Phone= user.Phone,
-                    Role = userProfileRoles
+                    Role = userProfileRoles,
+                    Status= Status
                 };
                 UserDto.Add(res);
             }

@@ -17,5 +17,6 @@
         public DateTime DOB { get; set; }
         public string Phone { get; set; }
         public bool IsDeleted { get; set; }
+        public string Status { get; set; }
     }
 }
