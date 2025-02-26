@@ -531,7 +531,7 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
-        public async Task<PaginationDto<Users>> SearchMemberDetailsAsync(SearchMemberRequest request)
+        public async Task<PaginationDto<UsersDto>> SearchMemberDetailsAsync(SearchMemberRequest request)
         {
             try
             {

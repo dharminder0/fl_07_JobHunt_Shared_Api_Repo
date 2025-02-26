@@ -13,6 +13,7 @@
         public DateTime CreatedOn { get; set; }
         public DateTime UpdatedOn { get; set; }
         public DateTime LastLoginTime { get; set; }
+        public List<string> Role { get; set; }
         public DateTime DOB { get; set; }
         public string Phone { get; set; }
         public bool IsDeleted { get; set; }
