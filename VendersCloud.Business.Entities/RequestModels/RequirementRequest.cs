@@ -14,6 +14,6 @@
         public string OrgCode { get; set; }
         public int Status {  get; set; }
         public string ClientCode { get; set; }
-        public int UserId { get; set; }
+        public string  UserId { get; set; }
     }
 }

@@ -50,7 +50,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                     request.Remarks,
                     request.Status,
                     UpdatedOn = DateTime.UtcNow,
-                    UpdatedBy = request.UserId,
+                    UpdatedBy = Convert.ToInt32(request.UserId),
                     IsDeleted = false,
                     UniqueId= uniqueId,
                 }).Where("Title", cleanedTitle).Where("OrgCode", cleanedOrgCode);
@@ -79,7 +79,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                     request.Remarks,
                     request.Status,
                     CreatedOn = DateTime.UtcNow,
-                    CreatedBy = request.UserId,
+                    CreatedBy = Convert.ToInt32(request.UserId),
                     IsDeleted = false,
                     UniqueId = uniqueId,
                 });
@@ -127,7 +127,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                         request.Hot,
                         request.Status,
                         UpdatedOn = DateTime.UtcNow,
-                        UpdatedBy = request.UserId,
+                        UpdatedBy = Convert.ToInt32(request.UserId),
                         IsDeleted = false
                     }).Where("Title", cleanedTitle).Where("OrgCode", cleanedOrgCode);
                     await dbInstance.ExecuteScalarAsync<string>(updateQuery);
@@ -151,7 +151,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                         request.Hot,
                         request.Status,
                         CreatedOn = DateTime.UtcNow,
-                        CreatedBy = request.UserId,
+                        CreatedBy = Convert.ToInt32(request.UserId),
                         IsDeleted = false
                     });
                     await dbInstance.ExecuteScalarAsync<string>(insertQuery);
@@ -249,6 +249,18 @@ namespace VendersCloud.Data.Repositories.Concrete
                 parameters.Add("locationTypes", request.LocationType);
             }
 
+            if (!string.IsNullOrEmpty(request.UserId) && request.RoleType.Any() && request.RoleType !=null)
+            {
+                var rolePlaceholders = string.Join(", ", request.RoleType.Select((role, index) => $"@Role{index}"));
+                predicates.Add($"EXISTS (SELECT 1 FROM UserProfiles op WHERE op.UserId = @UserId AND op.ProfileId IN ({rolePlaceholders}))");
+
+                for (int i = 0; i < request.RoleType.Count; i++)
+                {
+                    parameters.Add($"Role{i}", request.RoleType[i]);
+                }
+                parameters.Add("IsDeleted", false);
+                parameters.Add("UserId",Convert.ToInt32(request.UserId));
+            }
             if (request.Status != null && request.Status.Any())
             {
                 predicates.Add("r.Status IN @statuses");
