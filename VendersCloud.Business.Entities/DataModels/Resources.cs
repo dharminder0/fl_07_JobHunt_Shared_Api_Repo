@@ -14,6 +14,7 @@ namespace VendersCloud.Business.Entities.DataModels
        public string Phone { get; set; }
        public string Linkedin {  get; set; }
        public string CV { get; set; }
+       public string OrgCode { get; set; }
        public int Availability { get; set; }
        public DateTime CreatedOn {  get; set; }
        public DateTime UpdatedOn { get; set; }
