@@ -15,6 +15,8 @@ namespace VendersCloud.Business.Entities.RequestModels
         public List<int> LocationType {  get; set; }
         public List<int> Status {  get; set; }
         public List<string> ClientCode { get; set; }
+        public string UserId {  get; set; }
+        public List<string> RoleType {  get; set; }
 
     }
 }

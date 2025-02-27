@@ -24,7 +24,7 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-                if (request == null || string.IsNullOrEmpty(request.Title) || string.IsNullOrEmpty(request.OrgCode)||request.UserId<=0)
+                if (request == null || string.IsNullOrEmpty(request.Title) || string.IsNullOrEmpty(request.OrgCode)|| string.IsNullOrEmpty(request.UserId))
                 {
                     return new ActionMessageResponse() { Success = false, Message = "Values cann't be null ", Content = "" };
                 }
@@ -270,10 +270,11 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-                if(string.IsNullOrEmpty(request.OrgCode))
+                if(string.IsNullOrEmpty(request.OrgCode) || string.IsNullOrEmpty(request.UserId))
                 {
                     throw new Exception("OrgCode is Mandatory!! ");
                 }
+
                 return await _requirementRepository.GetRequirementsListAsync(request);
             }
             catch(Exception ex)
