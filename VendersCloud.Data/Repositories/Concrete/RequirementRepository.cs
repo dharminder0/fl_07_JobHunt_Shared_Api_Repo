@@ -249,7 +249,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                 parameters.Add("locationTypes", request.LocationType);
             }
 
-            if (!string.IsNullOrEmpty(request.UserId) && request.RoleType.Any() && request.RoleType !=null)
+            if (!string.IsNullOrEmpty(request.UserId) && request.RoleType.Any() && request.RoleType != null)
             {
                 var rolePlaceholders = string.Join(", ", request.RoleType.Select((role, index) => $"@Role{index}"));
                 predicates.Add($"EXISTS (SELECT 1 FROM UserProfiles op WHERE op.UserId = @UserId AND op.ProfileId IN ({rolePlaceholders}))");
@@ -259,7 +259,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                     parameters.Add($"Role{i}", request.RoleType[i]);
                 }
                 parameters.Add("IsDeleted", false);
-                parameters.Add("UserId",Convert.ToInt32(request.UserId));
+                parameters.Add("UserId", Convert.ToInt32(request.UserId));
             }
             if (request.Status != null && request.Status.Any())
             {
@@ -273,6 +273,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                 parameters.Add("clientCodes", request.ClientCode);
             }
 
+            predicates.Add("EXISTS (SELECT * FROM Requirement rs WHERE rs.Visibility = 3)");
             predicates.Add("r.IsDeleted = 0");
             predicates.Add("r.OrgCode = @orgCode");
             parameters.Add("orgCode", request.OrgCode);
@@ -280,12 +281,12 @@ namespace VendersCloud.Data.Repositories.Concrete
             string whereClause = predicates.Any() ? "WHERE " + string.Join(" AND ", predicates) : "";
 
             string query = $@"
-                SELECT * FROM Requirement r
-                {whereClause}
-                ORDER BY r.CreatedOn DESC
-                OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY;
-                
-                SELECT COUNT(*) FROM Requirement r {whereClause};";
+        SELECT * FROM Requirement r
+        {whereClause}
+        ORDER BY r.CreatedOn DESC
+        OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY;
+        
+        SELECT COUNT(*) FROM Requirement r {whereClause};";
 
             parameters.Add("offset", (request.Page - 1) * request.PageSize);
             parameters.Add("pageSize", request.PageSize);
@@ -309,7 +310,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                     Positions = r.Positions,
                     Duration = r.Duration,
                     LocationType = r.LocationType,
-                    LocationTypeName = System.Enum.GetName(typeof(LocationType),r.LocationType),
+                    LocationTypeName = System.Enum.GetName(typeof(LocationType), r.LocationType),
                     Location = r.Location,
                     ClientCode = r.ClientCode,
                     Remarks = r.Remarks,
@@ -344,5 +345,6 @@ namespace VendersCloud.Data.Repositories.Concrete
                 List = requirementsResponseList
             };
         }
+
     }
 }
