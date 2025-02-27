@@ -24,7 +24,7 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-                if (request == null || string.IsNullOrEmpty(request.Title) || string.IsNullOrEmpty(request.OrgCode))
+                if (request == null || string.IsNullOrEmpty(request.Title) || string.IsNullOrEmpty(request.OrgCode)||request.UserId<=0)
                 {
                     return new ActionMessageResponse() { Success = false, Message = "Values cann't be null ", Content = "" };
                 }

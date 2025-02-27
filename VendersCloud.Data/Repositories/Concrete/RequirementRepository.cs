@@ -49,10 +49,8 @@ namespace VendersCloud.Data.Repositories.Concrete
                     request.ClientCode,
                     request.Remarks,
                     request.Status,
-                    CreatedOn = DateTime.UtcNow,
                     UpdatedOn = DateTime.UtcNow,
-                    CreatedBy = "",
-                    UpdatedBy = "",
+                    UpdatedBy = request.UserId,
                     IsDeleted = false,
                     UniqueId= uniqueId,
                 }).Where("Title", cleanedTitle).Where("OrgCode", cleanedOrgCode);
@@ -81,9 +79,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                     request.Remarks,
                     request.Status,
                     CreatedOn = DateTime.UtcNow,
-                    UpdatedOn = DateTime.UtcNow,
-                    CreatedBy = "",
-                    UpdatedBy = "",
+                    CreatedBy = request.UserId,
                     IsDeleted = false,
                     UniqueId = uniqueId,
                 });
@@ -130,10 +126,8 @@ namespace VendersCloud.Data.Repositories.Concrete
                         request.Visibility,
                         request.Hot,
                         request.Status,
-                        CreatedOn = DateTime.UtcNow,
                         UpdatedOn = DateTime.UtcNow,
-                        CreatedBy = "",
-                        UpdatedBy = "",
+                        UpdatedBy = request.UserId,
                         IsDeleted = false
                     }).Where("Title", cleanedTitle).Where("OrgCode", cleanedOrgCode);
                     await dbInstance.ExecuteScalarAsync<string>(updateQuery);
@@ -157,9 +151,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                         request.Hot,
                         request.Status,
                         CreatedOn = DateTime.UtcNow,
-                        UpdatedOn = DateTime.UtcNow,
-                        CreatedBy = "",
-                        UpdatedBy = "",
+                        CreatedBy = request.UserId,
                         IsDeleted = false
                     });
                     await dbInstance.ExecuteScalarAsync<string>(insertQuery);
