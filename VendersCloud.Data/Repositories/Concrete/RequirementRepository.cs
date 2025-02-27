@@ -231,7 +231,66 @@ namespace VendersCloud.Data.Repositories.Concrete
 
         }
 
-        public async Task<PaginationDto<RequirementResponse>> GetRequirementsListAsync(SearchRequirementRequest request)
+        public async Task<List<Requirement>> GetRequirementsListByVisibilityAsync(SearchRequirementRequest request)
+        {
+            using var connection = GetConnection();
+            var predicates = new List<string>();
+            var parameters = new DynamicParameters();
+
+            if (!string.IsNullOrWhiteSpace(request.SearchText))
+            {
+                predicates.Add("(r.Title LIKE @searchText OR r.Description LIKE @searchText OR r.ClientCode LIKE @searchText)");
+                parameters.Add("searchText", $"%{request.SearchText}%");
+            }
+
+            if (request.LocationType != null && request.LocationType.Any())
+            {
+                predicates.Add("r.LocationType IN @locationTypes");
+                parameters.Add("locationTypes", request.LocationType);
+            }
+
+            if (!string.IsNullOrEmpty(request.UserId) && request.RoleType.Any() && request.RoleType != null)
+            {
+                var rolePlaceholders = string.Join(", ", request.RoleType.Select((role, index) => $"@Role{index}"));
+                predicates.Add($"EXISTS (SELECT 1 FROM UserProfiles op WHERE  op.ProfileId IN ({rolePlaceholders}))");
+
+                for (int i = 0; i < request.RoleType.Count; i++)
+                {
+                    parameters.Add($"Role{i}", request.RoleType[i]);
+                }
+                parameters.Add("IsDeleted", false);
+            }
+            if (request.Status != null && request.Status.Any())
+            {
+                predicates.Add("r.Status IN @statuses");
+                parameters.Add("statuses", request.Status);
+            }
+
+            if (request.ClientCode != null && request.ClientCode.Any())
+            {
+                predicates.Add("r.ClientCode IN @clientCodes");
+                parameters.Add("clientCodes", request.ClientCode);
+            }
+
+            predicates.Add("r.IsDeleted = 0");
+            predicates.Add("r.OrgCode <> @orgCode");
+            parameters.Add("orgCode", request.OrgCode);
+            predicates.Add("r.Visibility='3'");
+            
+
+            string whereClause = predicates.Any() ? "WHERE " + string.Join(" AND ", predicates) : "";
+
+            string query = $@"
+SELECT * FROM Requirement r
+{whereClause}
+ORDER BY r.CreatedOn DESC;";
+
+            using var multi = await connection.QueryMultipleAsync(query, parameters);
+            var requirements = (await multi.ReadAsync<Requirement>()).ToList();
+            return requirements;
+        }
+
+        public async Task<List<Requirement>> GetRequirementsListAsync(SearchRequirementRequest request)
         {
             using var connection = GetConnection();
             var predicates = new List<string>();
@@ -273,7 +332,6 @@ namespace VendersCloud.Data.Repositories.Concrete
                 parameters.Add("clientCodes", request.ClientCode);
             }
 
-            predicates.Add("EXISTS (SELECT * FROM Requirement rs WHERE rs.Visibility = 3)");
             predicates.Add("r.IsDeleted = 0");
             predicates.Add("r.OrgCode = @orgCode");
             parameters.Add("orgCode", request.OrgCode);
@@ -281,69 +339,13 @@ namespace VendersCloud.Data.Repositories.Concrete
             string whereClause = predicates.Any() ? "WHERE " + string.Join(" AND ", predicates) : "";
 
             string query = $@"
-        SELECT * FROM Requirement r
-        {whereClause}
-        ORDER BY r.CreatedOn DESC
-        OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY;
-        
-        SELECT COUNT(*) FROM Requirement r {whereClause};";
-
-            parameters.Add("offset", (request.Page - 1) * request.PageSize);
-            parameters.Add("pageSize", request.PageSize);
+SELECT * FROM Requirement r
+{whereClause}
+ORDER BY r.CreatedOn DESC;";
 
             using var multi = await connection.QueryMultipleAsync(query, parameters);
             var requirements = (await multi.ReadAsync<Requirement>()).ToList();
-            int totalRecords = await multi.ReadFirstOrDefaultAsync<int>();
-
-            var requirementsResponseList = new List<RequirementResponse>();
-
-            foreach (var r in requirements)
-            {
-                var requirementResponse = new RequirementResponse
-                {
-                    Id = r.Id,
-                    Title = r.Title,
-                    OrgCode = r.OrgCode,
-                    Description = r.Description,
-                    Experience = r.Experience,
-                    Budget = r.Budget,
-                    Positions = r.Positions,
-                    Duration = r.Duration,
-                    LocationType = r.LocationType,
-                    LocationTypeName = System.Enum.GetName(typeof(LocationType), r.LocationType),
-                    Location = r.Location,
-                    ClientCode = r.ClientCode,
-                    Remarks = r.Remarks,
-                    Visibility = r.Visibility,
-                    VisibilityName = System.Enum.GetName(typeof(Visibility), r.Visibility),
-                    Hot = r.Hot,
-                    Status = r.Status,
-                    StatusName = System.Enum.GetName(typeof(RequirementsStatus), r.Status),
-                    CreatedOn = r.CreatedOn,
-                    UpdatedOn = r.UpdatedOn,
-                    CreatedBy = r.CreatedBy,
-                    UpdatedBy = r.UpdatedBy,
-                    IsDeleted = r.IsDeleted,
-                    UniqueId = r.UniqueId
-                };
-
-                var orgData = await _clientsRepository.GetClientsByClientCodeAsync(r.ClientCode);
-                if (orgData != null)
-                {
-                    requirementResponse.ClientName = orgData.ClientName;
-                    requirementResponse.ClientLogo = orgData.LogoURL;
-                }
-
-                requirementsResponseList.Add(requirementResponse);
-            }
-
-            return new PaginationDto<RequirementResponse>
-            {
-                Count = totalRecords,
-                Page = request.Page,
-                TotalPages = (int)Math.Ceiling(totalRecords / (double)request.PageSize),
-                List = requirementsResponseList
-            };
+            return requirements;
         }
 
     }
