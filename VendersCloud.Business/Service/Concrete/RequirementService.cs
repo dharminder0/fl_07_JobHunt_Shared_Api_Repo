@@ -270,17 +270,71 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-                if(string.IsNullOrEmpty(request.OrgCode) || string.IsNullOrEmpty(request.UserId))
+                if (string.IsNullOrEmpty(request.OrgCode) || string.IsNullOrEmpty(request.UserId))
                 {
                     throw new Exception("OrgCode is Mandatory!! ");
                 }
 
-                return await _requirementRepository.GetRequirementsListAsync(request);
+                var requirements = await _requirementRepository.GetRequirementsListAsync(request);
+                var visibleRequirements = await _requirementRepository.GetRequirementsListByVisibilityAsync(request);
+                var allRequirements = requirements.Concat(visibleRequirements).ToList();
+                var totalRecords = allRequirements.Count;
+                var paginatedRequirements = allRequirements.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToList();
+
+                var requirementsResponseList = new List<RequirementResponse>();
+                foreach (var r in paginatedRequirements)
+                {
+                    var requirementResponse = new RequirementResponse
+                    {
+                        Id = r.Id,
+                        Title = r.Title,
+                        OrgCode = r.OrgCode,
+                        Description = r.Description,
+                        Experience = r.Experience,
+                        Budget = r.Budget,
+                        Positions = r.Positions,
+                        Duration = r.Duration,
+                        LocationType = r.LocationType,
+                        LocationTypeName = System.Enum.GetName(typeof(LocationType), r.LocationType),
+                        Location = r.Location,
+                        ClientCode = r.ClientCode,
+                        Remarks = r.Remarks,
+                        Visibility = r.Visibility,
+                        VisibilityName = System.Enum.GetName(typeof(Visibility), r.Visibility),
+                        Hot = r.Hot,
+                        Status = r.Status,
+                        StatusName = System.Enum.GetName(typeof(RequirementsStatus), r.Status),
+                        CreatedOn = r.CreatedOn,
+                        UpdatedOn = r.UpdatedOn,
+                        CreatedBy = r.CreatedBy,
+                        UpdatedBy = r.UpdatedBy,
+                        IsDeleted = r.IsDeleted,
+                        UniqueId = r.UniqueId
+                    };
+
+                    var orgData = await _clientsRepository.GetClientsByClientCodeAsync(r.ClientCode);
+                    if (orgData != null)
+                    {
+                        requirementResponse.ClientName = orgData.ClientName;
+                        requirementResponse.ClientLogo = orgData.LogoURL;
+                    }
+
+                    requirementsResponseList.Add(requirementResponse);
+                }
+
+                return new PaginationDto<RequirementResponse>
+                {
+                    Count = totalRecords,
+                    Page = request.Page,
+                    TotalPages = (int)Math.Ceiling(totalRecords / (double)request.PageSize),
+                    List = requirementsResponseList
+                };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 throw new Exception(ex.Message);
             }
         }
+
     }
 }
