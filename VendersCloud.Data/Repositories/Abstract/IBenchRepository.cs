@@ -7,5 +7,6 @@ namespace VendersCloud.Data.Repositories.Abstract
     {
         Task<bool> UpsertBenchMembersAsync(BenchRequest request);
         Task<List<Resources>> GetBenchResponseListAsync(string orgCode);
+        Task<List<Resources>> GetBenchListBySearchAsync(BenchSearchRequest request);
     }
 }

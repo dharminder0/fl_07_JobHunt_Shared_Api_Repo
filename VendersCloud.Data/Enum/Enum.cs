@@ -53,5 +53,10 @@
             Active= 1,
             InActive=2,
         }
+
+        public enum BenchAvailability
+        {
+           Immediate=1,
+        }
     }
 }

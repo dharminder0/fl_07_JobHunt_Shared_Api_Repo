@@ -1,8 +1,11 @@
-﻿using DapperExtensions;
+﻿using Dapper;
+using DapperExtensions;
 using Microsoft.Extensions.Configuration;
 using SqlKata;
 using VendersCloud.Business.Entities.DataModels;
+using VendersCloud.Business.Entities.Dtos;
 using VendersCloud.Business.Entities.RequestModels;
+using VendersCloud.Business.Entities.ResponseModels;
 using VendersCloud.Data.Data;
 using VendersCloud.Data.Repositories.Abstract;
 
@@ -76,5 +79,30 @@ namespace VendersCloud.Data.Repositories.Concrete
             var list = dbInstance.Select<Resources>(sql, new { orgCode }).ToList();
             return list;
         }
+
+        public async Task<List<Resources>> GetBenchListBySearchAsync(BenchSearchRequest request)
+        {
+            using var connection = GetConnection();
+            var predicates = new List<string>();
+            var parameters = new DynamicParameters();
+
+            if(!string.IsNullOrWhiteSpace(request.SearchText))
+            {
+                predicates.Add("(r.FirstName LIKE @searchText OR r.FirstName Like @searchText)");
+                parameters.Add("searchText",$"%{request.SearchText}%");
+            }
+
+            predicates.Add("r.IsDeleted=0");
+            predicates.Add("r.OrgCode=@orgCode");
+            parameters.Add("orgCode", request.OrgCode);
+            string whereClause = predicates.Any() ? "WHERE " + string.Join(" AND ", predicates) : "";
+            string query = $@" Select * From Resources r {whereClause} Order By r. CreatedOn DESC;";
+
+            using var multi = await connection.QueryMultipleAsync(query,parameters);
+            var response = (await multi.ReadAsync<Resources>()).ToList();
+            return response;
+        }
+
+       
     }
 }
