@@ -1,5 +1,4 @@
 ﻿using IgniteSecurityLib;
-using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Serialization;
 using Prompt.Engine.Business.Entities;
 

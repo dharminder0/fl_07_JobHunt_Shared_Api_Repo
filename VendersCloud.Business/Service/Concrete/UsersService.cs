@@ -1,14 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity.Data;
-using Microsoft.Extensions.Configuration;
-using VendersCloud.Business.Entities.DataModels;
-using VendersCloud.Business.Entities.Dtos;
-using VendersCloud.Business.Entities.RequestModels;
-using VendersCloud.Business.Entities.ResponseModels;
-using VendersCloud.Business.Service.Abstract;
-using VendersCloud.Common.Utils;
-using VendersCloud.Data.Repositories.Abstract;
-
-namespace VendersCloud.Business.Service.Concrete
+﻿namespace VendersCloud.Business.Service.Concrete
 {
     public class UsersService:IUsersService
     {

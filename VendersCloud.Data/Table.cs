@@ -1,5 +1,4 @@
 ﻿using System.Linq.Expressions;
-using VendersCloud.Business.Entities.Abstract;
 using VendersCloud.Common.Extensions;
 
 namespace VendersCloud.Data.Data

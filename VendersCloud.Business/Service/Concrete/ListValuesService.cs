@@ -1,10 +1,4 @@
-﻿using VendersCloud.Business.Entities.DataModels;
-using VendersCloud.Business.Service.Abstract;
-using VendersCloud.Data.Repositories.Abstract;
-using static System.Net.Mime.MediaTypeNames;
-using static VendersCloud.Data.Enum.Enum;
-
-namespace VendersCloud.Business.Service.Concrete
+﻿namespace VendersCloud.Business.Service.Concrete
 {
     public class ListValuesService:IListValuesService
     {

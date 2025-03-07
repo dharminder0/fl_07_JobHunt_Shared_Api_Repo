@@ -1,7 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
-using System.Net;
+﻿using System.Net;
 using System.Net.Mail;
-using VendersCloud.Business.Entities.DataModels;
 
 namespace VendersCloud.Business.Service.Concrete
 {

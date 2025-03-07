@@ -1,16 +1,4 @@
-﻿using Dapper;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.Extensions.Configuration;
-using SqlKata;
-using VendersCloud.Business.Entities.DataModels;
-using VendersCloud.Business.Entities.Dtos;
-using VendersCloud.Business.Entities.RequestModels;
-using VendersCloud.Business.Entities.ResponseModels;
-using VendersCloud.Data.Data;
-using VendersCloud.Data.Repositories.Abstract;
-using static VendersCloud.Data.Enum.Enum;
-
-namespace VendersCloud.Data.Repositories.Concrete
+﻿namespace VendersCloud.Data.Repositories.Concrete
 {
     public class OrgRelationshipsRepository : StaticBaseRepository<OrgRelationships>, IOrgRelationshipsRepository
     {

@@ -1,12 +1,4 @@
-﻿using DapperExtensions;
-using Microsoft.Extensions.Configuration;
-using SqlKata;
-using VendersCloud.Business.Entities.DataModels;
-using VendersCloud.Business.Entities.RequestModels;
-using VendersCloud.Data.Data;
-using VendersCloud.Data.Repositories.Abstract;
-
-namespace VendersCloud.Data.Repositories.Concrete
+﻿namespace VendersCloud.Data.Repositories.Concrete
 {
     public class OrganizationRepository : StaticBaseRepository<Organization>, IOrganizationRepository
     {

@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-
-namespace VendersCloud.Business.Entities.RequestModels
+﻿namespace VendersCloud.Business.Entities.RequestModels
 {
     public class ClientsRequest
     {

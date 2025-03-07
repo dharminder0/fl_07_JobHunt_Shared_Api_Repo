@@ -1,6 +1,4 @@
-﻿using DapperExtensions;
-
-namespace VendersCloud.Data.Repositories.Abstract
+﻿namespace VendersCloud.Data.Repositories.Abstract
 {
     public interface IDataRepository<T> where T : class,new()
     {

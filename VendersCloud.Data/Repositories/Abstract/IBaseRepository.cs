@@ -1,8 +1,4 @@
-﻿using DapperExtensions;
-using System.Data.SqlClient;
-using VendersCloud.Business.Entities.Abstract;
-
-namespace VendersCloud.Data.Repositories.Abstract
+﻿namespace VendersCloud.Data.Repositories.Abstract
 {
     public interface IBaseRepository<T> : IDataRepository<T> where T : class, new()
     {

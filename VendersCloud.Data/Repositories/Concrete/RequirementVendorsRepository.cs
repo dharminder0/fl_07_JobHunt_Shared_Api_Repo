@@ -1,10 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using SqlKata;
-using VendersCloud.Business.Entities.DataModels;
-using VendersCloud.Data.Data;
-using VendersCloud.Data.Repositories.Abstract;
-
-namespace VendersCloud.Data.Repositories.Concrete
+﻿namespace VendersCloud.Data.Repositories.Concrete
 {
     public class RequirementVendorsRepository:StaticBaseRepository<RequirementVendors>, IRequirementVendorsRepository
     {

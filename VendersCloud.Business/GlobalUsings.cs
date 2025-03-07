@@ -1,0 +1,10 @@
+﻿global using Microsoft.Extensions.Configuration;
+global using Newtonsoft.Json.Linq;
+global using VendersCloud.Business.Entities.DataModels;
+global using VendersCloud.Business.Entities.Dtos;
+global using VendersCloud.Business.Entities.RequestModels;
+global using VendersCloud.Business.Entities.ResponseModels;
+global using VendersCloud.Business.Service.Abstract;
+global using VendersCloud.Common.Utils;
+global using VendersCloud.Data.Repositories.Abstract;
+global using static VendersCloud.Data.Enum.Enum;

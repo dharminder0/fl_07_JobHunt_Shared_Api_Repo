@@ -1,20 +1,12 @@
-﻿using Dapper;
-using DapperExtensions;
-using IgniteSecurityLib;
-using Microsoft.Extensions.Configuration;
+﻿using IgniteSecurityLib;
 using Newtonsoft.Json.Linq;
-using SqlKata;
 using SqlKata.Compilers;
 using SqlKata.Execution;
 using System.ComponentModel;
 using System.Data;
-using System.Data.SqlClient;
 using System.Diagnostics;
-using System.Reflection;
 using System.Text;
-using VendersCloud.Business.Entities.Abstract;
 using VendersCloud.Common.Data;
-using VendersCloud.Common.Settings;
 using KeyAttribute = VendersCloud.Business.Entities.Abstract.KeyAttribute;
 
 namespace VendersCloud.Data.Repositories.Concrete

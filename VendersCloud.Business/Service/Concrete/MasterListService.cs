@@ -1,8 +1,4 @@
-﻿using VendersCloud.Business.Entities.DataModels;
-using VendersCloud.Business.Service.Abstract;
-using VendersCloud.Data.Repositories.Abstract;
-
-namespace VendersCloud.Business.Service.Concrete
+﻿namespace VendersCloud.Business.Service.Concrete
 {
     public class MasterListService :IMasterListService
     {

@@ -1,17 +1,4 @@
-﻿using Dapper;
-using DapperExtensions;
-using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
-using SqlKata;
-using VendersCloud.Business.Entities.DataModels;
-using VendersCloud.Business.Entities.Dtos;
-using VendersCloud.Business.Entities.RequestModels;
-using VendersCloud.Business.Entities.ResponseModels;
-using VendersCloud.Data.Data;
-using VendersCloud.Data.Repositories.Abstract;
-using static VendersCloud.Data.Enum.Enum;
-
-namespace VendersCloud.Data.Repositories.Concrete
+﻿namespace VendersCloud.Data.Repositories.Concrete
 {
     public class ClientsRepository : StaticBaseRepository<Clients>, IClientsRepository
     {

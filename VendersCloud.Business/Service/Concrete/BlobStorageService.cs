@@ -1,9 +1,5 @@
 ﻿using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
-using Microsoft.Extensions.Configuration;
-using System.Text;
-using VendersCloud.Business.Entities.RequestModels;
-using VendersCloud.Business.Service.Abstract;
 
 namespace VendersCloud.Business.Service.Concrete
 {
