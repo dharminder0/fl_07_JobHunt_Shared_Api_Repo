@@ -1,0 +1,15 @@
+﻿global using DapperExtensions;
+global using Microsoft.Extensions.Configuration;
+global using System.Data.SqlClient;
+global using System.Reflection;
+global using VendersCloud.Business.Entities.Abstract;
+global using VendersCloud.Business.Entities.DataModels;
+global using VendersCloud.Common.Caching;
+global using VendersCloud.Data.Repositories.Abstract;
+global using VendersCloud.Data.Data;
+global using VendersCloud.Business.Entities.RequestModels;
+global using SqlKata;
+global using Dapper;
+global using VendersCloud.Business.Entities.ResponseModels;
+global using VendersCloud.Business.Entities.Dtos;
+global using static VendersCloud.Data.Enum.Enum;

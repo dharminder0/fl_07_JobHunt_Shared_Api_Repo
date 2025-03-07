@@ -1,8 +1,4 @@
-﻿using System;
-using DapperExtensions.Mapper;
-using VendersCloud.Business.Entities.Abstract;
-
-namespace VendersCloud.Business.Entities.DataModels
+﻿namespace VendersCloud.Business.Entities.DataModels
 {
     [Alias(Name = "Prompts")]
     public class Prompts : IEntityKey

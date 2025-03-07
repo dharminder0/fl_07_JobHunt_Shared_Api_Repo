@@ -1,10 +1,4 @@
-﻿using VendersCloud.Business.Entities.DataModels;
-using VendersCloud.Business.Entities.Dtos;
-using VendersCloud.Business.Entities.RequestModels;
-using VendersCloud.Business.Service.Abstract;
-using VendersCloud.Data.Repositories.Abstract;
-
-namespace VendersCloud.Business.Service.Concrete
+﻿namespace VendersCloud.Business.Service.Concrete
 {
     public class RequirementVendorsService :IRequirementVendorsService
     {

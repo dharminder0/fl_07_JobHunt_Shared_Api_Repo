@@ -1,9 +1,4 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
-using VendersCloud.Business.Service.Abstract;
-using static VendersCloud.Data.Enum.Enum;
-
-namespace VendersCloud.WebApi.Controllers
+﻿namespace VendersCloud.WebApi.Controllers
 {
     [ApiController]
     public class UserProfilesController : BaseApiController

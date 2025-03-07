@@ -1,12 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using VendersCloud.Business.Entities.RequestModels;
-using VendersCloud.Business.Service.Abstract;
-using VendersCloud.Business.Service.Concrete;
-
-namespace VendersCloud.WebApi.Controllers
+﻿namespace VendersCloud.WebApi.Controllers
 {
-   
+
     [ApiController]
     public class PromptController : BaseApiController
     {

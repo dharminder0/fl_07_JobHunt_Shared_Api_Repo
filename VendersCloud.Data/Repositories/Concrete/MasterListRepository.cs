@@ -1,12 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using SqlKata.Compilers;
-using SqlKata.Execution;
-using SqlKata;
-using VendersCloud.Business.Entities.DataModels;
-using VendersCloud.Data.Repositories.Abstract;
-using DapperExtensions;
-
-namespace VendersCloud.Data.Repositories.Concrete
+﻿namespace VendersCloud.Data.Repositories.Concrete
 {
     public class MasterListRepository : StaticBaseRepository<MasterList>, IMasterListRepository
     {

@@ -1,13 +1,4 @@
-﻿using DapperExtensions;
-using Microsoft.Extensions.Configuration;
-using System.Data.SqlClient;
-using System.Reflection;
-using VendersCloud.Business.Entities.Abstract;
-using VendersCloud.Business.Entities.DataModels;
-using VendersCloud.Common.Caching;
-using VendersCloud.Data.Repositories.Abstract;
-
-namespace VendersCloud.Data.Repositories.Concrete
+﻿namespace VendersCloud.Data.Repositories.Concrete
 {
     public class BaseRepository<T> : DataRepository<T>, IBaseRepository<T> where T : class, IEntityKey, new() {
         public BaseRepository(IConfiguration configuration) : base(configuration) { }

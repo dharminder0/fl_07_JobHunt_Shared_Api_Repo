@@ -1,8 +1,4 @@
-﻿using VendersCloud.Business.Entities.DataModels;
-using VendersCloud.Business.Entities.Dtos;
-using VendersCloud.Business.Entities.RequestModels;
-
-namespace VendersCloud.Data.Repositories.Abstract
+﻿namespace VendersCloud.Data.Repositories.Abstract
 {
     public interface IUsersRepository : IBaseRepository<Users>
     {

@@ -1,14 +1,8 @@
 ﻿using DapperExtensions;
-using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System.Text.RegularExpressions;
 using VendersCloud.Business;
-using VendersCloud.Business.Entities.DataModels;
-using VendersCloud.Business.Entities.RequestModels;
-using VendersCloud.Business.Entities.ResponseModels;
-using VendersCloud.Business.Service.Abstract;
 using VendersCloud.Business.Service.Concrete;
-using VendersCloud.Data.Repositories.Abstract;
 
 public class PromptService : ExternalServiceBase, IPromptService
 {

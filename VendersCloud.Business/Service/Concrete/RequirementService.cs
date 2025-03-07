@@ -1,22 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using VendersCloud.Business.Entities.Dtos;
-using VendersCloud.Business.Entities.RequestModels;
-using VendersCloud.Business.Entities.ResponseModels;
-using VendersCloud.Business.Service.Abstract;
-using VendersCloud.Data.Repositories.Abstract;
-using static VendersCloud.Data.Enum.Enum;
-
+﻿
 namespace VendersCloud.Business.Service.Concrete
 {
     public class RequirementService : IRequirementService
     {
         private readonly IRequirementRepository _requirementRepository;
-        private readonly IOrganizationRepository _organizationRepository;
         private readonly IClientsRepository _clientsRepository;
-        public RequirementService(IRequirementRepository requirementRepository, IOrganizationRepository organizationRepository, IClientsRepository clientsRepository)
+        public RequirementService(IRequirementRepository requirementRepository, IClientsRepository clientsRepository)
         {
             _requirementRepository = requirementRepository;
-            _organizationRepository = organizationRepository;
             _clientsRepository = clientsRepository;
         }
 

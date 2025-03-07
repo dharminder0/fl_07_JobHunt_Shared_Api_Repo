@@ -1,7 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using VendersCloud.Business.Service.Abstract;
-
-namespace VendersCloud.WebApi.Controllers
+﻿namespace VendersCloud.WebApi.Controllers
 {
     [ApiController]
     public class MasterListController : BaseApiController
