@@ -58,7 +58,7 @@ namespace VendersCloud.Data.Enum
 
         public enum BenchAvailability
         {
-            [Description("Immediate ")]
+            [Description("Immediate")]
             Immediate = 1,
 
             [Description("15 Days Notice")]
@@ -77,5 +77,31 @@ namespace VendersCloud.Data.Enum
             Negotiable = 6
         }
 
+        public enum ApplyStatus
+        {
+            [Description("New")]
+             New =1,
+
+            [Description("In Review")]
+             InReview=2,
+
+            [Description("Shortlisted")]
+             Shortlisted =3,
+
+            [Description("Technical Assessment")]
+            TechnicalAssessment=4,
+
+            [Description("Interview Round I")]
+            InterviewRoundI=5,
+
+            [Description("Interview Round II")]
+            InterviewRoundII=6,
+
+            [Description("Rejected")]
+            Rejected =7,
+
+            [Description("Placed")]
+            Placed =8,
+        }
     }
 }

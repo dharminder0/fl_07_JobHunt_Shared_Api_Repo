@@ -5,7 +5,7 @@
     {
         private readonly IBenchService _benchService;
         public BenchController(IBenchService benchService) {
-        _benchService= benchService;
+            _benchService = benchService;
         }
 
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -59,6 +59,26 @@
             try
             {
                 var result = await _benchService.GetBenchListBySearchAsync(request);
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [HttpPost]
+        [Route("api/V1/Applications/Upsert")]
+
+        public async Task<IActionResult> UpsertApplicants(ApplicationsRequest request)
+        {
+            try
+            {
+                var result = await _benchService.UpsertApplicants(request);
                 return Json(result);
             }
             catch (Exception ex)

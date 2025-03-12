@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel;
 using System.Reflection;
 
 namespace VendersCloud.Business.Service.Concrete
@@ -6,9 +7,11 @@ namespace VendersCloud.Business.Service.Concrete
     public class BenchService : IBenchService
     {
         private readonly IBenchRepository _benchRepository;
-        public BenchService(IBenchRepository benchRepository)
+        private readonly IResourcesRepository _resourcesRepository;
+        public BenchService(IBenchRepository benchRepository, IResourcesRepository resourcesRepository)
         {
             _benchRepository = benchRepository;
+            _resourcesRepository = resourcesRepository;
         }
 
         public async Task<ActionMessageResponse> UpsertBenchAsync(BenchRequest benchRequest)
@@ -109,6 +112,48 @@ namespace VendersCloud.Business.Service.Concrete
             }
             catch (Exception ex) {
                 throw ex;
+            }
+        }
+
+        public async Task<ActionMessageResponse> UpsertApplicants(ApplicationsRequest request)
+        {
+            try
+            {
+                if(request.ResourceId<0 || request.RequirementId<0)
+                {
+                    return new ActionMessageResponse()
+                    {
+                        Success = false,
+                        Message = "Values Can't be Null!!",
+                        Content = ""
+                    };
+
+                }
+                var res= await _resourcesRepository.UpsertApplicants(request);
+                if (res)
+                {
+                    return new ActionMessageResponse()
+                    {
+                        Success = true,
+                        Message = "Applicants Are Added!!",
+                        Content = ""
+                    };
+                }
+                return new ActionMessageResponse()
+                {
+                    Success = false,
+                    Message = "Applicants not Added!!",
+                    Content = ""
+                };
+            }
+            catch(Exception ex)
+            {
+                return new ActionMessageResponse()
+                {
+                    Success = false,
+                    Message = ex.Message,
+                    Content = ""
+                };
             }
         }
         public static string GetEnumDescription(Enum value)
