@@ -1,4 +1,7 @@
-﻿namespace VendersCloud.Business.Service.Concrete
+﻿using System.ComponentModel;
+using System.Reflection;
+
+namespace VendersCloud.Business.Service.Concrete
 {
     public class BenchService : IBenchService
     {
@@ -86,7 +89,7 @@
                         CV = item.CV,
                         OrgCode = item.OrgCode,
                         Availability = item.Availability,
-                        AvailabilityName = Enum.GetName(typeof(BenchAvailability), item.Availability),
+                        AvailabilityName = GetEnumDescription((BenchAvailability)item.Availability),
                         CreatedOn = item.CreatedOn,
                         UpdatedOn = item.UpdatedOn,
                         CreatedBy = item.CreatedBy,
@@ -107,6 +110,12 @@
             catch (Exception ex) {
                 throw ex;
             }
+        }
+        public static string GetEnumDescription(Enum value)
+        {
+            FieldInfo field = value.GetType().GetField(value.ToString());
+            DescriptionAttribute attribute = (DescriptionAttribute)Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute));
+            return attribute == null ? value.ToString() : attribute.Description;
         }
     }
 }

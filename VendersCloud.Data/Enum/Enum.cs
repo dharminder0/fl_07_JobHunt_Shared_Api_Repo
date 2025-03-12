@@ -1,4 +1,6 @@
-﻿namespace VendersCloud.Data.Enum
+﻿using System.ComponentModel;
+
+namespace VendersCloud.Data.Enum
 {
     public class Enum
     {
@@ -56,7 +58,24 @@
 
         public enum BenchAvailability
         {
-           Immediate=1,
+            [Description("Immediate ")]
+            Immediate = 1,
+
+            [Description("15 Days Notice")]
+            Days15Notice = 2,
+
+            [Description("30 Days Notice")]
+            Days30Notice = 3,
+
+            [Description("60 Days Notice")]
+            Days60Notice = 4,
+
+            [Description("90 Days Notice")]
+            Days90Notice = 5,
+
+            [Description("Negotiable")]
+            Negotiable = 6
         }
+
     }
 }
