@@ -80,7 +80,11 @@
                 predicates.Add("(r.FirstName LIKE @searchText OR r.FirstName Like @searchText)");
                 parameters.Add("searchText",$"%{request.SearchText}%");
             }
-
+            if (request.Availability>0)
+            {
+                predicates.Add("( r.Availability Like @availability)");
+                parameters.Add("availability", $"%{request.Availability}%");
+            }
             predicates.Add("r.IsDeleted=0");
             predicates.Add("r.OrgCode=@orgCode");
             parameters.Add("orgCode", request.OrgCode);
