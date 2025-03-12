@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Identity.Data;
+using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel;
 using System.Reflection;
 
@@ -119,39 +120,41 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-                if(request.ResourceId<0 || request.RequirementId<0)
+                if (request.ResourceId == null || !request.ResourceId.Any() || request.RequirementId <= 0)
                 {
                     return new ActionMessageResponse()
                     {
                         Success = false,
-                        Message = "Values Can't be Null!!",
+                        Message = "Invalid input: ResourceId cannot be null or empty and RequirementId must be positive.",
                         Content = ""
                     };
-
                 }
-                var res= await _resourcesRepository.UpsertApplicants(request);
+
+             
+                var res = await _resourcesRepository.UpsertApplicants(request);
                 if (res)
                 {
                     return new ActionMessageResponse()
                     {
                         Success = true,
-                        Message = "Applicants Are Added!!",
+                        Message = "Applicants have been successfully added!",
                         Content = ""
                     };
                 }
+
                 return new ActionMessageResponse()
                 {
                     Success = false,
-                    Message = "Applicants not Added!!",
+                    Message = "Failed to add applicants. Please try again.",
                     Content = ""
                 };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return new ActionMessageResponse()
                 {
                     Success = false,
-                    Message = ex.Message,
+                    Message = $"An error occurred: {ex.Message}",
                     Content = ""
                 };
             }

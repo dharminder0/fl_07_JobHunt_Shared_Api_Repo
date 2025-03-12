@@ -2,7 +2,7 @@
 {
     public class ApplicationsRequest
     {
-        public int ResourceId {  get; set; }
+        public List<string> ResourceId {  get; set; }
         public int RequirementId { get; set; }
         public int Status { get; set; }
         public string Comment { get; set; }

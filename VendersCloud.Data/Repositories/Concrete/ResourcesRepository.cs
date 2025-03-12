@@ -11,39 +11,50 @@
         {
             var dbInstance = GetDbInstance();
             var tableName = new Table<Applications>();
-            var query = new Query(tableName.TableName)
-                   .Where("ResourceId", request.ResourceId)
-                   .Where("RequirementId", request.RequirementId)
-                   .Select("Id");
 
-            var existingOrgCode = await dbInstance.ExecuteScalarAsync<string>(query);
-            if (existingOrgCode != null)
+            foreach (var item in request.ResourceId)
             {
-                var updateQuery = new Query(tableName.TableName).AsUpdate(
-                    new
-                    {
-                        ResourceId = request.ResourceId,
-                        RequirementId = request.RequirementId,
-                        Comment = request.Comment,
-                        Status = request.Status,
-                        UpdatedOn = DateTime.UtcNow,
-                        UpdatedBy = Convert.ToInt32(request.UserId)
-                    }).Where("Id", existingOrgCode);
-                await dbInstance.ExecuteAsync(updateQuery);
-                return true;
-            }
-            var insertQuery = new Query(tableName.TableName).AsInsert(
-                new
+                var query = new Query(tableName.TableName)
+                    .Where("ResourceId", item)
+                    .Where("RequirementId", request.RequirementId)
+                    .Select("Id");
+
+                var existingOrgCode = await dbInstance.ExecuteScalarAsync<string>(query);
+
+                if (existingOrgCode != null)
                 {
-                    ResourceId = request.ResourceId,
-                    RequirementId = request.RequirementId,
-                    Comment = request.Comment,
-                    Status = request.Status,
-                    CreatedOn = DateTime.UtcNow,
-                    CreatedBy = Convert.ToInt32(request.UserId)
-                });
-            await dbInstance.ExecuteAsync(insertQuery);
+                    var updateQuery = new Query(tableName.TableName).AsUpdate(
+                        new
+                        {
+                            ResourceId = item,
+                            RequirementId = request.RequirementId,
+                            Comment = request.Comment,
+                            Status = request.Status,
+                            UpdatedOn = DateTime.UtcNow,
+                            UpdatedBy = Convert.ToInt32(request.UserId)
+                        }).Where("Id", existingOrgCode);
+
+                    await dbInstance.ExecuteAsync(updateQuery);
+                }
+                else
+                {
+                    var insertQuery = new Query(tableName.TableName).AsInsert(
+                        new
+                        {
+                            ResourceId = item,
+                            RequirementId = request.RequirementId,
+                            Comment = request.Comment,
+                            Status = request.Status,
+                            CreatedOn = DateTime.UtcNow,
+                            CreatedBy = Convert.ToInt32(request.UserId)
+                        });
+
+                    await dbInstance.ExecuteAsync(insertQuery);
+                }
+            }
+
             return true;
         }
+
     }
 }
