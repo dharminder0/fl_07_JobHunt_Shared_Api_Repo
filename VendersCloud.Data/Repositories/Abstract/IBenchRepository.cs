@@ -5,5 +5,6 @@
         Task<bool> UpsertBenchMembersAsync(BenchRequest request);
         Task<List<Resources>> GetBenchResponseListAsync(string orgCode);
         Task<List<Resources>> GetBenchListBySearchAsync(BenchSearchRequest request);
+        Task<IEnumerable<Resources>> GetBenchResponseListByIdAsync(int benchId);
     }
 }
