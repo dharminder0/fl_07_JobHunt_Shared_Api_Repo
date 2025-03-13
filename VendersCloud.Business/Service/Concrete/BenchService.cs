@@ -177,38 +177,93 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-                var res = await _resourcesRepository.GetApplicationsList();
-                var query = res.AsQueryable();
-                if (!string.IsNullOrEmpty(request.UserId))
+                List<ApplicantsSearchResponse> listSearchResponse = new List<ApplicantsSearchResponse>();
+
+               
+                var applications = await _resourcesRepository.GetApplicationsList();
+                var query = applications.AsQueryable();
+
+                
+                if (!string.IsNullOrEmpty(request.UserId) && int.TryParse(request.UserId, out var id))
                 {
-                    if (int.TryParse(request.UserId, out var id))
-                    {
-                        query = query.Where(a => a.CreatedBy == id);
-                    }
+                    query = query.Where(a => a.CreatedBy == id);
                 }
-                if(request.Status>0)
+
+               
+                if (request.Status > 0)
                 {
-                    query= query.Where(a => a.Status== request.Status);
+                    query = query.Where(a => a.Status == request.Status);
                 }
+
+                
+                if (!string.IsNullOrEmpty(request.SearchText))
+                {
+                    query = query.Where(a =>
+                        _benchRepository.GetBenchResponseListByIdAsync(a.ResourceId)
+                            .Result.Any(r =>
+                                (!string.IsNullOrEmpty(r.FirstName) && r.FirstName.Contains(request.SearchText)) ||
+                                (!string.IsNullOrEmpty(r.LastName) && r.LastName.Contains(request.SearchText))
+                            )
+                    );
+                }
+
+                
                 var totalCount = query.Count();
                 var totalPages = (int)Math.Ceiling((double)totalCount / request.PageSize);
                 var pagedResults = query.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize);
-                foreach(var data in query)
+
+                
+                foreach (var data in pagedResults)
                 {
-                    var requirementData = await _requirementsRepository.GetRequirementByIdAsync(data.RequirementId);
-                    if (requirementData != null )
+                    ApplicantsSearchResponse searchResponse = new ApplicantsSearchResponse
                     {
-                        var odata = requirementData.FirstOrDefault();
+                        Status = data.Status,
+                        StatusName = GetEnumDescription((ApplyStatus)data.Status),
+                        ApplicationDate = data.CreatedOn
+                    };
+
+                   
+                    var requirementData = await _requirementsRepository.GetRequirementByIdAsync(data.RequirementId);
+                    if (requirementData?.FirstOrDefault() is { } odata)
+                    {
                         var orgData = await _organizationRepository.GetOrganizationData(odata.OrgCode);
+                        if (orgData != null && !string.IsNullOrEmpty(request.ClientOrgName) && orgData.OrgName == request.ClientOrgName)
+                        {
+                            searchResponse.ClientOrgName = orgData.OrgName;
+                            searchResponse.ClientOrgLogo = orgData.Logo;
+                        }
+
+                        searchResponse.Requirement = odata.Title;
                     }
+
+                   
+                    var resourceData = await _benchRepository.GetBenchResponseListByIdAsync(data.ResourceId);
+                    var resource = resourceData?.FirstOrDefault();
+                    if (resource != null)
+                    {
+                        searchResponse.FirstName = resource.FirstName;
+                        searchResponse.LastName = resource.LastName;
+                    }
+
+                    listSearchResponse.Add(searchResponse);
                 }
-                return null;
+
+                return new PaginationDto<ApplicantsSearchResponse>
+                {
+                    Count = totalCount,
+                    Page = request.Page,
+                    TotalPages = totalPages,
+                    List = listSearchResponse
+                };
             }
             catch (Exception ex)
             {
-                throw ex;
+                throw new Exception(ex.Message);
             }
         }
+
+
+
         public static string GetEnumDescription(Enum value)
         {
             FieldInfo field = value.GetType().GetField(value.ToString());
