@@ -181,28 +181,23 @@ namespace VendersCloud.Business.Service.Concrete
             {
                 List<ApplicantsSearchResponse> listSearchResponse = new List<ApplicantsSearchResponse>();
 
-                // Fetch applications
                 var applications = await _resourcesRepository.GetApplicationsList();
                 var query = applications.AsQueryable();
 
-                // Filter by UserId if provided
                 if (!string.IsNullOrEmpty(request.UserId) && int.TryParse(request.UserId, out var id))
                 {
                     query = query.Where(a => a.CreatedBy == id);
                 }
 
-                // Filter by Status if provided
-                if (request.Status > 0)
+                if (request.Status != null && request.Status.Any())
                 {
-                    query = query.Where(a => a.Status == request.Status);
+                    query = query.Where(a => request.Status.Contains(a.Status));
                 }
 
-                // Pre-fetch Bench data in one go
                 var resourceIds = query.Select(a => a.ResourceId).Distinct().ToList();
                 var benchDataList = await _benchRepository.GetBenchResponseListByIdAsync(resourceIds);
                 var benchData = benchDataList.GroupBy(r => r.Id).ToDictionary(g => g.Key, g => g.ToList());
 
-                // Apply search filter for FirstName or LastName
                 if (!string.IsNullOrEmpty(request.SearchText))
                 {
                     query = query.Where(a =>
@@ -214,12 +209,10 @@ namespace VendersCloud.Business.Service.Concrete
                     );
                 }
 
-                // Pagination
                 var totalCount = query.Count();
                 var totalPages = (int)Math.Ceiling((double)totalCount / request.PageSize);
                 var pagedResults = query.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToList();
 
-                // Fetch Requirement and Client details in bulk
                 var requirementIds = pagedResults.Select(a => a.RequirementId).Distinct().ToList();
                 var requirementsList = await _requirementsRepository.GetRequirementByIdAsync(requirementIds);
                 var requirementsData = requirementsList.ToDictionary(r => r.Id, r => r);
@@ -228,7 +221,6 @@ namespace VendersCloud.Business.Service.Concrete
                 var clientsList = await _clientsRepository.GetClientsByClientCodeListAsync(clientCodes);
                 var clientsData = clientsList.ToDictionary(c => c.ClientCode, c => c);
 
-                // Process results
                 foreach (var data in pagedResults)
                 {
                     var searchResponse = new ApplicantsSearchResponse
@@ -238,14 +230,13 @@ namespace VendersCloud.Business.Service.Concrete
                         ApplicationDate = data.CreatedOn
                     };
 
-                    // Fetch Requirement & Client Data
                     if (requirementsData.TryGetValue(data.RequirementId, out var requirement))
                     {
                         searchResponse.Requirement = requirement.Title;
 
                         if (clientsData.TryGetValue(requirement.ClientCode, out var client))
                         {
-                            if (string.IsNullOrEmpty(request.ClientOrgName) || client.ClientName == request.ClientOrgName)
+                            if (request.ClientOrgName == null || !request.ClientOrgName.Any() || request.ClientOrgName.Contains(client.ClientName))
                             {
                                 searchResponse.ClientOrgName = client.ClientName;
                                 searchResponse.ClientOrgLogo = client.LogoURL;
@@ -253,13 +244,11 @@ namespace VendersCloud.Business.Service.Concrete
                         }
                     }
 
-                    // Skip if ClientOrgName and Logo are missing
                     if (searchResponse.ClientOrgName == null && searchResponse.ClientOrgLogo == null)
                     {
                         continue;
                     }
 
-                    // Fetch Resource (Bench) Data
                     if (benchData.TryGetValue(data.ResourceId, out var resourceList))
                     {
                         var resource = resourceList.FirstOrDefault();
@@ -273,7 +262,6 @@ namespace VendersCloud.Business.Service.Concrete
                     listSearchResponse.Add(searchResponse);
                 }
 
-                // Return paginated results
                 return new PaginationDto<ApplicantsSearchResponse>
                 {
                     Count = totalCount,
@@ -287,6 +275,7 @@ namespace VendersCloud.Business.Service.Concrete
                 throw new Exception($"Error fetching applicants: {ex.Message}", ex);
             }
         }
+
 
 
 
