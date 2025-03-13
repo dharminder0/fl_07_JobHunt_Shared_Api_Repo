@@ -9,5 +9,6 @@
         Task<bool> DeleteClientsByIdAsync(string orgCode, int id, string clientName);
         Task<Clients> GetClientsByClientCodeAsync(string clientCode);
         Task<PaginationDto<ClientsResponse>> GetClientsListAsync(ClientsSearchRequest request);
+        Task<List<Clients>> GetClientsByClientCodeListAsync(List<string> orgCode);
     }
 }

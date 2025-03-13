@@ -181,89 +181,99 @@ namespace VendersCloud.Business.Service.Concrete
             {
                 List<ApplicantsSearchResponse> listSearchResponse = new List<ApplicantsSearchResponse>();
 
-               
+                // Fetch applications
                 var applications = await _resourcesRepository.GetApplicationsList();
                 var query = applications.AsQueryable();
 
-                
+                // Filter by UserId if provided
                 if (!string.IsNullOrEmpty(request.UserId) && int.TryParse(request.UserId, out var id))
                 {
                     query = query.Where(a => a.CreatedBy == id);
                 }
 
-               
+                // Filter by Status if provided
                 if (request.Status > 0)
                 {
                     query = query.Where(a => a.Status == request.Status);
                 }
 
-                
+                // Pre-fetch Bench data in one go
+                var resourceIds = query.Select(a => a.ResourceId).Distinct().ToList();
+                var benchDataList = await _benchRepository.GetBenchResponseListByIdAsync(resourceIds);
+                var benchData = benchDataList.GroupBy(r => r.Id).ToDictionary(g => g.Key, g => g.ToList());
+
+                // Apply search filter for FirstName or LastName
                 if (!string.IsNullOrEmpty(request.SearchText))
                 {
                     query = query.Where(a =>
-                        _benchRepository.GetBenchResponseListByIdAsync(a.ResourceId)
-                            .Result.Any(r =>
-                                (!string.IsNullOrEmpty(r.FirstName) && r.FirstName.Contains(request.SearchText)) ||
-                                (!string.IsNullOrEmpty(r.LastName) && r.LastName.Contains(request.SearchText))
-                            )
+                        benchData.ContainsKey(a.ResourceId) &&
+                        benchData[a.ResourceId].Any(r =>
+                            (!string.IsNullOrEmpty(r.FirstName) && r.FirstName.Contains(request.SearchText, StringComparison.OrdinalIgnoreCase)) ||
+                            (!string.IsNullOrEmpty(r.LastName) && r.LastName.Contains(request.SearchText, StringComparison.OrdinalIgnoreCase))
+                        )
                     );
                 }
 
-                
+                // Pagination
                 var totalCount = query.Count();
                 var totalPages = (int)Math.Ceiling((double)totalCount / request.PageSize);
-                var pagedResults = query.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize);
+                var pagedResults = query.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToList();
 
-                
+                // Fetch Requirement and Client details in bulk
+                var requirementIds = pagedResults.Select(a => a.RequirementId).Distinct().ToList();
+                var requirementsList = await _requirementsRepository.GetRequirementByIdAsync(requirementIds);
+                var requirementsData = requirementsList.ToDictionary(r => r.Id, r => r);
+
+                var clientCodes = requirementsList.Select(r => r.ClientCode).Distinct().ToList();
+                var clientsList = await _clientsRepository.GetClientsByClientCodeListAsync(clientCodes);
+                var clientsData = clientsList.ToDictionary(c => c.ClientCode, c => c);
+
+                // Process results
                 foreach (var data in pagedResults)
                 {
-                    ApplicantsSearchResponse searchResponse = new ApplicantsSearchResponse
+                    var searchResponse = new ApplicantsSearchResponse
                     {
                         Status = data.Status,
                         StatusName = GetEnumDescription((ApplyStatus)data.Status),
                         ApplicationDate = data.CreatedOn
                     };
 
-                   
-                    var requirementData = await _requirementsRepository.GetRequirementByIdAsync(data.RequirementId);
-                    if (requirementData?.FirstOrDefault() is { } odata)
+                    // Fetch Requirement & Client Data
+                    if (requirementsData.TryGetValue(data.RequirementId, out var requirement))
                     {
-                        var orgData = await _clientsRepository.GetClientsByClientCodeAsync(odata.ClientCode);
-                        if (orgData != null && !string.IsNullOrEmpty(request.ClientOrgName) && orgData.ClientName == request.ClientOrgName)
-                        {
-                            searchResponse.ClientOrgName = orgData.ClientName;
-                            searchResponse.ClientOrgLogo = orgData.LogoURL;
-                        }
-                        if(orgData != null && string.IsNullOrEmpty(request.ClientOrgName))
-                        {
-                            searchResponse.ClientOrgName = orgData.ClientName;
-                            searchResponse.ClientOrgLogo = orgData.LogoURL;
-                        }
+                        searchResponse.Requirement = requirement.Title;
 
-                        searchResponse.Requirement = odata.Title;
-                    }
-                    if(searchResponse.ClientOrgName==null && searchResponse.ClientOrgLogo == null)
-                    {
-                        return new PaginationDto<ApplicantsSearchResponse>
+                        if (clientsData.TryGetValue(requirement.ClientCode, out var client))
                         {
-                            Count = totalCount,
-                            Page = request.Page,
-                            TotalPages = totalPages,
-                            List = new List<ApplicantsSearchResponse>()
-                        };
+                            if (string.IsNullOrEmpty(request.ClientOrgName) || client.ClientName == request.ClientOrgName)
+                            {
+                                searchResponse.ClientOrgName = client.ClientName;
+                                searchResponse.ClientOrgLogo = client.LogoURL;
+                            }
+                        }
                     }
 
-                        var resourceData = await _benchRepository.GetBenchResponseListByIdAsync(data.ResourceId);
-                    var resource = resourceData?.FirstOrDefault();
-                    if (resource != null)
+                    // Skip if ClientOrgName and Logo are missing
+                    if (searchResponse.ClientOrgName == null && searchResponse.ClientOrgLogo == null)
                     {
-                        searchResponse.FirstName = resource.FirstName;
-                        searchResponse.LastName = resource.LastName;
+                        continue;
+                    }
+
+                    // Fetch Resource (Bench) Data
+                    if (benchData.TryGetValue(data.ResourceId, out var resourceList))
+                    {
+                        var resource = resourceList.FirstOrDefault();
+                        if (resource != null)
+                        {
+                            searchResponse.FirstName = resource.FirstName;
+                            searchResponse.LastName = resource.LastName;
+                        }
                     }
 
                     listSearchResponse.Add(searchResponse);
                 }
-                
+
+                // Return paginated results
                 return new PaginationDto<ApplicantsSearchResponse>
                 {
                     Count = totalCount,
@@ -274,9 +284,10 @@ namespace VendersCloud.Business.Service.Concrete
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                throw new Exception($"Error fetching applicants: {ex.Message}", ex);
             }
         }
+
 
 
 

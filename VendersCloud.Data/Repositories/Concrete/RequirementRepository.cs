@@ -195,11 +195,11 @@
            
         }
 
-        public async Task<IEnumerable<Requirement>> GetRequirementByIdAsync(int requirementId)
+        public async Task<IEnumerable<Requirement>> GetRequirementByIdAsync(List<int> requirementId)
         {
 
             var dbInstance = GetDbInstance();
-            var sql = "SELECT * FROM Requirement Where IsDeleted<>1 and Id=@requirementId";
+            var sql = "SELECT * FROM Requirement Where IsDeleted<>1 and Id In @requirementId";
 
             var data = dbInstance.Select<Requirement>(sql, new { requirementId });
             return data;
