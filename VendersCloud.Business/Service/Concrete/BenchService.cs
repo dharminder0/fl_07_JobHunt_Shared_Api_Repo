@@ -10,12 +10,14 @@ namespace VendersCloud.Business.Service.Concrete
         private readonly IResourcesRepository _resourcesRepository;
         private readonly IRequirementRepository _requirementsRepository;
         private readonly IOrganizationRepository _organizationRepository;
-        public BenchService(IBenchRepository benchRepository, IResourcesRepository resourcesRepository, IRequirementRepository requirementsRepository, IOrganizationRepository organizationRepository)
+        private readonly IClientsRepository _clientsRepository;
+        public BenchService(IBenchRepository benchRepository, IResourcesRepository resourcesRepository, IRequirementRepository requirementsRepository, IOrganizationRepository organizationRepository, IClientsRepository clientsRepository)
         {
             _benchRepository = benchRepository;
             _resourcesRepository = resourcesRepository;
             _requirementsRepository = requirementsRepository;
             _organizationRepository = organizationRepository;
+            _clientsRepository = clientsRepository;
         }
 
         public async Task<ActionMessageResponse> UpsertBenchAsync(BenchRequest benchRequest)
@@ -226,18 +228,32 @@ namespace VendersCloud.Business.Service.Concrete
                     var requirementData = await _requirementsRepository.GetRequirementByIdAsync(data.RequirementId);
                     if (requirementData?.FirstOrDefault() is { } odata)
                     {
-                        var orgData = await _organizationRepository.GetOrganizationData(odata.OrgCode);
-                        if (orgData != null && !string.IsNullOrEmpty(request.ClientOrgName) && orgData.OrgName == request.ClientOrgName)
+                        var orgData = await _clientsRepository.GetClientsByClientCodeAsync(odata.ClientCode);
+                        if (orgData != null && !string.IsNullOrEmpty(request.ClientOrgName) && orgData.ClientName == request.ClientOrgName)
                         {
-                            searchResponse.ClientOrgName = orgData.OrgName;
-                            searchResponse.ClientOrgLogo = orgData.Logo;
+                            searchResponse.ClientOrgName = orgData.ClientName;
+                            searchResponse.ClientOrgLogo = orgData.LogoURL;
+                        }
+                        if(orgData != null && string.IsNullOrEmpty(request.ClientOrgName))
+                        {
+                            searchResponse.ClientOrgName = orgData.ClientName;
+                            searchResponse.ClientOrgLogo = orgData.LogoURL;
                         }
 
                         searchResponse.Requirement = odata.Title;
                     }
+                    if(searchResponse.ClientOrgName==null && searchResponse.ClientOrgLogo == null)
+                    {
+                        return new PaginationDto<ApplicantsSearchResponse>
+                        {
+                            Count = totalCount,
+                            Page = request.Page,
+                            TotalPages = totalPages,
+                            List = new List<ApplicantsSearchResponse>()
+                        };
+                    }
 
-                   
-                    var resourceData = await _benchRepository.GetBenchResponseListByIdAsync(data.ResourceId);
+                        var resourceData = await _benchRepository.GetBenchResponseListByIdAsync(data.ResourceId);
                     var resource = resourceData?.FirstOrDefault();
                     if (resource != null)
                     {
@@ -247,7 +263,7 @@ namespace VendersCloud.Business.Service.Concrete
 
                     listSearchResponse.Add(searchResponse);
                 }
-
+                
                 return new PaginationDto<ApplicantsSearchResponse>
                 {
                     Count = totalCount,
