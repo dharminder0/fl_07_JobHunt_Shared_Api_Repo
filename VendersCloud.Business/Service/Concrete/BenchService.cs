@@ -1,7 +1,6 @@
-﻿using Microsoft.AspNetCore.Identity.Data;
-using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Reflection;
+using VendersCloud.Business.Entities.DataModels;
 
 namespace VendersCloud.Business.Service.Concrete
 {
@@ -9,17 +8,21 @@ namespace VendersCloud.Business.Service.Concrete
     {
         private readonly IBenchRepository _benchRepository;
         private readonly IResourcesRepository _resourcesRepository;
-        public BenchService(IBenchRepository benchRepository, IResourcesRepository resourcesRepository)
+        private readonly IRequirementRepository _requirementsRepository;
+        private readonly IOrganizationRepository _organizationRepository;
+        public BenchService(IBenchRepository benchRepository, IResourcesRepository resourcesRepository, IRequirementRepository requirementsRepository, IOrganizationRepository organizationRepository)
         {
             _benchRepository = benchRepository;
             _resourcesRepository = resourcesRepository;
+            _requirementsRepository = requirementsRepository;
+            _organizationRepository = organizationRepository;
         }
 
         public async Task<ActionMessageResponse> UpsertBenchAsync(BenchRequest benchRequest)
         {
             try
             {
-                if(string.IsNullOrEmpty(benchRequest.OrgCode)|| string.IsNullOrEmpty(benchRequest.FirstName)||string.IsNullOrEmpty(benchRequest.Email))
+                if (string.IsNullOrEmpty(benchRequest.OrgCode) || string.IsNullOrEmpty(benchRequest.FirstName) || string.IsNullOrEmpty(benchRequest.Email))
                 {
                     return new ActionMessageResponse()
                     {
@@ -28,8 +31,8 @@ namespace VendersCloud.Business.Service.Concrete
                         Content = ""
                     };
                 }
-                var res= await _benchRepository.UpsertBenchMembersAsync(benchRequest);
-                if(res)
+                var res = await _benchRepository.UpsertBenchMembersAsync(benchRequest);
+                if (res)
                     return new ActionMessageResponse()
                     {
                         Success = true,
@@ -43,7 +46,8 @@ namespace VendersCloud.Business.Service.Concrete
                     Content = ""
                 };
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 return new ActionMessageResponse()
                 {
                     Success = false,
@@ -63,7 +67,8 @@ namespace VendersCloud.Business.Service.Concrete
                 }
                 return await _benchRepository.GetBenchResponseListAsync(orgCode);
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 throw ex;
             }
         }
@@ -78,11 +83,12 @@ namespace VendersCloud.Business.Service.Concrete
             {
                 var response = await _benchRepository.GetBenchListBySearchAsync(request);
                 var totalRecords = response.Count;
-                var paginatedResponse= response.Skip((request.Page-1)* request.PageSize).Take(request.PageSize).ToList();
+                var paginatedResponse = response.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToList();
                 var BenchAvailability = new List<BenchResponse>();
                 foreach (var item in paginatedResponse)
                 {
-                    var benchresponse = new BenchResponse {
+                    var benchresponse = new BenchResponse
+                    {
                         Id = item.Id,
                         FirstName = item.FirstName,
                         LastName = item.LastName,
@@ -111,7 +117,8 @@ namespace VendersCloud.Business.Service.Concrete
                     List = BenchAvailability
                 };
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 throw ex;
             }
         }
@@ -120,7 +127,7 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-                if (request.ResourceId == null || !request.ResourceId.Any() || request.RequirementId <= 0)
+                if (request.ResourceId == null || !request.ResourceId.Any() || string.IsNullOrEmpty(request.RequirementUniqueId))
                 {
                     return new ActionMessageResponse()
                     {
@@ -129,9 +136,15 @@ namespace VendersCloud.Business.Service.Concrete
                         Content = ""
                     };
                 }
-
-             
-                var res = await _resourcesRepository.UpsertApplicants(request);
+                int Id = 0;
+                var requirementdata = await _requirementsRepository.GetRequirementListByIdAsync(request.RequirementUniqueId);
+                if (requirementdata != null) {
+                    foreach (var requirement in requirementdata)
+                    {
+                        Id = requirement.Id;
+                    }
+                }
+                var res = await _resourcesRepository.UpsertApplicants(request, Id);
                 if (res)
                 {
                     return new ActionMessageResponse()
@@ -157,6 +170,43 @@ namespace VendersCloud.Business.Service.Concrete
                     Message = $"An error occurred: {ex.Message}",
                     Content = ""
                 };
+            }
+        }
+
+        public async Task<PaginationDto<ApplicantsSearchResponse>> GetSearchApplicantsList(ApplicantsSearchRequest request)
+        {
+            try
+            {
+                var res = await _resourcesRepository.GetApplicationsList();
+                var query = res.AsQueryable();
+                if (!string.IsNullOrEmpty(request.UserId))
+                {
+                    if (int.TryParse(request.UserId, out var id))
+                    {
+                        query = query.Where(a => a.CreatedBy == id);
+                    }
+                }
+                if(request.Status>0)
+                {
+                    query= query.Where(a => a.Status== request.Status);
+                }
+                var totalCount = query.Count();
+                var totalPages = (int)Math.Ceiling((double)totalCount / request.PageSize);
+                var pagedResults = query.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize);
+                foreach(var data in query)
+                {
+                    var requirementData = await _requirementsRepository.GetRequirementByIdAsync(data.RequirementId);
+                    if (requirementData != null )
+                    {
+                        var odata = requirementData.FirstOrDefault();
+                        var orgData = await _organizationRepository.GetOrganizationData(odata.OrgCode);
+                    }
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
             }
         }
         public static string GetEnumDescription(Enum value)

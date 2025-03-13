@@ -7,5 +7,6 @@ namespace VendersCloud.Business.Service.Abstract
         Task<List<Resources>> GetBenchListAsync(string orgCode);
         Task<PaginationDto<BenchResponse>> GetBenchListBySearchAsync(BenchSearchRequest request);
         Task<ActionMessageResponse> UpsertApplicants(ApplicationsRequest request);
+        Task<PaginationDto<ApplicantsSearchResponse>> GetSearchApplicantsList(ApplicantsSearchRequest request);
     }
 }

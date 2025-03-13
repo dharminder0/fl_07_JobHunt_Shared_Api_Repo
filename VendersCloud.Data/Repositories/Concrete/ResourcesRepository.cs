@@ -7,7 +7,7 @@
         
         }
 
-        public async Task<bool> UpsertApplicants(ApplicationsRequest request)
+        public async Task<bool> UpsertApplicants(ApplicationsRequest request,int Id)
         {
             var dbInstance = GetDbInstance();
             var tableName = new Table<Applications>();
@@ -16,7 +16,7 @@
             {
                 var query = new Query(tableName.TableName)
                     .Where("ResourceId", item)
-                    .Where("RequirementId", request.RequirementId)
+                    .Where("RequirementId", Id)
                     .Select("Id");
 
                 var existingOrgCode = await dbInstance.ExecuteScalarAsync<string>(query);
@@ -27,7 +27,7 @@
                         new
                         {
                             ResourceId = item,
-                            RequirementId = request.RequirementId,
+                            RequirementId = Id,
                             Comment = request.Comment,
                             Status = request.Status,
                             UpdatedOn = DateTime.UtcNow,
@@ -42,7 +42,7 @@
                         new
                         {
                             ResourceId = item,
-                            RequirementId = request.RequirementId,
+                            RequirementId = Id,
                             Comment = request.Comment,
                             Status = request.Status,
                             CreatedOn = DateTime.UtcNow,
@@ -56,5 +56,13 @@
             return true;
         }
 
+        public async Task<List<Applications>> GetApplicationsList()
+        {
+            var dbInstance = GetDbInstance();
+            var sql = "SELECT * FROM Applications";
+
+            var applicationsData = dbInstance.Select<Applications>(sql).ToList();
+            return applicationsData;
+        }
     }
 }

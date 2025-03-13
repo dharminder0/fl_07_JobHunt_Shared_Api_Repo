@@ -47,18 +47,11 @@
 
         public async Task<List<OrgLocation>> GetOrgLocation(string orgCode)
         {
-            try
-            {
-                var dbInstance = GetDbInstance();
-                var sql = "SELECT * FROM OrgLocation Where OrgCode=@orgCode And IsDeleted='0'";
-
-                var orgdata = dbInstance.Select<OrgLocation>(sql, new {orgCode}).ToList();
-                return orgdata;
-            }
-            catch (Exception ex)
-            {
-                return new List<OrgLocation>();
-            }
+           var dbInstance = GetDbInstance();
+           var sql = "SELECT * FROM OrgLocation Where OrgCode=@orgCode And IsDeleted='0'";
+          
+           var orgdata = dbInstance.Select<OrgLocation>(sql, new {orgCode}).ToList();
+           return orgdata;
         }
 
         public async Task<bool> DeleteOrgLocationAsync(string orgCode)
