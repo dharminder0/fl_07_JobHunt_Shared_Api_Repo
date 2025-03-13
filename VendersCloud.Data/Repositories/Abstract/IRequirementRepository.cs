@@ -11,6 +11,6 @@
         Task<List<Requirement>> GetRequirementByOrgCodeAsync(string orgCode);
         Task<List<Requirement>> GetRequirementsListAsync(SearchRequirementRequest request);
         Task<List<Requirement>> GetRequirementsListByVisibilityAsync(SearchRequirementRequest request);
-        Task<IEnumerable<Requirement>> GetRequirementByIdAsync(int requirementId);
+        Task<IEnumerable<Requirement>> GetRequirementByIdAsync(List<int> requirementId);
     }
 }

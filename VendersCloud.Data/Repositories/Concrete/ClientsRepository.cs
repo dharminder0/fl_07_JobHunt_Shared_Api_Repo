@@ -116,7 +116,16 @@
             });
 
         }
+        public async Task<List<Clients>> GetClientsByClientCodeListAsync(List<string> orgCode)
+        {
 
+            var dbInstance = GetDbInstance();
+            var sql = "SELECT * FROM Clients Where ClientCode In @orgCode And isDeleted=0";
+
+            var clients = dbInstance.Select<Clients>(sql, new { orgCode }).ToList();
+            return clients;
+
+        }
         public async Task<PaginationDto<ClientsResponse>> GetClientsListAsync(ClientsSearchRequest request)
         {
             using var connection = GetConnection();

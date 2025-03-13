@@ -69,10 +69,10 @@
             return list;
         }
 
-        public async Task<IEnumerable<Resources>> GetBenchResponseListByIdAsync(int benchId)
+        public async Task<IEnumerable<Resources>> GetBenchResponseListByIdAsync(List<int> benchId)
         {
             var dbInstance = GetDbInstance();
-            var sql = "SELECT * FROM Resources Where IsDeleted<>1 and Id=@benchId";
+            var sql = "SELECT * FROM Resources Where IsDeleted<>1 and Id In @benchId";
 
             var list = dbInstance.Select<Resources>(sql, new { benchId }).ToList();
             return list;
