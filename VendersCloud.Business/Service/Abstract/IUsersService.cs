@@ -22,5 +22,6 @@ namespace VendersCloud.Business.Service.Abstract
         Task<ActionMessageResponse> AddOrganizationMemberAsync(AddMemberRequest request);
         Task<ActionMessageResponse> SetPasswordAsync(SetPasswordRequest request);
         Task<PaginationDto<UsersDto>> SearchMemberDetailsAsync(SearchMemberRequest request);
+        Task<ActionMessageResponse> ChangeEmailAsync(string oldEmail, string newEmail);
     }
 }

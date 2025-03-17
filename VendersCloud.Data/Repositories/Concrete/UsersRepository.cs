@@ -360,7 +360,23 @@
             };
         }
 
-
+        public async Task<bool> UpdateEmailAsync(string OldEmail, string NewEmail,string verificationOtp)
+        {
+            var dbInstance = GetDbInstance();
+            var tableName = new Table<Users>();
+            var update = new Query(tableName.TableName)
+                .AsUpdate(new
+                {
+                    Username = NewEmail,
+                    UpdatedOn = DateTime.UtcNow,
+                    VerificationToken= verificationOtp,
+                    IsVerified= false,
+                    IsDeleted = false
+                })
+                .Where("Username", OldEmail);
+            await dbInstance.ExecuteAsync(update);
+            return true;
+        }
     }
 
 }
