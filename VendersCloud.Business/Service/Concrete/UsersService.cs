@@ -1,4 +1,8 @@
-﻿namespace VendersCloud.Business.Service.Concrete
+﻿using Azure.Core;
+using Microsoft.AspNetCore.Mvc;
+using static System.Net.WebRequestMethods;
+
+namespace VendersCloud.Business.Service.Concrete
 {
     public class UsersService:IUsersService
     {
@@ -537,6 +541,58 @@
             }
         }
 
+        public async Task<ActionMessageResponse> ChangeEmailAsync(string oldEmail, string newEmail)
+        {
+            try
+            {
+                var verificationOtp = GenerateOTP();
+                if (string.IsNullOrWhiteSpace(oldEmail) || string.IsNullOrWhiteSpace(newEmail))
+                {
+                    throw new Exception("Enter Valid Input");
+                }
+                if(oldEmail.Equals(newEmail))
+                {
+                    throw new Exception("Email Can't be Same");
+                }
+                var userData = await _usersRepository.GetUserByEmailAsync(oldEmail);
+                if (userData != null)
+                {
+                    var res = await _usersRepository.UpdateEmailAsync(oldEmail, newEmail, verificationOtp);
+                    if(res)
+                    {
+                        await _communicationService.SendUserVerificationEmail(userData.FirstName, userData.LastName, newEmail, verificationOtp, userData.Token);
+                        return new ActionMessageResponse()
+                        {
+                            Success = true,
+                            Message = "Email is Updated!!",
+                            Content = ""
+                        };
+                    }
+                    return new ActionMessageResponse()
+                    {
+                        Success = false,
+                        Message = "Email is not Updated!!",
+                        Content = ""
+                    };
+                }
+                return new ActionMessageResponse()
+                {
+                    Success = false,
+                    Message = "Email not found!!",
+                    Content = ""
+                };
+
+            }
+            catch(Exception ex)
+            {
+                return new ActionMessageResponse()
+                {
+                    Success = false,
+                    Message = ex.Message,
+                    Content = ""
+                };
+            }
+        }
         public static string GenerateOTP()
         {
             var random = new Random();

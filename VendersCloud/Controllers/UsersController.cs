@@ -280,6 +280,24 @@
                 return BadRequest(ex.Message);
             }
         }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [HttpPost]
+        [Route("api/V1/users/ChangeEmail")]
+        public async Task<IActionResult> ChangeEmailAsync(string OldEmail, string NewEmail)
+        {
+            try
+            {
+                var result = await _userService.ChangeEmailAsync(OldEmail, NewEmail);
+                return Json(result);
+            }
+            catch (Exception ex) { 
+            return BadRequest(ex.Message);
+            }
+        }
     }
 }
  
