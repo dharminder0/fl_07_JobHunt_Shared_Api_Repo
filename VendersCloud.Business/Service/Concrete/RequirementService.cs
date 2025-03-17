@@ -1,14 +1,15 @@
-﻿
-namespace VendersCloud.Business.Service.Concrete
+﻿namespace VendersCloud.Business.Service.Concrete
 {
     public class RequirementService : IRequirementService
     {
         private readonly IRequirementRepository _requirementRepository;
         private readonly IClientsRepository _clientsRepository;
-        public RequirementService(IRequirementRepository requirementRepository, IClientsRepository clientsRepository)
+        private readonly IResourcesRepository _resourcesRepository;
+        public RequirementService(IRequirementRepository requirementRepository, IClientsRepository clientsRepository,IResourcesRepository resourcesRepository)
         {
             _requirementRepository = requirementRepository;
             _clientsRepository = clientsRepository;
+            _resourcesRepository = resourcesRepository;
         }
 
         public async Task<ActionMessageResponse> RequirmentUpsertAsync(RequirementRequest request)
@@ -327,5 +328,32 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
+        public async Task<int> GetTotalApplicantsAsync(TotalApplicantsRequest request)
+        {
+            try
+            {
+                int requirementId=0;
+                if(request == null|| string.IsNullOrEmpty(request.RequirementUniqueId))
+                {
+                    throw new Exception("Enter Valid Inputs");
+                }
+                var requiementData = await _requirementRepository.GetRequirementListByIdAsync(request.RequirementUniqueId);
+                if (requiementData != null)
+                {
+                    foreach (var item in requiementData)
+                    {
+                        requirementId=item.Id;
+                    }
+                }
+                var applicantData = await _resourcesRepository.GetApplicationsPerRequirementIdAsync(requirementId, request.Status);
+                var totalApplicants = applicantData.Count;
+                return totalApplicants;
+
+            }
+            catch(Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
     }
 }

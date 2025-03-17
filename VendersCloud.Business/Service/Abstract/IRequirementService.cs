@@ -1,9 +1,4 @@
-﻿using VendersCloud.Business.Entities.DataModels;
-using VendersCloud.Business.Entities.Dtos;
-using VendersCloud.Business.Entities.RequestModels;
-using VendersCloud.Business.Entities.ResponseModels;
-
-namespace VendersCloud.Business.Service.Abstract
+﻿namespace VendersCloud.Business.Service.Abstract
 {
     public interface IRequirementService
     {
@@ -14,5 +9,6 @@ namespace VendersCloud.Business.Service.Abstract
         Task<ActionMessageResponse> UpdateStatusByIdAsync(int requirementId, int status);
         Task<List<RequirementResponse>> GetRequirementByOrgCodeAsync(string orgCode);
         Task<PaginationDto<RequirementResponse>> SearchRequirementAsync(SearchRequirementRequest request);
+        Task<int> GetTotalApplicantsAsync(TotalApplicantsRequest request);
     }
 }

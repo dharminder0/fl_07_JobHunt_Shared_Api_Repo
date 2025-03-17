@@ -64,5 +64,17 @@
             var applicationsData = dbInstance.Select<Applications>(sql).ToList();
             return applicationsData;
         }
+
+        public async Task<List<int>> GetApplicationsPerRequirementIdAsync(int requirementId, int status)
+        {
+            var dbInstance = GetDbInstance();
+            var sql = "SELECT ResourceId FROM Applications where RequirementId=@requirementId and Status=@status";
+
+            var applicationsData = dbInstance.Select<int>(sql, new
+            {
+                requirementId,status
+            }).ToList();
+            return applicationsData;
+        }
     }
 }

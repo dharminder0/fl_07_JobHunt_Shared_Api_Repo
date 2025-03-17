@@ -4,5 +4,6 @@
     {
         Task<bool> UpsertApplicants(ApplicationsRequest request, int Id);
         Task<List<Applications>> GetApplicationsList();
+        Task<List<int>> GetApplicationsPerRequirementIdAsync(int requirementId, int status);
     }
 }
