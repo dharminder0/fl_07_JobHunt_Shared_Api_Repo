@@ -241,6 +241,7 @@ namespace VendersCloud.Business.Service.Concrete
                             {
                                 searchResponse.ClientOrgName = client.ClientName;
                                 searchResponse.ClientOrgLogo = client.LogoURL;
+                                searchResponse.ClientCode = requirement.ClientCode;
                             }
                         }
                     }

@@ -13,5 +13,6 @@
         public string CV { get; set; }
         public string ClientOrgLogo {  get; set; }
         public string ClientOrgName { get; set; }
+        public string ClientCode { get; set; }
     }
 }
