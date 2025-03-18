@@ -76,5 +76,18 @@
             }).ToList();
             return applicationsData;
         }
+
+        public async Task<int> GetTotalApplicationsPerRequirementIdAsync(int requirementId)
+        {
+            var dbInstance = GetDbInstance();
+            var sql = "SELECT COUNT(ResourceId) FROM Applications WHERE RequirementId = @requirementId";
+
+            var applicationsCount =  Query<int>(sql, new
+            {
+                requirementId
+            }).FirstOrDefault();
+            return applicationsCount;
+        }
+
     }
 }

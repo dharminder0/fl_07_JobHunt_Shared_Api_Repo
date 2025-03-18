@@ -266,16 +266,21 @@
                 {
                     throw new Exception("OrgCode is Mandatory!! ");
                 }
-
+                int place,Applicants = 0;
                 var requirements = await _requirementRepository.GetRequirementsListAsync(request);
                 var visibleRequirements = await _requirementRepository.GetRequirementsListByVisibilityAsync(request);
                 var allRequirements = requirements.Concat(visibleRequirements).ToList();
                 var totalRecords = allRequirements.Count;
                 var paginatedRequirements = allRequirements.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToList();
-
+                TotalApplicantsRequest ApplicantSearch= new TotalApplicantsRequest();
+                
                 var requirementsResponseList = new List<RequirementResponse>();
                 foreach (var r in paginatedRequirements)
                 {
+                    ApplicantSearch.RequirementUniqueId = r.UniqueId;
+                    ApplicantSearch.Status = 8;
+                    Applicants = await _resourcesRepository.GetTotalApplicationsPerRequirementIdAsync(r.Id);
+                    place = await GetTotalApplicantsAsync(ApplicantSearch);
                     var requirementResponse = new RequirementResponse
                     {
                         Id = r.Id,
@@ -295,6 +300,8 @@
                         VisibilityName = System.Enum.GetName(typeof(Visibility), r.Visibility),
                         Hot = r.Hot,
                         Status = r.Status,
+                        Placed = place,
+                        Applicants= Applicants,
                         StatusName = System.Enum.GetName(typeof(RequirementsStatus), r.Status),
                         CreatedOn = r.CreatedOn,
                         UpdatedOn = r.UpdatedOn,
