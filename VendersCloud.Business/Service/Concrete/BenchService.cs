@@ -233,7 +233,8 @@ namespace VendersCloud.Business.Service.Concrete
                     if (requirementsData.TryGetValue(data.RequirementId, out var requirement))
                     {
                         searchResponse.Requirement = requirement.Title;
-
+                        searchResponse.Id = requirement.Id;
+                        searchResponse.UniqueId = requirement.UniqueId;
                         if (clientsData.TryGetValue(requirement.ClientCode, out var client))
                         {
                             if (request.ClientOrgName == null || !request.ClientOrgName.Any() || request.ClientOrgName.Contains(client.ClientName))

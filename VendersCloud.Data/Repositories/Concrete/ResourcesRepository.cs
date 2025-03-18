@@ -77,6 +77,17 @@
             return applicationsData;
         }
 
+        public async Task<List<Applications>> GetApplicationsPerRequirementIdAsync(int requirementId)
+        {
+            var dbInstance = GetDbInstance();
+            var sql = "SELECT * FROM Applications where RequirementId=@requirementId";
+
+            var applicationsData = dbInstance.Select<Applications>(sql, new
+            {
+                requirementId
+            }).ToList();
+            return applicationsData;
+        }
         public async Task<int> GetTotalApplicationsPerRequirementIdAsync(int requirementId)
         {
             var dbInstance = GetDbInstance();
