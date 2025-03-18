@@ -161,23 +161,24 @@
             }
         }
 
-        //[ProducesResponseType(StatusCodes.Status200OK)]
-        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
-        //[ProducesResponseType(StatusCodes.Status404NotFound)]
-        //[ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        //[HttpGet]
-        //[Route("api/V1/Requirement/Get/Applicants")]
-        //public async Task<IActionResult> GetApplicantsListByRequirementIdAsync(string requirementUniqueId)
-        //{
-        //    try
-        //    {
-        //        var result= await _requirementService.
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return BadRequest(ex.Message);
-        //    }
-        //}
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [HttpGet]
+        [Route("api/V1/Requirement/Get/Applicants")]
+        public async Task<IActionResult> GetApplicantsListByRequirementIdAsync(string requirementUniqueId)
+        {
+            try
+            {
+                var result = await _requirementService.GetApplicantsListByRequirementIdAsync(requirementUniqueId);
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }
 

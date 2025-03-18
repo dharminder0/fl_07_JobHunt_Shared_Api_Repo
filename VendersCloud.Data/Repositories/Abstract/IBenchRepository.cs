@@ -6,5 +6,6 @@
         Task<List<Resources>> GetBenchResponseListAsync(string orgCode);
         Task<List<Resources>> GetBenchListBySearchAsync(BenchSearchRequest request);
         Task<IEnumerable<Resources>> GetBenchResponseListByIdAsync(List<int> benchId);
+        Task<IEnumerable<Resources>> GetBenchResponseByIdAsync(int benchId);
     }
 }

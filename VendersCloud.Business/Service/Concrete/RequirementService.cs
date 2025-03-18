@@ -1,15 +1,21 @@
-﻿namespace VendersCloud.Business.Service.Concrete
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
+using VendersCloud.Business.Entities.DataModels;
+
+namespace VendersCloud.Business.Service.Concrete
 {
     public class RequirementService : IRequirementService
     {
         private readonly IRequirementRepository _requirementRepository;
         private readonly IClientsRepository _clientsRepository;
         private readonly IResourcesRepository _resourcesRepository;
-        public RequirementService(IRequirementRepository requirementRepository, IClientsRepository clientsRepository,IResourcesRepository resourcesRepository)
+        private readonly IBenchRepository _benchRepository;
+        public RequirementService(IRequirementRepository requirementRepository, IClientsRepository clientsRepository,IResourcesRepository resourcesRepository,IBenchRepository benchRepository)
         {
             _requirementRepository = requirementRepository;
             _clientsRepository = clientsRepository;
             _resourcesRepository = resourcesRepository;
+            _benchRepository = benchRepository;
         }
 
         public async Task<ActionMessageResponse> RequirmentUpsertAsync(RequirementRequest request)
@@ -362,5 +368,59 @@
                 throw new Exception(ex.Message);
             }
         }
+
+        public async Task<List<ApplicationListResponse>> GetApplicantsListByRequirementIdAsync(string requirementUniqueId)
+        {
+            if (string.IsNullOrEmpty(requirementUniqueId))
+            {
+                throw new ArgumentException("Requirement ID cannot be null or empty");
+            }
+
+            var listResponse = new List<ApplicationListResponse>();
+
+            try
+            {
+                var requirementData = await _requirementRepository.GetRequirementListByIdAsync(requirementUniqueId);
+                if (requirementData == null)
+                {
+                    return listResponse;
+                }
+
+                foreach (var requirementItem in requirementData)
+                {
+                    var applicationData = await _resourcesRepository.GetApplicationsPerRequirementIdAsync(requirementItem.Id);
+                    if (applicationData == null) continue;
+
+                    foreach (var applicationItem in applicationData)
+                    {
+                        var applicationResponse = new ApplicationListResponse
+                        {
+                            Title = requirementItem.Title,
+                            RequirementId = requirementItem.Id,
+                            Status = applicationItem.Status,
+                            StatusName = System.Enum.GetName(typeof(ApplyStatus), applicationItem.Status),
+                            ApplicationDate= applicationItem.CreatedOn
+                        };
+
+                        var benchData = await _benchRepository.GetBenchResponseByIdAsync(applicationItem.ResourceId);
+                        if (benchData != null && benchData.Any())
+                        {
+                            var benchMember = benchData.First();
+                            applicationResponse.FirstName = benchMember.FirstName;
+                            applicationResponse.LastName = benchMember.LastName;
+                        }
+
+                        listResponse.Add(applicationResponse);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+
+            return listResponse;
+        }
+
     }
 }
