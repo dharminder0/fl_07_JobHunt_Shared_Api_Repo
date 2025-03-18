@@ -19,6 +19,8 @@
         public string Remarks { get; set; }
         public int Visibility { get; set; }
         public string VisibilityName { get; set; }
+        public int Placed {  get; set; }
+        public int Applicants { get; set; }
         public bool Hot { get; set; }
         public int Status { get; set; }
         public string StatusName { get; set; }
