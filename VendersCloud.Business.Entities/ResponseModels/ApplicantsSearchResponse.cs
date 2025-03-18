@@ -2,6 +2,8 @@
 {
     public class ApplicantsSearchResponse
     {
+        public int Id { get; set; }
+        public string UniqueId {  get; set; }
         public string FirstName {  get; set; }
         public string LastName { get; set; }
         public string Requirement {  get; set; }

@@ -6,5 +6,6 @@
         Task<List<Applications>> GetApplicationsList();
         Task<List<int>> GetApplicationsPerRequirementIdAsync(int requirementId, int status);
         Task<int> GetTotalApplicationsPerRequirementIdAsync(int requirementId);
+        Task<List<Applications>> GetApplicationsPerRequirementIdAsync(int requirementId);
     }
 }
