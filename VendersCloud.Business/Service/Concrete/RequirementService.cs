@@ -1,4 +1,7 @@
-﻿using VendersCloud.Business.Entities.DataModels;
+﻿using System.ComponentModel;
+using System.Reflection;
+using VendersCloud.Business.Entities.DataModels;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace VendersCloud.Business.Service.Concrete
 {
@@ -8,14 +11,16 @@ namespace VendersCloud.Business.Service.Concrete
         private readonly IClientsRepository _clientsRepository;
         private readonly IResourcesRepository _resourcesRepository;
         private readonly IBenchRepository _benchRepository;
-        private readonly IUsersRepository _usersRepository; 
-        public RequirementService(IRequirementRepository requirementRepository, IClientsRepository clientsRepository,IResourcesRepository resourcesRepository,IBenchRepository benchRepository,IUsersRepository usersRepository)
+        private readonly IUsersRepository _usersRepository;
+        private readonly IOrganizationRepository _organizationRepository;
+        public RequirementService(IRequirementRepository requirementRepository, IClientsRepository clientsRepository,IResourcesRepository resourcesRepository,IBenchRepository benchRepository,IUsersRepository usersRepository,IOrganizationRepository organizationRepository)
         {
             _requirementRepository = requirementRepository;
             _clientsRepository = clientsRepository;
             _resourcesRepository = resourcesRepository;
             _benchRepository = benchRepository;
             _usersRepository = usersRepository;
+            _organizationRepository = organizationRepository;
         }
 
         public async Task<ActionMessageResponse> RequirmentUpsertAsync(RequirementRequest request)
@@ -428,60 +433,106 @@ namespace VendersCloud.Business.Service.Concrete
             {
                 if (request == null || string.IsNullOrEmpty(request.OrgCode))
                 {
-                    throw new ArgumentNullException("Enter Valid Input!!");
+                    throw new ArgumentNullException(nameof(request), "Enter Valid Input!!");
                 }
 
                 List<CompanyRequirementResponse> listResponse = new List<CompanyRequirementResponse>();
+
                 var userData = await _usersRepository.GetUserByOrgCodeAsync(request.OrgCode);
-
-                if (userData != null)
+                if (userData == null || !userData.Any())
                 {
-                    List<int> userIds = userData.Select(user => user.Id).ToList();
-                    var requirementData = await _requirementRepository.GetRequirementByUserIdAsync(userIds);
+                    return new PaginationDto<CompanyRequirementResponse> { Count = 0, Page = request.Page, TotalPages = 0, List = new List<CompanyRequirementResponse>() };
+                }
 
-                    if (requirementData != null)
+                List<int> userIds = userData.Select(user => user.Id).ToList();
+                var orgData = await _organizationRepository.GetOrganizationData(request.OrgCode);
+                
+                var requirementData = await _requirementRepository.GetRequirementByUserIdAsync(userIds);
+
+                if (requirementData != null && requirementData.Any())
+                {
+                    var filteredRequirements = requirementData
+                        .Where(item =>
+                            (request.Client == null || !request.Client.Any() || request.Client.Contains(item.ClientCode)) &&
+                            (request.Status == null || !request.Status.Any() || request.Status.Contains(item.Status))
+                        )
+                        .ToList();
+
+                    foreach (var item in filteredRequirements)
                     {
-                        foreach (var item in requirementData)
+                        var requirementResponse = new CompanyRequirementResponse
                         {
-                            // Apply filters
-                            if (request.Client != null && request.Client.Any() && !request.Client.Contains(item.ClientCode))
-                                continue;
-                            if (request.Status != null && request.Status.Any() && !request.Status.Contains(item.Status))
-                                continue;
-                            if (request.Resources != null && request.Resources.Any() && !request.Resources.Contains(item.LocationType))
-                                continue;
+                            RequirementId = item.Id,
+                            Role = item.Title,
+                            ClientCode = item.ClientCode,
+                            Position = item.Positions,
+                            ApplicationDate = item.CreatedOn,
+                            OrgName = orgData.OrgName
+                        };
 
-                            var requirementResponse = new CompanyRequirementResponse
-                            {
-                                RequirementId = item.Id,
-                                Role = item.Title,
-                                ClientCode = item.ClientCode,
-                                Position = item.Positions,
-                                Status = item.Status,
-                                StatusName = System.Enum.GetName(typeof(RequirementsStatus), item.Status),
-                                Resources = item.LocationType,
-                                ResourcesName = System.Enum.GetName(typeof(LocationType), item.LocationType),
-                                DatePosted = item.CreatedOn
-                            };
+                        var applicants = await _resourcesRepository.GetApplicationsPerRequirementIdAsync(requirementResponse.RequirementId, 8);
+                        
 
-                            var applicants = await _resourcesRepository.GetApplicationsPerRequirementIdAsync(requirementResponse.RequirementId, 8);
-                            requirementResponse.Placed = applicants.Count;
-                            requirementResponse.Applicants = await _resourcesRepository.GetTotalApplicationsPerRequirementIdAsync(requirementResponse.RequirementId);
+                        requirementResponse.Placed = applicants.Count;
 
-                            var clientData = await _clientsRepository.GetClientsByClientCodeAsync(requirementResponse.ClientCode);
-                            if (clientData != null)
-                            {
-                                requirementResponse.ClientName = clientData.ClientName;
-                                requirementResponse.ClientLogo = clientData.LogoURL;
-                            }
+                        var allApplications = await _resourcesRepository.GetApplicationsPerRequirementIdAsync(requirementResponse.RequirementId);
 
-                            listResponse.Add(requirementResponse);
+                        if (allApplications == null || !allApplications.Any())
+                        {
+                            continue; // Skip to next iteration if no applications exist
                         }
+
+                        var firstApplication = allApplications.FirstOrDefault();
+                        if (firstApplication != null)
+                        {
+                            requirementResponse.Status = firstApplication.Status;
+                            requirementResponse.StatusName = GetEnumDescription((ApplyStatus)firstApplication.Status);
+
+                            var benchData = await _benchRepository.GetBenchResponseByIdAsync(firstApplication.ResourceId);
+                            var candidateDetails = benchData?.FirstOrDefault();
+
+                            if (candidateDetails != null)
+                            {
+                                requirementResponse.FirstName = candidateDetails.FirstName;
+                                requirementResponse.LastName = candidateDetails.LastName;
+                                requirementResponse.CV = candidateDetails.CV;
+                            }
+                            else
+                            {
+                                continue; // Skip if no candidate details are found
+                            }
+                        }
+
+                        requirementResponse.Applicants = await _resourcesRepository.GetTotalApplicationsPerRequirementIdAsync(requirementResponse.RequirementId);
+
+                        var clientData = await _clientsRepository.GetClientsByClientCodeAsync(requirementResponse.ClientCode);
+                        if (clientData != null)
+                        {
+                            requirementResponse.ClientName = clientData.ClientName;
+                            requirementResponse.ClientLogo = clientData.LogoURL;
+                        }
+
+                        listResponse.Add(requirementResponse);
                     }
                 }
 
-                var totalRecords = listResponse.Count;
-                var paginatedRequirements = listResponse.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToList();
+                // Apply SearchText Filter (if provided)
+                if (!string.IsNullOrEmpty(request.SearchText))
+                {
+                    listResponse = listResponse
+                        .Where(req =>
+                            (!string.IsNullOrEmpty(req.FirstName) && req.FirstName.Contains(request.SearchText, StringComparison.OrdinalIgnoreCase)) ||
+                            (!string.IsNullOrEmpty(req.LastName) && req.LastName.Contains(request.SearchText, StringComparison.OrdinalIgnoreCase))
+                        )
+                        .ToList();
+                }
+
+                // Pagination Logic
+                int totalRecords = listResponse.Count;
+                var paginatedRequirements = listResponse
+                    .Skip((request.Page - 1) * request.PageSize)
+                    .Take(request.PageSize)
+                    .ToList();
 
                 return new PaginationDto<CompanyRequirementResponse>
                 {
@@ -493,9 +544,16 @@ namespace VendersCloud.Business.Service.Concrete
             }
             catch (Exception ex)
             {
-                throw ex;
+                throw new Exception("An error occurred while fetching the requirement list.", ex);
             }
         }
 
+
+        public static string GetEnumDescription(Enum value)
+        {
+            FieldInfo field = value.GetType().GetField(value.ToString());
+            DescriptionAttribute attribute = (DescriptionAttribute)Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute));
+            return attribute == null ? value.ToString() : attribute.Description;
+        }
     }
 }
