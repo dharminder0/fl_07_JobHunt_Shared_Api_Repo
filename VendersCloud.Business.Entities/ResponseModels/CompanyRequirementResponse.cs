@@ -3,17 +3,20 @@
     public class CompanyRequirementResponse
     {
         public string Role {  get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
         public int RequirementId {  get; set; }
         public int Status {  get; set; }
         public string StatusName { get; set; }
-        public DateTime DatePosted { get; set; }
+        public string OrgName { get; set; }
+        public DateTime ApplicationDate { get; set; }
         public int Position { get; set; }
         public int Placed { get; set; }
         public int Applicants { get; set; }
+        public string CV { get; set; }
         public string ClientCode {  get; set; }
         public string ClientName { get; set; }
         public string ClientLogo { get; set; }
-        public int Resources { get; set; }
-        public string ResourcesName { get; set; }
+     
     }
 }
