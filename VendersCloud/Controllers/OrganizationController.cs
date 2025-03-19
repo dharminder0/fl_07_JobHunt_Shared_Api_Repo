@@ -13,6 +13,7 @@
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ServiceFilter(typeof(RequireAuthorizationFilter))]
         [HttpPost]
         [Route("api/V1/Organization/GetOrganization")]
         public async Task<IActionResult> GetOrganizationDataAsync(string orgCode)
@@ -32,6 +33,7 @@
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ServiceFilter(typeof(RequireAuthorizationFilter))]
         [HttpPost]
         [Route("api/V1/Organization/List")]
         public async Task<IActionResult> GetOrganizationListAsync()
@@ -51,6 +53,7 @@
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ServiceFilter(typeof(RequireAuthorizationFilter))]
         [HttpPost]
         [Route("api/V1/Organization/AddInfo")]
         public async Task<IActionResult> AddOrganizationInfo(CompanyInfoRequest infoRequest)
@@ -70,6 +73,7 @@
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ServiceFilter(typeof(RequireAuthorizationFilter))]
         [HttpPost]
         [Route("api/V1/Organization/UpsertProfile")]
         public async Task<IActionResult> UpsertOrganizationProfile(OrganizationProfileRequest request)
@@ -89,6 +93,7 @@
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ServiceFilter(typeof(RequireAuthorizationFilter))]
         [HttpGet]
         [Route("api/V1/Organization/GetProfile")]
          public async Task<IActionResult> GetOrganizationProfile(string orgCode)
@@ -108,6 +113,7 @@
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ServiceFilter(typeof(RequireAuthorizationFilter))]
         [HttpPost]
         [Route("api/V1/Organization/DispatchedInvitation")]
         public async Task<IActionResult> DispatchedOrganizationInvitationAsync(DispatchedInvitationRequest request )
@@ -127,6 +133,7 @@
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ServiceFilter(typeof(RequireAuthorizationFilter))]
         [HttpPost]
         [Route("api/V1/Organization/manageInvitation")]
         public async Task<IActionResult> ManageRelationshipStatusAsync(int id, int status)
@@ -145,6 +152,7 @@
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ServiceFilter(typeof(RequireAuthorizationFilter))]
         [HttpPost]
         [Route("api/V1/Organization/List/Invitation")]
         public async Task<IActionResult> GetListRelationshipAsync(OrgRelationshipSearchRequest request)
