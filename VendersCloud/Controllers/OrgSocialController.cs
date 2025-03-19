@@ -13,6 +13,7 @@
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ServiceFilter(typeof(RequireAuthorizationFilter))]
         [HttpPost]
         [Route("api/v1/orgSocial/UpsertProfile")]
 
@@ -32,6 +33,7 @@
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ServiceFilter(typeof(RequireAuthorizationFilter))]
         [HttpGet]
         [Route("api/v1/orgSocial/GetProfile")]
         public async Task<IActionResult> GetOrgSocialProfile(string orgCode)

@@ -13,6 +13,7 @@
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ServiceFilter(typeof(RequireAuthorizationFilter))]
         [HttpPost]
         [Route("api/V1/Requirement/Upsert")]
         public async Task<IActionResult> RequirmentUpsertAsync([FromBody] RequirementRequest request)
@@ -32,6 +33,7 @@
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ServiceFilter(typeof(RequireAuthorizationFilter))]
         [HttpPost]
         [Route("api/V1/Requirement/Delete")]
         public async Task<IActionResult> DeleteRequirmentAsync(int requirementId, string orgCode)
@@ -51,6 +53,7 @@
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ServiceFilter(typeof(RequireAuthorizationFilter))]
         [HttpGet]
         [Route("api/V1/Requirement/GetList")]
         public async Task<IActionResult> GetRequirementListAsync()
@@ -70,6 +73,7 @@
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ServiceFilter(typeof(RequireAuthorizationFilter))]
         [HttpGet]
         [Route("api/V1/Requirement/GetList/{requirementId}")]
         public async Task<IActionResult> GetRequirementListByIdAsync(string requirementId)

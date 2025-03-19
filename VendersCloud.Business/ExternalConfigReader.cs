@@ -149,6 +149,17 @@ namespace VendersCloud.Business
             return GetValueFromExternalAppSettingsFile("BlobStorageAccount");
         }
 
+        public string GetAuthorizationBearer()
+        {
+            string AuthorizationBearer = _configuration["AuthorizationBearer"];
+
+            if (!string.IsNullOrEmpty(AuthorizationBearer))
+            {
+                return AuthorizationBearer;
+            }
+
+            return GetValueFromExternalAppSettingsFile("AuthorizationBearer");
+        }
         public string GetBlobSymmetricSecretKey()
         {
             string BlobSymmetricSecretKey = _configuration["BlobSymmetricSecretKey"];
