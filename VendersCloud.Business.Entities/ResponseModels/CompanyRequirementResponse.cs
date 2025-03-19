@@ -9,6 +9,7 @@
         public int Status {  get; set; }
         public string StatusName { get; set; }
         public string OrgName { get; set; }
+        public string OrgLogo { get; set; }
         public DateTime ApplicationDate { get; set; }
         public int Position { get; set; }
         public int Placed { get; set; }
