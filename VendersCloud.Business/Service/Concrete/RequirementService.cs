@@ -467,7 +467,8 @@ namespace VendersCloud.Business.Service.Concrete
                             ClientCode = item.ClientCode,
                             Position = item.Positions,
                             ApplicationDate = item.CreatedOn,
-                            OrgName = orgData.OrgName
+                            OrgName = orgData.OrgName,
+                            OrgLogo= orgData.Logo
                         };
 
                         var applicants = await _resourcesRepository.GetApplicationsPerRequirementIdAsync(requirementResponse.RequirementId, 8);
