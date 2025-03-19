@@ -184,15 +184,20 @@
          
         }
 
+        public async Task<List<Requirement>> GetRequirementByUserIdAsync(List<int> UserId)
+        {
+            var dbInstance = GetDbInstance();
+            var sql = "SELECT * FROM Requirement Where CreatedBy In@UserId and IsDeleted<>1";
+            var requirementData = dbInstance.Select<Requirement>(sql, new { UserId }).ToList();
+            return requirementData;
+        }
         public async Task<List<Requirement>> GetRequirementListByIdAsync(string requirementId)
         {
-           
                 var dbInstance = GetDbInstance();
                 var sql = "SELECT * FROM Requirement Where IsDeleted<>1 and UniqueId=@requirementId";
 
                 var list = dbInstance.Select<Requirement>(sql, new { requirementId}).ToList();
                 return list;
-           
         }
 
         public async Task<IEnumerable<Requirement>> GetRequirementByIdAsync(List<int> requirementId)

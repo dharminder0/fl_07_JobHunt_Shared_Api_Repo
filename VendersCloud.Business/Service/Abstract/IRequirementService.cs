@@ -11,5 +11,6 @@
         Task<PaginationDto<RequirementResponse>> SearchRequirementAsync(SearchRequirementRequest request);
         Task<int> GetTotalApplicantsAsync(TotalApplicantsRequest request);
         Task<List<ApplicationListResponse>> GetApplicantsListByRequirementIdAsync(string requirementUniqueId);
+        Task<PaginationDto<CompanyRequirementResponse>> GetRequirementListByOrgCode(CompanyRequirementSearchRequest request);
     }
 }

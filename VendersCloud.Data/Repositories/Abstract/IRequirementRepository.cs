@@ -12,5 +12,6 @@
         Task<List<Requirement>> GetRequirementsListAsync(SearchRequirementRequest request);
         Task<List<Requirement>> GetRequirementsListByVisibilityAsync(SearchRequirementRequest request);
         Task<IEnumerable<Requirement>> GetRequirementByIdAsync(List<int> requirementId);
+        Task<List<Requirement>> GetRequirementByUserIdAsync(List<int> UserId);
     }
 }

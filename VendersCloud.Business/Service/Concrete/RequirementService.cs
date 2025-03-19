@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
-using VendersCloud.Business.Entities.DataModels;
+﻿using VendersCloud.Business.Entities.DataModels;
 
 namespace VendersCloud.Business.Service.Concrete
 {
@@ -10,12 +8,14 @@ namespace VendersCloud.Business.Service.Concrete
         private readonly IClientsRepository _clientsRepository;
         private readonly IResourcesRepository _resourcesRepository;
         private readonly IBenchRepository _benchRepository;
-        public RequirementService(IRequirementRepository requirementRepository, IClientsRepository clientsRepository,IResourcesRepository resourcesRepository,IBenchRepository benchRepository)
+        private readonly IUsersRepository _usersRepository; 
+        public RequirementService(IRequirementRepository requirementRepository, IClientsRepository clientsRepository,IResourcesRepository resourcesRepository,IBenchRepository benchRepository,IUsersRepository usersRepository)
         {
             _requirementRepository = requirementRepository;
             _clientsRepository = clientsRepository;
             _resourcesRepository = resourcesRepository;
             _benchRepository = benchRepository;
+            _usersRepository = usersRepository;
         }
 
         public async Task<ActionMessageResponse> RequirmentUpsertAsync(RequirementRequest request)
@@ -420,6 +420,81 @@ namespace VendersCloud.Business.Service.Concrete
             }
 
             return listResponse;
+        }
+
+        public async Task<PaginationDto<CompanyRequirementResponse>> GetRequirementListByOrgCode(CompanyRequirementSearchRequest request)
+        {
+            try
+            {
+                if (request == null || string.IsNullOrEmpty(request.OrgCode))
+                {
+                    throw new ArgumentNullException("Enter Valid Input!!");
+                }
+
+                List<CompanyRequirementResponse> listResponse = new List<CompanyRequirementResponse>();
+                var userData = await _usersRepository.GetUserByOrgCodeAsync(request.OrgCode);
+
+                if (userData != null)
+                {
+                    List<int> userIds = userData.Select(user => user.Id).ToList();
+                    var requirementData = await _requirementRepository.GetRequirementByUserIdAsync(userIds);
+
+                    if (requirementData != null)
+                    {
+                        foreach (var item in requirementData)
+                        {
+                            // Apply filters
+                            if (request.Client != null && request.Client.Any() && !request.Client.Contains(item.ClientCode))
+                                continue;
+                            if (request.Status != null && request.Status.Any() && !request.Status.Contains(item.Status))
+                                continue;
+                            if (request.Resources != null && request.Resources.Any() && !request.Resources.Contains(item.LocationType))
+                                continue;
+
+                            var requirementResponse = new CompanyRequirementResponse
+                            {
+                                RequirementId = item.Id,
+                                Role = item.Title,
+                                ClientCode = item.ClientCode,
+                                Position = item.Positions,
+                                Status = item.Status,
+                                StatusName = System.Enum.GetName(typeof(RequirementsStatus), item.Status),
+                                Resources = item.LocationType,
+                                ResourcesName = System.Enum.GetName(typeof(LocationType), item.LocationType),
+                                DatePosted = item.CreatedOn
+                            };
+
+                            var applicants = await _resourcesRepository.GetApplicationsPerRequirementIdAsync(requirementResponse.RequirementId, 8);
+                            requirementResponse.Placed = applicants.Count;
+                            requirementResponse.Applicants = await _resourcesRepository.GetTotalApplicationsPerRequirementIdAsync(requirementResponse.RequirementId);
+
+                            var clientData = await _clientsRepository.GetClientsByClientCodeAsync(requirementResponse.ClientCode);
+                            if (clientData != null)
+                            {
+                                requirementResponse.ClientName = clientData.ClientName;
+                                requirementResponse.ClientLogo = clientData.LogoURL;
+                            }
+
+                            listResponse.Add(requirementResponse);
+                        }
+                    }
+                }
+
+                var totalRecords = listResponse.Count;
+                var paginatedRequirements = listResponse.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToList();
+
+                return new PaginationDto<CompanyRequirementResponse>
+                {
+                    Count = totalRecords,
+                    Page = request.Page,
+                    TotalPages = (int)Math.Ceiling(totalRecords / (double)request.PageSize),
+                    List = paginatedRequirements
+                };
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
 
     }
