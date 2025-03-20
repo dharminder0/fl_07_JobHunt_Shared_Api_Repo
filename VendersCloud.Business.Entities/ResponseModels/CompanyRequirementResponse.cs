@@ -18,6 +18,9 @@
         public string ClientCode {  get; set; }
         public string ClientName { get; set; }
         public string ClientLogo { get; set; }
+        public string VendorOrgCode { get; set; }
+        public string VendorOrgName { get; set; }
+        public string VendorLogo { get; set; }
      
     }
 }

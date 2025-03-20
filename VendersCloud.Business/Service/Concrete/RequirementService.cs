@@ -438,16 +438,8 @@ namespace VendersCloud.Business.Service.Concrete
 
                 List<CompanyRequirementResponse> listResponse = new List<CompanyRequirementResponse>();
 
-                var userData = await _usersRepository.GetUserByOrgCodeAsync(request.OrgCode);
-                if (userData == null || !userData.Any())
-                {
-                    return new PaginationDto<CompanyRequirementResponse> { Count = 0, Page = request.Page, TotalPages = 0, List = new List<CompanyRequirementResponse>() };
-                }
-
-                List<int> userIds = userData.Select(user => user.Id).ToList();
                 var orgData = await _organizationRepository.GetOrganizationData(request.OrgCode);
-                
-                var requirementData = await _requirementRepository.GetRequirementByUserIdAsync(userIds);
+                var requirementData = await _requirementRepository.GetRequirementByOrgCodeAsync(request.OrgCode);
 
                 if (requirementData != null && requirementData.Any())
                 {
@@ -460,36 +452,41 @@ namespace VendersCloud.Business.Service.Concrete
 
                     foreach (var item in filteredRequirements)
                     {
-                        var requirementResponse = new CompanyRequirementResponse
-                        {
-                            RequirementId = item.Id,
-                            Role = item.Title,
-                            ClientCode = item.ClientCode,
-                            Position = item.Positions,
-                            ApplicationDate = item.CreatedOn,
-                            OrgName = orgData.OrgName,
-                            OrgLogo= orgData.Logo
-                        };
-
-                        var applicants = await _resourcesRepository.GetApplicationsPerRequirementIdAsync(requirementResponse.RequirementId, 8);
-                        
-
-                        requirementResponse.Placed = applicants.Count;
-
-                        var allApplications = await _resourcesRepository.GetApplicationsPerRequirementIdAsync(requirementResponse.RequirementId);
+                        var applicants = await _resourcesRepository.GetApplicationsPerRequirementIdAsync(item.Id, 8);
+                        var allApplications = await _resourcesRepository.GetApplicationsPerRequirementIdAsync(item.Id);
 
                         if (allApplications == null || !allApplications.Any())
                         {
-                            continue; // Skip to next iteration if no applications exist
+                            continue; // Skip if there are no applications for this requirement
                         }
 
-                        var firstApplication = allApplications.FirstOrDefault();
-                        if (firstApplication != null)
+                        foreach (var app in allApplications)
                         {
-                            requirementResponse.Status = firstApplication.Status;
-                            requirementResponse.StatusName = GetEnumDescription((ApplyStatus)firstApplication.Status);
+                            // Create a new instance for each application
+                            var requirementResponse = new CompanyRequirementResponse
+                            {
+                                RequirementId = item.Id,
+                                Role = item.Title,
+                                ClientCode = item.ClientCode,
+                                Position = item.Positions,
+                                ApplicationDate = item.CreatedOn,
+                                OrgName = orgData.OrgName,
+                                OrgLogo = orgData.Logo,
+                                Placed = applicants.Count
+                            };
 
-                            var benchData = await _benchRepository.GetBenchResponseByIdAsync(firstApplication.ResourceId);
+                            // Populate application-specific details
+                            requirementResponse.Status = app.Status;
+                            requirementResponse.StatusName = GetEnumDescription((ApplyStatus)app.Status);
+
+                            var vendorDetails = await _usersRepository.GetUserByIdAsync(app.CreatedBy);
+                            var vendorOrgData = await _organizationRepository.GetOrganizationData(vendorDetails.OrgCode);
+
+                            requirementResponse.VendorOrgName = vendorOrgData.OrgName;
+                            requirementResponse.VendorLogo = vendorOrgData.Logo;
+                            requirementResponse.VendorOrgCode = vendorOrgData.OrgCode;
+
+                            var benchData = await _benchRepository.GetBenchResponseByIdAsync(app.ResourceId);
                             var candidateDetails = benchData?.FirstOrDefault();
 
                             if (candidateDetails != null)
@@ -498,26 +495,23 @@ namespace VendersCloud.Business.Service.Concrete
                                 requirementResponse.LastName = candidateDetails.LastName;
                                 requirementResponse.CV = candidateDetails.CV;
                             }
-                            else
+
+                            requirementResponse.Applicants = await _resourcesRepository.GetTotalApplicationsPerRequirementIdAsync(requirementResponse.RequirementId);
+
+                            var clientData = await _clientsRepository.GetClientsByClientCodeAsync(requirementResponse.ClientCode);
+                            if (clientData != null)
                             {
-                                continue; // Skip if no candidate details are found
+                                requirementResponse.ClientName = clientData.ClientName;
+                                requirementResponse.ClientLogo = clientData.LogoURL;
                             }
+
+                            // Add each response to the list
+                            listResponse.Add(requirementResponse);
                         }
-
-                        requirementResponse.Applicants = await _resourcesRepository.GetTotalApplicationsPerRequirementIdAsync(requirementResponse.RequirementId);
-
-                        var clientData = await _clientsRepository.GetClientsByClientCodeAsync(requirementResponse.ClientCode);
-                        if (clientData != null)
-                        {
-                            requirementResponse.ClientName = clientData.ClientName;
-                            requirementResponse.ClientLogo = clientData.LogoURL;
-                        }
-
-                        listResponse.Add(requirementResponse);
                     }
                 }
 
-                // Apply SearchText Filter (if provided)
+                // Apply search filter if provided
                 if (!string.IsNullOrEmpty(request.SearchText))
                 {
                     listResponse = listResponse
@@ -548,6 +542,7 @@ namespace VendersCloud.Business.Service.Concrete
                 throw new Exception("An error occurred while fetching the requirement list.", ex);
             }
         }
+
 
 
         public static string GetEnumDescription(Enum value)
