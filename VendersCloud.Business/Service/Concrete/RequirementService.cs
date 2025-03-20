@@ -431,28 +431,30 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
+                // Validate input
                 if (request == null || string.IsNullOrEmpty(request.OrgCode))
                 {
-                    throw new ArgumentNullException(nameof(request), "Enter Valid Input!!");
+                    throw new ArgumentNullException("Enter Valid Input!!");
                 }
 
                 List<CompanyRequirementResponse> listResponse = new List<CompanyRequirementResponse>();
 
+                // Get organization and requirement data
                 var orgData = await _organizationRepository.GetOrganizationData(request.OrgCode);
                 var requirementData = await _requirementRepository.GetRequirementByOrgCodeAsync(request.OrgCode);
 
+                // Filter requirements by client criteria
                 if (requirementData != null && requirementData.Any())
                 {
                     var filteredRequirements = requirementData
                         .Where(item =>
-                            (request.Client == null || !request.Client.Any() || request.Client.Contains(item.ClientCode)) &&
-                            (request.Status == null || !request.Status.Any() || request.Status.Contains(item.Status))
+                            (request.Client == null || !request.Client.Any() || request.Client.Contains(item.ClientCode))
                         )
                         .ToList();
 
                     foreach (var item in filteredRequirements)
                     {
-                        var applicants = await _resourcesRepository.GetApplicationsPerRequirementIdAsync(item.Id, 8);
+                        // Get application data
                         var allApplications = await _resourcesRepository.GetApplicationsPerRequirementIdAsync(item.Id);
 
                         if (allApplications == null || !allApplications.Any())
@@ -460,9 +462,14 @@ namespace VendersCloud.Business.Service.Concrete
                             continue; // Skip if there are no applications for this requirement
                         }
 
-                        foreach (var app in allApplications)
+                        // Filter applications by Status
+                        var filteredApplications = allApplications
+                            .Where(app => request.Status == null || !request.Status.Any() || request.Status.Contains(app.Status))
+                            .ToList();
+
+                        foreach (var app in filteredApplications)
                         {
-                            // Create a new instance for each application
+                            // Create a response object for each application
                             var requirementResponse = new CompanyRequirementResponse
                             {
                                 RequirementId = item.Id,
@@ -472,12 +479,9 @@ namespace VendersCloud.Business.Service.Concrete
                                 ApplicationDate = item.CreatedOn,
                                 OrgName = orgData.OrgName,
                                 OrgLogo = orgData.Logo,
-                                Placed = applicants.Count
+                                Status = app.Status,
+                                StatusName = GetEnumDescription((ApplyStatus)app.Status)
                             };
-
-                            // Populate application-specific details
-                            requirementResponse.Status = app.Status;
-                            requirementResponse.StatusName = GetEnumDescription((ApplyStatus)app.Status);
 
                             var vendorDetails = await _usersRepository.GetUserByIdAsync(app.CreatedBy);
                             var vendorOrgData = await _organizationRepository.GetOrganizationData(vendorDetails.OrgCode);
@@ -505,13 +509,13 @@ namespace VendersCloud.Business.Service.Concrete
                                 requirementResponse.ClientLogo = clientData.LogoURL;
                             }
 
-                            // Add each response to the list
+                            // Add response to the list
                             listResponse.Add(requirementResponse);
                         }
                     }
                 }
 
-                // Apply search filter if provided
+                // Apply SearchText filter
                 if (!string.IsNullOrEmpty(request.SearchText))
                 {
                     listResponse = listResponse
@@ -522,7 +526,7 @@ namespace VendersCloud.Business.Service.Concrete
                         .ToList();
                 }
 
-                // Pagination Logic
+                // Pagination logic
                 int totalRecords = listResponse.Count;
                 var paginatedRequirements = listResponse
                     .Skip((request.Page - 1) * request.PageSize)
@@ -539,12 +543,9 @@ namespace VendersCloud.Business.Service.Concrete
             }
             catch (Exception ex)
             {
-                throw new Exception("An error occurred while fetching the requirement list.", ex);
+                throw new Exception(ex.Message);
             }
         }
-
-
-
         public static string GetEnumDescription(Enum value)
         {
             FieldInfo field = value.GetType().GetField(value.ToString());
