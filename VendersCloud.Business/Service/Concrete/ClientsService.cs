@@ -111,23 +111,42 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
-        public async Task<List<Clients>> GetClientsByOrgCodeAsync(string orgCode)
+        public async Task<List<ClientDropDownList>> GetClientsByOrgCodeAsync(string orgCode)
         {
             try
             {
                 if (string.IsNullOrEmpty(orgCode))
                 {
-                    throw new ArgumentNullException("orgCode can't be null");
+                    throw new ArgumentNullException("OrgCode can't be null");
                 }
-                var response = await _clientsRepository.GetClientsByOrgCodeAsync(orgCode);
-                return response;
 
+                List<ClientDropDownList> dropList = new List<ClientDropDownList>();
+
+                var response = await _clientsRepository.GetClientsByOrgCodeAsync(orgCode);
+                if (response != null)
+                {
+                    foreach (var item in response)
+                    {
+                        var list = new ClientDropDownList
+                        {
+                            Id = item.Id,
+                            Name = item.ClientName,
+                            Value = item.ClientCode,
+                            Logo= item.LogoURL
+                        };
+
+                        dropList.Add(list);
+                    }
+                }
+
+                return dropList;
             }
             catch (Exception ex)
             {
-                throw ex;
+                throw new Exception( ex.Message);
             }
         }
+
 
         public async Task<ActionMessageResponse> DeleteClientsByIdAsync(string orgCode, int id, string clientName)
         {
