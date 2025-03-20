@@ -78,7 +78,7 @@
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ServiceFilter(typeof(RequireAuthorizationFilter))]
         [HttpGet]
-        [Route("api/V1/Clients/List/OrgCode")]
+        [Route("api/V1/Clients/ListByOrgCode")]
         public async Task<IActionResult> GetClientsByOrgCodeAsync(string orgCode)
         {
             try
