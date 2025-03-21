@@ -1,4 +1,4 @@
-﻿using System.Text;
+﻿using VendersCloud.Business.Common_Methods;
 
 namespace VendersCloud.Business.Service.Concrete
 {
@@ -46,7 +46,7 @@ namespace VendersCloud.Business.Service.Concrete
                 }
 
                 // Generate Client Code
-                string clientCode = GenerateRandomClientCode();
+                string clientCode = CommonMethods.GenerateRandomClientCode();
                 bool result = await _clientsRepository.UpsertClientAsync(request, clientCode, uploadedimageUrl, uploadedUrl);
 
                 if (result)
@@ -177,19 +177,6 @@ namespace VendersCloud.Business.Service.Concrete
                 throw ex;
             }
         }
-        public string GenerateRandomClientCode()
-        {
-            Random _random = new Random();
-            int length = 10;
-            string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
-            StringBuilder result = new StringBuilder(length);
-
-            for (int i = 0; i < length; i++)
-            {
-                result.Append(chars[_random.Next(chars.Length)]);
-            }
-
-            return result.ToString();
-        }
+        
     }
 }

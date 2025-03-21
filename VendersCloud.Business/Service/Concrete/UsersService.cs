@@ -1,5 +1,6 @@
 ﻿using Azure.Core;
 using Microsoft.AspNetCore.Mvc;
+using VendersCloud.Business.Common_Methods;
 using static System.Net.WebRequestMethods;
 
 namespace VendersCloud.Business.Service.Concrete
@@ -36,7 +37,7 @@ namespace VendersCloud.Business.Service.Concrete
                     string salt = Hasher.GenerateSalt();
                     byte[] saltBytes = Convert.FromBase64String(salt);
                     var hashedPassword = Hasher.HashPassword(salt, request.Password);
-                    var verificationOtp = GenerateOTP();
+                    var verificationOtp = CommonMethods.GenerateOTP();
                     string token = Guid.NewGuid().ToString().ToLower();
                     var data = await _usersRepository.InsertUserAsync(request, hashedPassword, saltBytes, orgCode,verificationOtp,token,string.Empty);
                     if (data != null)
@@ -82,12 +83,11 @@ namespace VendersCloud.Business.Service.Concrete
                     var hashedPassword = Hasher.HashPassword(salt, request.Password);
                     var userProfileRole = await _userProfilesService.GetProfileRole(dbUser.Id);
                     var companyData = await _organizationService.GetOrganizationDataAsync(dbUser.OrgCode);
-                    // string roleName = Enum.GetName(typeof(RoleType), userProfileRole);
 
                     List<string> userProfileRoles = userProfileRole.Select(role => role.ProfileId.ToString()).ToList();
                     if (hashedPassword== dbUser.Password)
                     {
-                        LoginResponseDto login = new LoginResponseDto();
+                        var login = new LoginResponseDto();
                         login.FirstName= dbUser.FirstName;
                         login.LastName= dbUser.LastName;
                         login.Phone = companyData.Phone;
@@ -342,7 +342,7 @@ namespace VendersCloud.Business.Service.Concrete
                 var existingUser = await _usersRepository.GetUserByEmailAsync(email);
                 if (existingUser != null)
                 {
-                    string otp = GenerateOTP();
+                    string otp = CommonMethods.GenerateOTP();
                     string token = Guid.NewGuid().ToString().ToLower();
                     var updateResponse=await _usersRepository.UpdateOtpAndTokenAsync(otp,token,email);
                     if(updateResponse)
@@ -545,7 +545,7 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-                var verificationOtp = GenerateOTP();
+                var verificationOtp = CommonMethods.GenerateOTP();
                 if (string.IsNullOrWhiteSpace(oldEmail) || string.IsNullOrWhiteSpace(newEmail))
                 {
                     throw new Exception("Enter Valid Input");
@@ -593,10 +593,6 @@ namespace VendersCloud.Business.Service.Concrete
                 };
             }
         }
-        public static string GenerateOTP()
-        {
-            var random = new Random();
-            return random.Next(100000,999999).ToString();
-        }
+       
     }
 }
