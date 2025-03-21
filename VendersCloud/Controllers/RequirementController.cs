@@ -93,6 +93,7 @@
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ServiceFilter(typeof(RequireAuthorizationFilter))]
         [HttpPost]
         [Route("api/V1/Requirement/UpdateStatus")]
         public async Task<IActionResult> UpdateStatusByIdAsync(int requirementId, int status)
@@ -112,6 +113,7 @@
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ServiceFilter(typeof(RequireAuthorizationFilter))]
         [HttpGet]
         [Route("api/V1/Requirement/OrgCode")]
         public async Task<IActionResult> GetRequirementByOrgCodeAsync(string orgCode)
@@ -131,6 +133,7 @@
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ServiceFilter(typeof(RequireAuthorizationFilter))]
         [HttpPost]
         [Route("api/V1/Requirement/Search")]
         public async Task<IActionResult> SearchRequirementAsync(SearchRequirementRequest request)
@@ -150,6 +153,7 @@
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ServiceFilter(typeof(RequireAuthorizationFilter))]
         [HttpPost]
         [Route("api/V1/Requirement/Count/Total/Applicants")]
         public async Task<IActionResult> GetTotalApplicantsAsync(TotalApplicantsRequest request)
@@ -169,6 +173,7 @@
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ServiceFilter(typeof(RequireAuthorizationFilter))]
         [HttpGet]
         [Route("api/V1/Requirement/Get/Applicants")]
         public async Task<IActionResult> GetApplicantsListByRequirementIdAsync(string requirementUniqueId)
