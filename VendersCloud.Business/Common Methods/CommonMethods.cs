@@ -3,9 +3,9 @@ using System.ComponentModel;
 using System.Reflection;
 using System.Text;
 
-namespace VendersCloud.Business.Common_Methods
+namespace VendersCloud.Business.CommonMethods
 {
-    public static  class CommonMethods
+    public static  class CommonFunctions
     {
         public static string GetEnumDescription(Enum value)
         {

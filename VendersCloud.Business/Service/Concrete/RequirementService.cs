@@ -1,4 +1,4 @@
-﻿using VendersCloud.Business.Common_Methods;
+﻿using VendersCloud.Business.CommonMethods;
 
 namespace VendersCloud.Business.Service.Concrete
 {
@@ -477,7 +477,7 @@ namespace VendersCloud.Business.Service.Concrete
                                 OrgName = orgData.OrgName,
                                 OrgLogo = orgData.Logo,
                                 Status = app.Status,
-                                StatusName = CommonMethods.GetEnumDescription((ApplyStatus)app.Status)
+                                StatusName = CommonFunctions.GetEnumDescription((ApplyStatus)app.Status)
                             };
 
                             var vendorDetails = await _usersRepository.GetUserByIdAsync(app.CreatedBy);

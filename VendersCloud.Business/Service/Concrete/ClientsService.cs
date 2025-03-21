@@ -1,4 +1,4 @@
-﻿using VendersCloud.Business.Common_Methods;
+﻿using VendersCloud.Business.CommonMethods;
 
 namespace VendersCloud.Business.Service.Concrete
 {
@@ -46,7 +46,7 @@ namespace VendersCloud.Business.Service.Concrete
                 }
 
                 // Generate Client Code
-                string clientCode = CommonMethods.GenerateRandomClientCode();
+                string clientCode = CommonFunctions.GenerateRandomClientCode();
                 bool result = await _clientsRepository.UpsertClientAsync(request, clientCode, uploadedimageUrl, uploadedUrl);
 
                 if (result)

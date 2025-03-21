@@ -1,6 +1,5 @@
 ﻿using System.Data;
-using System.Text;
-using VendersCloud.Business.Common_Methods;
+using VendersCloud.Business.CommonMethods;
 
 namespace VendersCloud.Business.Service.Concrete
 {
@@ -36,7 +35,7 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-                string companyCode = CommonMethods.GenerateRandomOrgCode();
+                string companyCode = CommonFunctions.GenerateRandomOrgCode();
                 string orgcode = await _organizationRepository.RegisterNewOrganizationAsync(request, companyCode);
                 return orgcode;
             }

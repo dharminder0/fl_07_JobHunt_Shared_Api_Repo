@@ -1,7 +1,4 @@
-﻿using Azure.Core;
-using Microsoft.AspNetCore.Mvc;
-using VendersCloud.Business.Common_Methods;
-using static System.Net.WebRequestMethods;
+﻿using VendersCloud.Business.CommonMethods;
 
 namespace VendersCloud.Business.Service.Concrete
 {
@@ -37,7 +34,7 @@ namespace VendersCloud.Business.Service.Concrete
                     string salt = Hasher.GenerateSalt();
                     byte[] saltBytes = Convert.FromBase64String(salt);
                     var hashedPassword = Hasher.HashPassword(salt, request.Password);
-                    var verificationOtp = CommonMethods.GenerateOTP();
+                    var verificationOtp = CommonFunctions.GenerateOTP();
                     string token = Guid.NewGuid().ToString().ToLower();
                     var data = await _usersRepository.InsertUserAsync(request, hashedPassword, saltBytes, orgCode,verificationOtp,token,string.Empty);
                     if (data != null)
@@ -342,7 +339,7 @@ namespace VendersCloud.Business.Service.Concrete
                 var existingUser = await _usersRepository.GetUserByEmailAsync(email);
                 if (existingUser != null)
                 {
-                    string otp = CommonMethods.GenerateOTP();
+                    string otp = CommonFunctions.GenerateOTP();
                     string token = Guid.NewGuid().ToString().ToLower();
                     var updateResponse=await _usersRepository.UpdateOtpAndTokenAsync(otp,token,email);
                     if(updateResponse)
@@ -545,7 +542,7 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-                var verificationOtp = CommonMethods.GenerateOTP();
+                var verificationOtp = CommonFunctions.GenerateOTP();
                 if (string.IsNullOrWhiteSpace(oldEmail) || string.IsNullOrWhiteSpace(newEmail))
                 {
                     throw new Exception("Enter Valid Input");
