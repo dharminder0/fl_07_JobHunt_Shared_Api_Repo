@@ -1,5 +1,6 @@
 ﻿using System.Data;
 using System.Text;
+using VendersCloud.Business.Common_Methods;
 
 namespace VendersCloud.Business.Service.Concrete
 {
@@ -35,7 +36,7 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-                string companyCode = GenerateRandomOrgCode();
+                string companyCode = CommonMethods.GenerateRandomOrgCode();
                 string orgcode = await _organizationRepository.RegisterNewOrganizationAsync(request, companyCode);
                 return orgcode;
             }
@@ -45,20 +46,7 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
-        public string GenerateRandomOrgCode()
-        {
-            Random _random = new Random();
-            int length = 8;
-            string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
-            StringBuilder result = new StringBuilder(length);
-
-            for (int i = 0; i < length; i++)
-            {
-                result.Append(chars[_random.Next(chars.Length)]);
-            }
-
-            return result.ToString();
-        }
+        
 
         public async Task<Organization> GetOrganizationDataAsync(string orgCode)
         {

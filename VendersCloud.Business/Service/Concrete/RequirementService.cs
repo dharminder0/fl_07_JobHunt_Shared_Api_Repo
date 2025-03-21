@@ -1,7 +1,4 @@
-﻿using System.ComponentModel;
-using System.Reflection;
-using VendersCloud.Business.Entities.DataModels;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+﻿using VendersCloud.Business.Common_Methods;
 
 namespace VendersCloud.Business.Service.Concrete
 {
@@ -480,7 +477,7 @@ namespace VendersCloud.Business.Service.Concrete
                                 OrgName = orgData.OrgName,
                                 OrgLogo = orgData.Logo,
                                 Status = app.Status,
-                                StatusName = GetEnumDescription((ApplyStatus)app.Status)
+                                StatusName = CommonMethods.GetEnumDescription((ApplyStatus)app.Status)
                             };
 
                             var vendorDetails = await _usersRepository.GetUserByIdAsync(app.CreatedBy);
@@ -546,11 +543,6 @@ namespace VendersCloud.Business.Service.Concrete
                 throw new Exception(ex.Message);
             }
         }
-        public static string GetEnumDescription(Enum value)
-        {
-            FieldInfo field = value.GetType().GetField(value.ToString());
-            DescriptionAttribute attribute = (DescriptionAttribute)Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute));
-            return attribute == null ? value.ToString() : attribute.Description;
-        }
+        
     }
 }
