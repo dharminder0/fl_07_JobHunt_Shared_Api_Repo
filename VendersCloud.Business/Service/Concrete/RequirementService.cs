@@ -556,5 +556,17 @@ namespace VendersCloud.Business.Service.Concrete
                 throw new Exception(ex.Message);
             }
         }
+
+        public async Task<CompanyDashboardCountResponse> GetVendorsCountsAsync(string orgCode, string userId)
+        {
+            try
+            {
+                return await _requirementRepository.GetVendorsCountsAsync(orgCode,userId);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
     }
 }
