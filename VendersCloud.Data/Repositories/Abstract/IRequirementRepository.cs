@@ -13,5 +13,6 @@
         Task<List<Requirement>> GetRequirementsListByVisibilityAsync(SearchRequirementRequest request);
         Task<IEnumerable<Requirement>> GetRequirementByIdAsync(List<int> requirementId);
         Task<List<Requirement>> GetRequirementByUserIdAsync(List<int> UserId);
+        Task<CompanyDashboardCountResponse> GetCountsAsync(string orgCode);
     }
 }

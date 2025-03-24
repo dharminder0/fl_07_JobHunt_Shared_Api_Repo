@@ -1,4 +1,5 @@
-﻿using VendersCloud.Business.CommonMethods;
+﻿using Microsoft.AspNetCore.Mvc;
+using VendersCloud.Business.CommonMethods;
 
 namespace VendersCloud.Business.Service.Concrete
 {
@@ -10,7 +11,7 @@ namespace VendersCloud.Business.Service.Concrete
         private readonly IBenchRepository _benchRepository;
         private readonly IUsersRepository _usersRepository;
         private readonly IOrganizationRepository _organizationRepository;
-        public RequirementService(IRequirementRepository requirementRepository, IClientsRepository clientsRepository,IResourcesRepository resourcesRepository,IBenchRepository benchRepository,IUsersRepository usersRepository,IOrganizationRepository organizationRepository)
+        public RequirementService(IRequirementRepository requirementRepository, IClientsRepository clientsRepository, IResourcesRepository resourcesRepository, IBenchRepository benchRepository, IUsersRepository usersRepository, IOrganizationRepository organizationRepository)
         {
             _requirementRepository = requirementRepository;
             _clientsRepository = clientsRepository;
@@ -24,7 +25,7 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-                if (request == null || string.IsNullOrEmpty(request.Title) || string.IsNullOrEmpty(request.OrgCode)|| string.IsNullOrEmpty(request.UserId))
+                if (request == null || string.IsNullOrEmpty(request.Title) || string.IsNullOrEmpty(request.OrgCode) || string.IsNullOrEmpty(request.UserId))
                 {
                     return new ActionMessageResponse() { Success = false, Message = "Values cann't be null ", Content = "" };
                 }
@@ -274,14 +275,14 @@ namespace VendersCloud.Business.Service.Concrete
                 {
                     throw new Exception("OrgCode is Mandatory!! ");
                 }
-                int place,Applicants = 0;
+                int place, Applicants = 0;
                 var requirements = await _requirementRepository.GetRequirementsListAsync(request);
                 var visibleRequirements = await _requirementRepository.GetRequirementsListByVisibilityAsync(request);
                 var allRequirements = requirements.Concat(visibleRequirements).ToList();
                 var totalRecords = allRequirements.Count;
                 var paginatedRequirements = allRequirements.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToList();
-                TotalApplicantsRequest ApplicantSearch= new TotalApplicantsRequest();
-                
+                TotalApplicantsRequest ApplicantSearch = new TotalApplicantsRequest();
+
                 var requirementsResponseList = new List<RequirementResponse>();
                 foreach (var r in paginatedRequirements)
                 {
@@ -309,7 +310,7 @@ namespace VendersCloud.Business.Service.Concrete
                         Hot = r.Hot,
                         Status = r.Status,
                         Placed = place,
-                        Applicants= Applicants,
+                        Applicants = Applicants,
                         StatusName = System.Enum.GetName(typeof(RequirementsStatus), r.Status),
                         CreatedOn = r.CreatedOn,
                         UpdatedOn = r.UpdatedOn,
@@ -347,8 +348,8 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-                int requirementId=0;
-                if(request == null|| string.IsNullOrEmpty(request.RequirementUniqueId))
+                int requirementId = 0;
+                if (request == null || string.IsNullOrEmpty(request.RequirementUniqueId))
                 {
                     throw new Exception("Enter Valid Inputs");
                 }
@@ -357,7 +358,7 @@ namespace VendersCloud.Business.Service.Concrete
                 {
                     foreach (var item in requiementData)
                     {
-                        requirementId=item.Id;
+                        requirementId = item.Id;
                     }
                 }
                 var applicantData = await _resourcesRepository.GetApplicationsPerRequirementIdAsync(requirementId, request.Status);
@@ -365,7 +366,7 @@ namespace VendersCloud.Business.Service.Concrete
                 return totalApplicants;
 
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 throw new Exception(ex.Message);
             }
@@ -401,7 +402,7 @@ namespace VendersCloud.Business.Service.Concrete
                             RequirementId = requirementItem.Id,
                             Status = applicationItem.Status,
                             StatusName = System.Enum.GetName(typeof(ApplyStatus), applicationItem.Status),
-                            ApplicationDate= applicationItem.CreatedOn
+                            ApplicationDate = applicationItem.CreatedOn
                         };
 
                         var benchData = await _benchRepository.GetBenchResponseByIdAsync(applicationItem.ResourceId);
@@ -543,6 +544,17 @@ namespace VendersCloud.Business.Service.Concrete
                 throw new Exception(ex.Message);
             }
         }
-        
+
+        public async Task<CompanyDashboardCountResponse> GetCountsAsync(string orgCode)
+        {
+            try
+            {
+                return await _requirementRepository.GetCountsAsync(orgCode);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
     }
 }
