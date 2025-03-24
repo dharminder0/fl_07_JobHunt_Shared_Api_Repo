@@ -279,7 +279,7 @@ namespace VendersCloud.Business.Service.Concrete
                 }
                 int place, Applicants = 0;
                 var requirements = await _requirementRepository.GetRequirementsListAsync(request);
-                if (request.RoleType.FirstOrDefault() == "1")
+                if (request.RoleType.Contains("1"))
                 {
                     var visibleRequirements = await _requirementRepository.GetRequirementsListByVisibilityAsync(request);
                     var allRequirements = requirements.Concat(visibleRequirements).ToList();
