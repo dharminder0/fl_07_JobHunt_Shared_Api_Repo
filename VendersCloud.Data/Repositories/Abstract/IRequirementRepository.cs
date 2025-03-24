@@ -14,5 +14,6 @@
         Task<IEnumerable<Requirement>> GetRequirementByIdAsync(List<int> requirementId);
         Task<List<Requirement>> GetRequirementByUserIdAsync(List<int> UserId);
         Task<CompanyDashboardCountResponse> GetCountsAsync(string orgCode);
+        Task<CompanyDashboardCountResponse> GetVendorsCountsAsync(string orgCode, string userId);
     }
 }
