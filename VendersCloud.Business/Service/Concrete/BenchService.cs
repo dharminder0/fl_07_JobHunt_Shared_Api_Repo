@@ -237,7 +237,7 @@ namespace VendersCloud.Business.Service.Concrete
                         searchResponse.UniqueId = requirement.UniqueId;
                         if (clientsData.TryGetValue(requirement.ClientCode, out var client))
                         {
-                            if (request.ClientOrgName == null || !request.ClientOrgName.Any() || request.ClientOrgName.Contains(client.ClientName))
+                            if (request.ClientOrgCode == null || !request.ClientOrgCode.Any() || request.ClientOrgCode.Contains(client.ClientCode))
                             {
                                 searchResponse.ClientOrgName = client.ClientName;
                                 searchResponse.ClientOrgLogo = client.LogoURL;
