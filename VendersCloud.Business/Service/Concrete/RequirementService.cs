@@ -271,16 +271,28 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
+                int totalRecords = 0;
+                List<Requirement> paginatedRequirements;
                 if (string.IsNullOrEmpty(request.OrgCode) || string.IsNullOrEmpty(request.UserId))
                 {
                     throw new Exception("OrgCode is Mandatory!! ");
                 }
                 int place, Applicants = 0;
                 var requirements = await _requirementRepository.GetRequirementsListAsync(request);
-                var visibleRequirements = await _requirementRepository.GetRequirementsListByVisibilityAsync(request);
-                var allRequirements = requirements.Concat(visibleRequirements).ToList();
-                var totalRecords = allRequirements.Count;
-                var paginatedRequirements = allRequirements.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToList();
+                if (request.RoleType.FirstOrDefault() == "1")
+                {
+                    var visibleRequirements = await _requirementRepository.GetRequirementsListByVisibilityAsync(request);
+                    var allRequirements = requirements.Concat(visibleRequirements).ToList();
+                    totalRecords = allRequirements.Count;
+                    paginatedRequirements = allRequirements.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToList();
+                }
+                else
+                {
+                    totalRecords = requirements.Count;
+                    paginatedRequirements = requirements.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToList();
+                }
+
+
                 TotalApplicantsRequest ApplicantSearch = new TotalApplicantsRequest();
 
                 var requirementsResponseList = new List<RequirementResponse>();
