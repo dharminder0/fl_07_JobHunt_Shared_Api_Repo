@@ -147,7 +147,7 @@
             {
                 return BadRequest(ex.Message);
             }
-        } 
+        }
 
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -169,8 +169,25 @@
             }
         }
 
-
-        
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ServiceFilter(typeof(RequireAuthorizationFilter))]
+        [HttpGet]
+        [Route("api/V1/Requirement/Company-dashboard/{orgCode}")]
+        public async Task<IActionResult> GetCountsAsync(string orgCode)
+        {
+            try
+            {
+                var result = await _requirementService.GetCountsAsync(orgCode);
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }
 

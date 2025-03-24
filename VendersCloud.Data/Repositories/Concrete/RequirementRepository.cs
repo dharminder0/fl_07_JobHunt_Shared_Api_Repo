@@ -352,5 +352,26 @@ ORDER BY r.CreatedOn DESC;";
             return requirements;
         }
 
+        public async Task<CompanyDashboardCountResponse> GetCountsAsync(string orgCode)
+        {
+            using var connection = GetConnection();
+            var parameters = new DynamicParameters();
+            parameters.Add("orgCode", orgCode);
+
+            string query = @"
+        SELECT 
+            (SELECT SUM(Positions) FROM Requirement WHERE Status = 1 AND OrgCode = @orgCode) AS OpenPositions,
+            (SELECT COUNT(*) FROM Requirement WHERE Hot = 1 AND Status = 1 AND OrgCode = @orgCode) AS HotRequirements,
+            (SELECT COUNT(*) FROM Applications WHERE Status IN (5, 6) 
+             AND RequirementId IN (SELECT Id FROM Requirement WHERE OrgCode = @orgCode)) AS InterviewScheduled,
+            (SELECT COUNT(*) FROM Applications WHERE Status IN (1, 2) 
+             AND RequirementId IN (SELECT Id FROM Requirement WHERE OrgCode = @orgCode)) AS CandidatesToReview,
+            (SELECT COUNT(*) FROM Applications 
+             WHERE RequirementId IN (SELECT Id FROM Requirement WHERE OrgCode = @orgCode)) AS TotalApplicants";
+
+            return await connection.QueryFirstOrDefaultAsync<CompanyDashboardCountResponse>(query, parameters)
+                   ?? new CompanyDashboardCountResponse();
+        }
+
     }
 }
