@@ -496,7 +496,7 @@ namespace VendersCloud.Business.Service.Concrete
 
                             var vendorDetails = await _usersRepository.GetUserByIdAsync(app.CreatedBy);
                             var vendorOrgData = await _organizationRepository.GetOrganizationData(vendorDetails.OrgCode);
-
+                            requirementResponse.Comment= app.Comment;
                             requirementResponse.VendorOrgName = vendorOrgData.OrgName;
                             requirementResponse.VendorLogo = vendorOrgData.Logo;
                             requirementResponse.VendorOrgCode = vendorOrgData.OrgCode;
