@@ -285,6 +285,7 @@ namespace VendersCloud.Business.Service.Concrete
             try
             {
                 List<OrgActivePositionsResponse> orgActivePositionsResponseList = new List<OrgActivePositionsResponse>();
+            
                 var data = await _requirementsRepository.GetActivePositionsByOrgCodeAsync(orgCode);
                 if (data != null)
                 {
@@ -293,19 +294,14 @@ namespace VendersCloud.Business.Service.Concrete
                         OrgActivePositionsResponse orgActivePositionsResponse = new OrgActivePositionsResponse();
                         orgActivePositionsResponse.ClientCode = item.ClientCode;
                         orgActivePositionsResponse.TotalPositions = item.TotalPositions;
-
                         var clientData = await _clientsRepository.GetClientsByClientCodeAsync(item.ClientCode);
                         if (clientData != null)
                         {
                             orgActivePositionsResponse.ClientName = clientData.ClientName;
                             orgActivePositionsResponse.ClientLogo = clientData.LogoURL;
                         }
-
                         orgActivePositionsResponseList.Add(orgActivePositionsResponse);
                     }
-
-
-
                 }
                 return orgActivePositionsResponseList; 
             }
