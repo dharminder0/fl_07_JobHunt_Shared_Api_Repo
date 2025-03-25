@@ -4,11 +4,9 @@
     public class BenchController : BaseApiController
     {
         private readonly IBenchService _benchService;
-        private readonly IRequirementService _requirementService;
-        public BenchController(IBenchService benchService, IRequirementService requirementService = null)
+        public BenchController(IBenchService benchService)
         {
             _benchService = benchService;
-            _requirementService = requirementService;
         }
 
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -73,85 +71,6 @@
             }
         }
 
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ServiceFilter(typeof(RequireAuthorizationFilter))]
-        [HttpPost]
-        [Route("api/V1/Applications/Upsert")]
-
-        public async Task<IActionResult> UpsertApplicants(ApplicationsRequest request)
-        {
-            try
-            {
-                var result = await _benchService.UpsertApplicants(request);
-                return Json(result);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ServiceFilter(typeof(RequireAuthorizationFilter))]
-        [HttpPost]
-        [Route("api/V1/Applications/Search")]
-
-        public async Task<IActionResult> GetSearchApplicantsList(ApplicantsSearchRequest request)
-        {
-            try
-            {
-                var result = await _benchService.GetSearchApplicantsList(request);
-                return Json(result);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ServiceFilter(typeof(RequireAuthorizationFilter))]
-        [HttpPost]
-        [Route("api/V1/Applicants/Company/GetListByOrgCode")]
-        public async Task<IActionResult> GetRequirementListByOrgCode(CompanyRequirementSearchRequest request)
-        {
-            try
-            {
-                var result = await _requirementService.GetRequirementListByOrgCode(request);
-                return Json(result);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ServiceFilter(typeof(RequireAuthorizationFilter))]
-        [HttpPost]
-        [Route("api/V1/Applicants/Company/Vacancies/Active")]
-        public async Task<IActionResult>GetActiveVacanciesByOrgCodeAsync(string orgCode)
-        {
-            try
-            {
-                var result = await _benchService.GetActiveVacanciesByOrgCodeAsync(orgCode);
-                return Json(result);
-            }
-            catch(Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
+        
     }
 }

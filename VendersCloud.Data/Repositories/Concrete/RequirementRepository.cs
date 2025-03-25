@@ -1,6 +1,4 @@
-﻿using VendersCloud.Business.Entities.DataModels;
-
-namespace VendersCloud.Data.Repositories.Concrete
+﻿namespace VendersCloud.Data.Repositories.Concrete
 {
     public class RequirementRepository : StaticBaseRepository<Requirement>,IRequirementRepository
     {
