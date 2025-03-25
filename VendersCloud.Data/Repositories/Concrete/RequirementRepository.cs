@@ -1,11 +1,11 @@
-﻿namespace VendersCloud.Data.Repositories.Concrete
+﻿using VendersCloud.Business.Entities.DataModels;
+
+namespace VendersCloud.Data.Repositories.Concrete
 {
     public class RequirementRepository : StaticBaseRepository<Requirement>,IRequirementRepository
     {
-        private readonly IClientsRepository _clientsRepository;
-        public RequirementRepository(IConfiguration configuration, IClientsRepository clientsRepository):base(configuration)
+        public RequirementRepository(IConfiguration configuration):base(configuration)
         {
-            _clientsRepository= clientsRepository;
         }
 
         public async Task<string> RequirementUpsertAsync(RequirementRequest request,string uniqueId)
@@ -388,6 +388,18 @@ ORDER BY r.CreatedOn DESC;";
 
             return await connection.QueryFirstOrDefaultAsync<CompanyDashboardCountResponse>(query, parameters)
                    ?? new CompanyDashboardCountResponse();
+        }
+
+        public async Task<List<dynamic>>GetActivePositionsByOrgCodeAsync(string orgCode)
+        {
+            var dbInstance = GetDbInstance();
+            var tableName = new Table<Requirement>();
+            var sql = @"SELECT ClientCode, SUM(Positions) AS TotalPositions 
+                        FROM Requirement 
+                        WHERE  OrgCode = @orgCode and Status<>3 
+                        GROUP BY ClientCode 
+                        ORDER BY TotalPositions DESC;";
+            return dbInstance.Select<dynamic>(sql, new { orgCode }).ToList();
         }
 
     }
