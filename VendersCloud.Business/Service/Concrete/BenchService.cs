@@ -1,5 +1,7 @@
-﻿using System.ComponentModel;
+﻿using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel;
 using System.Reflection;
+using VendersCloud.Business.CommonMethods;
 using VendersCloud.Business.Entities.DataModels;
 
 namespace VendersCloud.Business.Service.Concrete
@@ -101,7 +103,7 @@ namespace VendersCloud.Business.Service.Concrete
                         CV = item.CV,
                         OrgCode = item.OrgCode,
                         Availability = item.Availability,
-                        AvailabilityName = GetEnumDescription((BenchAvailability)item.Availability),
+                        AvailabilityName = CommonFunctions.GetEnumDescription((BenchAvailability)item.Availability),
                         CreatedOn = item.CreatedOn,
                         UpdatedOn = item.UpdatedOn,
                         CreatedBy = item.CreatedBy,
@@ -226,7 +228,7 @@ namespace VendersCloud.Business.Service.Concrete
                     var searchResponse = new ApplicantsSearchResponse
                     {
                         Status = data.Status,
-                        StatusName = GetEnumDescription((ApplyStatus)data.Status),
+                        StatusName = CommonFunctions.GetEnumDescription((ApplyStatus)data.Status),
                         ApplicationDate = data.CreatedOn
                     };
 
@@ -278,15 +280,39 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
-
-
-
-
-        public static string GetEnumDescription(Enum value)
+        public async Task<List<OrgActivePositionsResponse>> GetActiveVacanciesByOrgCodeAsync(string orgCode)
         {
-            FieldInfo field = value.GetType().GetField(value.ToString());
-            DescriptionAttribute attribute = (DescriptionAttribute)Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute));
-            return attribute == null ? value.ToString() : attribute.Description;
+            try
+            {
+                List<OrgActivePositionsResponse> orgActivePositionsResponseList = new List<OrgActivePositionsResponse>();
+                var data = await _requirementsRepository.GetActivePositionsByOrgCodeAsync(orgCode);
+                if (data != null)
+                {
+                    foreach (var item in data)
+                    {
+                        OrgActivePositionsResponse orgActivePositionsResponse = new OrgActivePositionsResponse();
+                        orgActivePositionsResponse.ClientCode = item.ClientCode;
+                        orgActivePositionsResponse.TotalPositions = item.TotalPositions;
+
+                        var clientData = await _clientsRepository.GetClientsByClientCodeAsync(item.ClientCode);
+                        if (clientData != null)
+                        {
+                            orgActivePositionsResponse.ClientName = clientData.ClientName;
+                            orgActivePositionsResponse.ClientLogo = clientData.LogoURL;
+                        }
+
+                        orgActivePositionsResponseList.Add(orgActivePositionsResponse);
+                    }
+
+
+
+                }
+                return orgActivePositionsResponseList; 
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
     }
 }
