@@ -23,6 +23,8 @@ namespace VendersCloud.Business.CommonMethods
             for (int i = 0; i < length; i++)
             {
                 result.Append(chars[_random.Next(chars.Length)]);
+                //result.Append(chars[_random.Next(chars.Length)].ToString() + DateTime.UtcNow.ToString());
+
             }
 
             return result.ToString();

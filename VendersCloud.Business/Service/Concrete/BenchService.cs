@@ -1,8 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel;
-using System.Reflection;
-using VendersCloud.Business.CommonMethods;
-using VendersCloud.Business.Entities.DataModels;
+﻿using VendersCloud.Business.CommonMethods;
 
 namespace VendersCloud.Business.Service.Concrete
 {

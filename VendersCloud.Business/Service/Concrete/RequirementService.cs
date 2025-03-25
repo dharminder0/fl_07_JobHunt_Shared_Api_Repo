@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using VendersCloud.Business.CommonMethods;
+﻿using VendersCloud.Business.CommonMethods;
 
 namespace VendersCloud.Business.Service.Concrete
 {
