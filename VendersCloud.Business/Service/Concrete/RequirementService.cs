@@ -482,6 +482,7 @@ namespace VendersCloud.Business.Service.Concrete
                             // Create a response object for each application
                             var requirementResponse = new CompanyRequirementResponse
                             {
+                                RequirementUniqueId=item.UniqueId,
                                 RequirementId = item.Id,
                                 Role = item.Title,
                                 ClientCode = item.ClientCode,
@@ -499,7 +500,7 @@ namespace VendersCloud.Business.Service.Concrete
                             requirementResponse.VendorOrgName = vendorOrgData.OrgName;
                             requirementResponse.VendorLogo = vendorOrgData.Logo;
                             requirementResponse.VendorOrgCode = vendorOrgData.OrgCode;
-
+                            requirementResponse.ResourceId = app.ResourceId;
                             var benchData = await _benchRepository.GetBenchResponseByIdAsync(app.ResourceId);
                             var candidateDetails = benchData?.FirstOrDefault();
 
