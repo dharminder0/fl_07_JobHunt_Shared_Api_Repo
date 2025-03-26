@@ -507,7 +507,7 @@ namespace VendersCloud.Business.Service.Concrete
                             int profileId = Convert.ToInt32(pid);
                             var res = await _userProfilesService.InsertUserProfileAsync(dbUser.Id, profileId);
                         }
-                        return new ActionMessageResponse { Success = false, Message = "Member Detail Updated!!", Content = "" };
+                        return new ActionMessageResponse { Success = true, Message = "Member Detail Updated!!", Content = "" };
                     }
                     if (await _communicationService.SendUserEmailVerification(request.FirstName, request.LastName, request.Email, token))
                     {
