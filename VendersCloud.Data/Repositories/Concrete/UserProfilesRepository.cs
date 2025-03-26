@@ -49,7 +49,7 @@
         public async Task<List<UserProfiles>> GetProfileRole(int userId)
         {
             var dbInstance = GetDbInstance();
-            var sql = "SELECT * FROM UserProfiles WHERE UserId=@userId";
+            var sql = "SELECT * FROM UserProfiles WHERE UserId=@userId and IsDeleted=0";
 
             var response = await dbInstance.SelectAsync<UserProfiles>(sql, new { userId });
             return response.ToList();
