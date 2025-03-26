@@ -500,9 +500,14 @@ namespace VendersCloud.Business.Service.Concrete
                         int profileId = Convert.ToInt32(pid);
                         var res = await _userProfilesService.InsertUserProfileAsync(dbUser.Id, profileId);
                     }
-                    if (data.Equals("User Already Exists!!"))
+                    if (data.Equals("User Already Exists And Details Are Updated!!"))
                     {
-                        return new ActionMessageResponse { Success = false, Message = "Member Already Exists!!", Content = "" };
+                        foreach (var pid in request.Access)
+                        {
+                            int profileId = Convert.ToInt32(pid);
+                            var res = await _userProfilesService.InsertUserProfileAsync(dbUser.Id, profileId);
+                        }
+                        return new ActionMessageResponse { Success = false, Message = "Member Detail Updated!!", Content = "" };
                     }
                     if (await _communicationService.SendUserEmailVerification(request.FirstName, request.LastName, request.Email, token))
                     {

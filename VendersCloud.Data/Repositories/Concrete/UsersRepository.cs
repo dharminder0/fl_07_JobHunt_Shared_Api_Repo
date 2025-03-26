@@ -24,7 +24,15 @@
 
                 if (!string.IsNullOrEmpty(existingOrgCode))
                 {
-                    string res = "User Already Exists!!";
+                var updateQuery = new Query(tableName.TableName).AsUpdate(new
+                {
+                    Phone= phone,
+                    FirstName= request.FirstName,
+                    LastName= request.LastName
+                }).Where("Username",request.Email);
+
+                await dbInstance.ExecuteScalarAsync<string>(updateQuery);
+                string res = "User Already Exists And Details Are Updated!!";
                     return res;
                 }
 

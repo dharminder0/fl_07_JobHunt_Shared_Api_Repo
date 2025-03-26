@@ -15,12 +15,16 @@
                 var checkUserExist = new Query(tableName.TableName)
                       .Where("UserId", userId)
                       .Where("ProfileId", profileId)
-                      .Select("ProfileId");
+                      .Select("Id");
 
                 var existing = await dbInstance.ExecuteScalarAsync<string>(checkUserExist);
                 if(existing!=null)
                 {
-                    return true;
+                    var deletequery = new Query(tableName.TableName).AsUpdate(new
+                    {
+                        IsDeleted=true
+                    }).Where("UserId", userId);
+                    await dbInstance.ExecuteScalarAsync<string>(deletequery);
                 }
                 // Insert new user
                 var insertQuery = new Query(tableName.TableName).AsInsert(new
