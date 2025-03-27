@@ -16,5 +16,6 @@
         Task<CompanyDashboardCountResponse> GetCountsAsync(string orgCode);
         Task<CompanyDashboardCountResponse> GetVendorsCountsAsync(string orgCode, string userId);
         Task<List<dynamic>> GetActivePositionsByOrgCodeAsync(string orgCode);
+        Task<List<dynamic>> GetOrgTotalPlacementAndRequirementIdAsync(CompanyGraphRequest request);
     }
 }

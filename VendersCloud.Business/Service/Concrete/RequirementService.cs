@@ -1,4 +1,5 @@
-﻿using VendersCloud.Business.CommonMethods;
+﻿using Microsoft.AspNetCore.Mvc;
+using VendersCloud.Business.CommonMethods;
 
 namespace VendersCloud.Business.Service.Concrete
 {
@@ -481,7 +482,7 @@ namespace VendersCloud.Business.Service.Concrete
                             // Create a response object for each application
                             var requirementResponse = new CompanyRequirementResponse
                             {
-                                RequirementUniqueId=item.UniqueId,
+                                RequirementUniqueId = item.UniqueId,
                                 RequirementId = item.Id,
                                 Role = item.Title,
                                 ClientCode = item.ClientCode,
@@ -495,7 +496,7 @@ namespace VendersCloud.Business.Service.Concrete
 
                             var vendorDetails = await _usersRepository.GetUserByIdAsync(app.CreatedBy);
                             var vendorOrgData = await _organizationRepository.GetOrganizationData(vendorDetails.OrgCode);
-                            requirementResponse.Comment= app.Comment;
+                            requirementResponse.Comment = app.Comment;
                             requirementResponse.VendorOrgName = vendorOrgData.OrgName;
                             requirementResponse.VendorLogo = vendorOrgData.Logo;
                             requirementResponse.VendorOrgCode = vendorOrgData.OrgCode;
@@ -573,12 +574,43 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-                return await _requirementRepository.GetVendorsCountsAsync(orgCode,userId);
+                return await _requirementRepository.GetVendorsCountsAsync(orgCode, userId);
             }
             catch (Exception ex)
             {
                 throw new Exception(ex.Message);
             }
         }
+
+        public async Task<List<CompanyGraphResponse>> GetDayWeekCountsAsync(CompanyGraphRequest request)
+        {
+            try
+            {
+                var data = await _requirementRepository.GetOrgTotalPlacementAndRequirementIdAsync(request);
+                var finalResult = new List<CompanyGraphResponse>();
+
+                foreach (var item in data)
+                {
+                    var requirementIds = item.RequirementIds != null ? ((string)item.RequirementIds).Split(',').Select(int.Parse).ToList(): new List<int>(); 
+
+                    int totalPlacements = await _resourcesRepository.GetTotalPlacementsAsync(requirementIds);
+
+                    finalResult.Add(new CompanyGraphResponse
+                    {
+                        OrgCode = item.OrgCode,
+                        WeekDay = item.WeekDay,
+                        TotalPositions = item.TotalPositions,
+                        TotalPlacements = totalPlacements
+                    });
+                }
+
+                return finalResult;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error in GetDayWeekCountsAsync: {ex.Message}", ex);
+            }
+        }
+
     }
 }
