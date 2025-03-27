@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 using VendersCloud.Business.CommonMethods;
 
 namespace VendersCloud.Business.Service.Concrete
@@ -609,6 +610,19 @@ namespace VendersCloud.Business.Service.Concrete
             catch (Exception ex)
             {
                 throw new Exception($"Error in GetDayWeekCountsAsync: {ex.Message}", ex);
+            }
+        }
+
+        public async Task<dynamic> GetRequirementCountsAsync(CompanyGraphRequest request)
+        {
+            try
+            {
+                var data= await _requirementRepository.GetRequirementCountAsync(request);
+                return data;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
             }
         }
 
