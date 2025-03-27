@@ -1,4 +1,5 @@
-﻿using SqlKata;
+﻿using Microsoft.AspNetCore.Mvc;
+using SqlKata;
 using VendersCloud.Business.CommonMethods;
 
 namespace VendersCloud.Business.Service.Concrete
@@ -139,7 +140,8 @@ namespace VendersCloud.Business.Service.Concrete
                 }
                 int Id = 0;
                 var requirementdata = await _requirementsRepository.GetRequirementListByIdAsync(request.RequirementUniqueId);
-                if (requirementdata != null) {
+                if (requirementdata != null)
+                {
                     foreach (var requirement in requirementdata)
                     {
                         Id = requirement.Id;
@@ -320,6 +322,26 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
+        public async Task<PaginationDto<dynamic>> GetTopVendorsListAsync(CompanyActiveClientResponse request)
+        {
+            try
+            {
+                var data = await _requirementsRepository.GetTopVendorsListAsync(request);
+                var totalRecords = data.Count;
+                var totalPages = (int)Math.Ceiling((double)totalRecords / request.PageSize);
+                return new PaginationDto<dynamic>
+                {
+                    Count = totalRecords,
+                    Page = request.PageNumber,
+                    TotalPages = totalPages,
+                    List = data
+                };
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
     }
 }
 
