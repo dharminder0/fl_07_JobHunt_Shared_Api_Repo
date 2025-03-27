@@ -486,6 +486,7 @@ ORDER BY r.CreatedOn DESC;";
                         u.LastName, 
                         a.CreatedBy, 
                     	o.OrgName,
+                        o.Logo,
                         COUNT(a.ResourceId) AS Total_Placements
                     FROM 
                         Requirement r
@@ -499,7 +500,7 @@ ORDER BY r.CreatedOn DESC;";
                         r.OrgCode =  @orgCode
                         AND (a.Status = 8)  
                     GROUP BY 
-                        u.FirstName, u.LastName, a.CreatedBy,o.OrgName
+                        u.FirstName, u.LastName, a.CreatedBy,o.OrgName,o.Logo
                     ORDER BY 
                         Total_Placements DESC;";
              return dbInstance.Select<dynamic>(sql, new { request.OrgCode }).ToList();
