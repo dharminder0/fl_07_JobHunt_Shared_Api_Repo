@@ -626,5 +626,47 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
+        public async Task<dynamic> GetVendorRequirementCountsAsync(VendorGraphRequest request)
+        {
+            try
+            {
+                var data = await _requirementRepository.GetVendorRequirementCountAsync(request);
+                return data;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task<List<VendorGraphResponse>> GetVendorDayWeekCountsAsync(VendorGraphRequest request)
+        {
+            try
+            {
+                var data = await _requirementRepository.GetVendorTotalPlacementAndRequirementIdAsync(request);
+                var finalResult = new List<VendorGraphResponse>();
+
+                foreach (var item in data)
+                {
+                    var requirementIds = item.RequirementIds != null ? ((string)item.RequirementIds).Split(',').Select(int.Parse).ToList() : new List<int>();
+
+                    int totalPlacements = await _resourcesRepository.GetTotalPlacementsAsync(requirementIds);
+
+                    finalResult.Add(new VendorGraphResponse
+                    {
+                        OrgCode = item.OrgCode,
+                        WeekDay = item.WeekDay,
+                        TotalPositions = item.TotalPositions,
+                        TotalPlacements = totalPlacements
+                    });
+                }
+
+                return finalResult;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error in GetDayWeekCountsAsync: {ex.Message}", ex);
+            }
+        }
     }
 }

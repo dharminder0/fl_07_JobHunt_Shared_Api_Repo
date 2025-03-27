@@ -16,5 +16,7 @@
         Task<CompanyDashboardCountResponse> GetVendorsCountsAsync(string orgCode, string userId);
         Task<List<CompanyGraphResponse>> GetDayWeekCountsAsync(CompanyGraphRequest request);
         Task<dynamic> GetRequirementCountsAsync(CompanyGraphRequest request);
+        Task<dynamic> GetVendorRequirementCountsAsync(VendorGraphRequest request);
+        Task<List<VendorGraphResponse>> GetVendorDayWeekCountsAsync(VendorGraphRequest request);
     }
 }
