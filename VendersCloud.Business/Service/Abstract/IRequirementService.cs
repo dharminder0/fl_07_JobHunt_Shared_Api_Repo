@@ -14,5 +14,6 @@
         Task<PaginationDto<CompanyRequirementResponse>> GetRequirementListByOrgCode(CompanyRequirementSearchRequest request);
         Task<CompanyDashboardCountResponse> GetCountsAsync(string orgCode);
         Task<CompanyDashboardCountResponse> GetVendorsCountsAsync(string orgCode, string userId);
+        Task<List<CompanyGraphResponse>> GetDayWeekCountsAsync(CompanyGraphRequest request);
     }
 }

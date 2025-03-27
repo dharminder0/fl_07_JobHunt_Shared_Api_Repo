@@ -100,5 +100,22 @@
             return applicationsCount;
         }
 
+        public async Task<int> GetTotalPlacementsAsync(List<int> requirementIds)
+        {
+            if (requirementIds == null || requirementIds.Count == 0)
+                return 0;
+
+            var dbInstance = GetDbInstance();
+            var query = new Query("Applications")
+                .WhereIn("RequirementId", requirementIds)
+                .Where("Status", 8)
+                .SelectRaw("COUNT(DISTINCT ResourceId)");
+
+            var result = await dbInstance.ExecuteScalarAsync<int>(query);
+            return result;
+        }
+
+
+
     }
 }

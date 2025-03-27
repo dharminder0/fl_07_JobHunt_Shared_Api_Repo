@@ -400,5 +400,31 @@ ORDER BY r.CreatedOn DESC;";
             return dbInstance.Select<dynamic>(sql, new { orgCode }).ToList();
         }
 
+        public async Task<List<dynamic>> GetOrgTotalPlacementAndRequirementIdAsync(CompanyGraphRequest request)
+        {
+            var dbInstance = GetDbInstance();
+            var tableName = new Table<Requirement>();
+            string requirementQuery = @" SELECT 
+                   OrgCode, 
+                   LEFT(DATENAME(WEEKDAY, CreatedOn), 3) AS WeekDay,  
+                   SUM(Positions) AS TotalPositions, 
+                   STRING_AGG(Id, ',') AS RequirementIds
+               FROM Requirement
+               WHERE OrgCode = @orgCode 
+                   AND CreatedOn BETWEEN  @StartDate AND @EndDate and Status<>3 
+               GROUP BY OrgCode, LEFT(DATENAME(WEEKDAY, CreatedOn), 3)
+               ORDER BY 
+                   CASE 
+                       WHEN LEFT(DATENAME(WEEKDAY, CreatedOn), 3) = 'Mon' THEN 1
+                       WHEN LEFT(DATENAME(WEEKDAY, CreatedOn), 3) = 'Tue' THEN 2
+                       WHEN LEFT(DATENAME(WEEKDAY, CreatedOn), 3) = 'Wed' THEN 3
+                       WHEN LEFT(DATENAME(WEEKDAY, CreatedOn), 3) = 'Thu' THEN 4
+                       WHEN LEFT(DATENAME(WEEKDAY, CreatedOn), 3) = 'Fri' THEN 5
+                       WHEN LEFT(DATENAME(WEEKDAY, CreatedOn), 3) = 'Sat' THEN 6
+                       WHEN LEFT(DATENAME(WEEKDAY, CreatedOn), 3) = 'Sun' THEN 7
+                   END";
+            return dbInstance.Select<dynamic>(requirementQuery, new { request.OrgCode, request.StartDate, request.EndDate }).ToList();
+        }
+
     }
 }
