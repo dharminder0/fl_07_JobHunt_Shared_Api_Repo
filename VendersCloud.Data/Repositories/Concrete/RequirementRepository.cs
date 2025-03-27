@@ -392,10 +392,10 @@ ORDER BY r.CreatedOn DESC;";
         {
             var dbInstance = GetDbInstance();
             var tableName = new Table<Requirement>();
-            var sql = @"SELECT ClientCode, SUM(Positions) AS TotalPositions 
+            var sql = @"SELECT ClientCode,CreatedBy, SUM(Positions) AS TotalPositions 
                         FROM Requirement 
                         WHERE  OrgCode = @orgCode and Status<>3 
-                        GROUP BY ClientCode 
+                        GROUP BY ClientCode, CreatedBy
                         ORDER BY TotalPositions DESC;";
             return dbInstance.Select<dynamic>(sql, new { orgCode }).ToList();
         }
@@ -475,6 +475,34 @@ ORDER BY r.CreatedOn DESC;";
             FROM Requirement  WHERE OrgCode = @orgCode 
                    AND CreatedOn BETWEEN  @StartDate AND @EndDate  AND ISDeleted<>1 AND CreatedBy=@UserId;";
             return dbInstance.Select<dynamic>(requirementQuery, new { request.OrgCode, request.StartDate, request.EndDate ,request.UserId}).ToList();
+        }
+
+        public async Task<dynamic> GetTopVendorsListAsync(CompanyActiveClientResponse request)
+        {
+            var dbInstance= GetDbInstance();
+            var sql = @"
+                    SELECT 
+                        u.FirstName, 
+                        u.LastName, 
+                        a.CreatedBy, 
+                    	o.OrgName,
+                        COUNT(a.ResourceId) AS Total_Placements
+                    FROM 
+                        Requirement r
+                    LEFT JOIN 
+                        Applications a ON r.Id = a.RequirementId 
+                    LEFT JOIN
+                        Users u ON u.Id = a.CreatedBy  
+                    LEFT JOIN
+                        Organization o ON o.OrgCode= u.OrgCode
+                    WHERE 
+                        r.OrgCode =  @orgCode
+                        AND (a.Status = 8)  
+                    GROUP BY 
+                        u.FirstName, u.LastName, a.CreatedBy,o.OrgName
+                    ORDER BY 
+                        Total_Placements DESC;";
+             return dbInstance.Select<dynamic>(sql, new { request.OrgCode }).ToList();
         }
     }
 }

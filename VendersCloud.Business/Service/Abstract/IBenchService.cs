@@ -9,5 +9,6 @@ namespace VendersCloud.Business.Service.Abstract
         Task<ActionMessageResponse> UpsertApplicants(ApplicationsRequest request);
         Task<PaginationDto<ApplicantsSearchResponse>> GetSearchApplicantsList(ApplicantsSearchRequest request);
         Task<PaginationDto<OrgActivePositionsResponse>> GetActiveVacanciesByOrgCodeAsync(CompanyActiveClientResponse request);
+        Task<PaginationDto<dynamic>> GetTopVendorsListAsync(CompanyActiveClientResponse request);
     }
 }
