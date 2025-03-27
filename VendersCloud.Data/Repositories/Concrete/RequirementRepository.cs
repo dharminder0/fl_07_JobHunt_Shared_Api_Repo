@@ -411,7 +411,7 @@ ORDER BY r.CreatedOn DESC;";
                    STRING_AGG(Id, ',') AS RequirementIds
                FROM Requirement
                WHERE OrgCode = @orgCode 
-                   AND CreatedOn BETWEEN  @StartDate AND @EndDate and Status<>3 
+                   AND CreatedOn BETWEEN  @StartDate AND @EndDate and Status<>3 and ISDeleted<>1
                GROUP BY OrgCode, LEFT(DATENAME(WEEKDAY, CreatedOn), 3)
                ORDER BY 
                    CASE 
@@ -423,6 +423,19 @@ ORDER BY r.CreatedOn DESC;";
                        WHEN LEFT(DATENAME(WEEKDAY, CreatedOn), 3) = 'Sat' THEN 6
                        WHEN LEFT(DATENAME(WEEKDAY, CreatedOn), 3) = 'Sun' THEN 7
                    END";
+            return dbInstance.Select<dynamic>(requirementQuery, new { request.OrgCode, request.StartDate, request.EndDate }).ToList();
+        }
+
+        public async Task<dynamic> GetRequirementCountAsync(CompanyGraphRequest request)
+        {
+            var dbInstance = GetDbInstance();
+            var tableName = new Table<Requirement>();
+            string requirementQuery = @" SELECT 
+                COUNT(CASE WHEN status = 1 THEN 1 END) AS [Open],
+                COUNT(CASE WHEN status = 2 THEN 1 END) AS [Onhold],
+                COUNT(CASE WHEN status = 3 THEN 1 END) AS [Closed]
+            FROM Requirement  WHERE OrgCode = @orgCode 
+                   AND CreatedOn BETWEEN  @StartDate AND @EndDate  AND ISDeleted<>1;";
             return dbInstance.Select<dynamic>(requirementQuery, new { request.OrgCode, request.StartDate, request.EndDate }).ToList();
         }
 
