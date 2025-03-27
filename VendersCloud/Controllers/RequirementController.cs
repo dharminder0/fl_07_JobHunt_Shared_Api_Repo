@@ -247,6 +247,46 @@
                 return BadRequest(ex.Message);
             }
         }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ServiceFilter(typeof(RequireAuthorizationFilter))]
+        [HttpPost]
+        [Route("api/V1/Requirement/Vendor-dashboard/Requirement/Graph")]
+        public async Task<IActionResult> GetVendorRequirementCountsAsync(VendorGraphRequest request)
+        {
+            try
+            {
+                var result = await _requirementService.GetVendorRequirementCountsAsync(request);
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ServiceFilter(typeof(RequireAuthorizationFilter))]
+        [HttpPost]
+        [Route("api/V1/Requirement/Vendor-dashboard/Day-Week/Graph")]
+        public async Task<IActionResult> GetVendorDayWeekCountsAsync(VendorGraphRequest request)
+        {
+            try
+            {
+                var result = await _requirementService.GetVendorDayWeekCountsAsync(request);
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }
 

@@ -426,6 +426,32 @@ ORDER BY r.CreatedOn DESC;";
             return dbInstance.Select<dynamic>(requirementQuery, new { request.OrgCode, request.StartDate, request.EndDate }).ToList();
         }
 
+        public async Task<List<dynamic>> GetVendorTotalPlacementAndRequirementIdAsync(VendorGraphRequest request)
+        {
+            var dbInstance = GetDbInstance();
+            var tableName = new Table<Requirement>();
+            string requirementQuery = @" SELECT 
+                   OrgCode, 
+                   LEFT(DATENAME(WEEKDAY, CreatedOn), 3) AS WeekDay,  
+                   SUM(Positions) AS TotalPositions, 
+                   STRING_AGG(Id, ',') AS RequirementIds
+               FROM Requirement
+               WHERE OrgCode = @orgCode 
+                   AND CreatedOn BETWEEN  @StartDate AND @EndDate and Status<>3 AND ISDeleted<>1 AND CreatedBy=@UserId
+               GROUP BY OrgCode, LEFT(DATENAME(WEEKDAY, CreatedOn), 3)
+               ORDER BY 
+                   CASE 
+                       WHEN LEFT(DATENAME(WEEKDAY, CreatedOn), 3) = 'Mon' THEN 1
+                       WHEN LEFT(DATENAME(WEEKDAY, CreatedOn), 3) = 'Tue' THEN 2
+                       WHEN LEFT(DATENAME(WEEKDAY, CreatedOn), 3) = 'Wed' THEN 3
+                       WHEN LEFT(DATENAME(WEEKDAY, CreatedOn), 3) = 'Thu' THEN 4
+                       WHEN LEFT(DATENAME(WEEKDAY, CreatedOn), 3) = 'Fri' THEN 5
+                       WHEN LEFT(DATENAME(WEEKDAY, CreatedOn), 3) = 'Sat' THEN 6
+                       WHEN LEFT(DATENAME(WEEKDAY, CreatedOn), 3) = 'Sun' THEN 7
+                   END";
+            return dbInstance.Select<dynamic>(requirementQuery, new { request.OrgCode, request.StartDate, request.EndDate,request.UserId }).ToList();
+        }
+
         public async Task<dynamic> GetRequirementCountAsync(CompanyGraphRequest request)
         {
             var dbInstance = GetDbInstance();
@@ -438,6 +464,17 @@ ORDER BY r.CreatedOn DESC;";
                    AND CreatedOn BETWEEN  @StartDate AND @EndDate  AND ISDeleted<>1;";
             return dbInstance.Select<dynamic>(requirementQuery, new { request.OrgCode, request.StartDate, request.EndDate }).ToList();
         }
-
+        public async Task<dynamic> GetVendorRequirementCountAsync(VendorGraphRequest request)
+        {
+            var dbInstance = GetDbInstance();
+            var tableName = new Table<Requirement>();
+            string requirementQuery = @" SELECT 
+                COUNT(CASE WHEN status = 1 THEN 1 END) AS [Open],
+                COUNT(CASE WHEN status = 2 THEN 1 END) AS [Onhold],
+                COUNT(CASE WHEN status = 3 THEN 1 END) AS [Closed]
+            FROM Requirement  WHERE OrgCode = @orgCode 
+                   AND CreatedOn BETWEEN  @StartDate AND @EndDate  AND ISDeleted<>1 AND CreatedBy=@UserId;";
+            return dbInstance.Select<dynamic>(requirementQuery, new { request.OrgCode, request.StartDate, request.EndDate ,request.UserId}).ToList();
+        }
     }
 }
