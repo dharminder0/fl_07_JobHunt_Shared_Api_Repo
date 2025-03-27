@@ -79,11 +79,11 @@
         [ServiceFilter(typeof(RequireAuthorizationFilter))]
         [HttpPost]
         [Route("api/V1/Applicants/Company/Vacancies/Active")]
-        public async Task<IActionResult> GetActiveVacanciesByOrgCodeAsync(string orgCode)
+        public async Task<IActionResult> GetActiveVacanciesByOrgCodeAsync(CompanyActiveClientResponse request)
         {
             try
             {
-                var result = await _benchService.GetActiveVacanciesByOrgCodeAsync(orgCode);
+                var result = await _benchService.GetActiveVacanciesByOrgCodeAsync(request);
                 return Json(result);
             }
             catch (Exception ex)

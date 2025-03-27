@@ -1,4 +1,5 @@
-﻿using VendersCloud.Business.CommonMethods;
+﻿using SqlKata;
+using VendersCloud.Business.CommonMethods;
 
 namespace VendersCloud.Business.Service.Concrete
 {
@@ -276,36 +277,49 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
-        public async Task<List<OrgActivePositionsResponse>> GetActiveVacanciesByOrgCodeAsync(string orgCode)
+        public async Task<PaginationDto<OrgActivePositionsResponse>> GetActiveVacanciesByOrgCodeAsync(CompanyActiveClientResponse request)
         {
             try
             {
                 List<OrgActivePositionsResponse> orgActivePositionsResponseList = new List<OrgActivePositionsResponse>();
-            
-                var data = await _requirementsRepository.GetActivePositionsByOrgCodeAsync(orgCode);
+
+                var data = await _requirementsRepository.GetActivePositionsByOrgCodeAsync(request.OrgCode);
+                var totalCount = data.Count();
+                var totalPages = (int)Math.Ceiling((double)totalCount / request.PageSize);
                 if (data != null)
                 {
-                    foreach (var item in data)
+                    var pagedData = data.Skip((request.PageNumber - 1) * request.PageSize).Take(request.PageSize).ToList();
+
+                    foreach (var item in pagedData)
                     {
                         OrgActivePositionsResponse orgActivePositionsResponse = new OrgActivePositionsResponse();
                         orgActivePositionsResponse.ClientCode = item.ClientCode;
                         orgActivePositionsResponse.TotalPositions = item.TotalPositions;
+
                         var clientData = await _clientsRepository.GetClientsByClientCodeAsync(item.ClientCode);
                         if (clientData != null)
                         {
                             orgActivePositionsResponse.ClientName = clientData.ClientName;
                             orgActivePositionsResponse.ClientLogo = clientData.LogoURL;
                         }
+
                         orgActivePositionsResponseList.Add(orgActivePositionsResponse);
                     }
                 }
-                return orgActivePositionsResponseList; 
+                return new PaginationDto<OrgActivePositionsResponse>
+                {
+                    Count = totalCount,
+                    Page = request.PageNumber,
+                    TotalPages = totalPages,
+                    List = orgActivePositionsResponseList
+                };
             }
             catch (Exception ex)
             {
                 throw ex;
             }
         }
+
     }
 }
 
