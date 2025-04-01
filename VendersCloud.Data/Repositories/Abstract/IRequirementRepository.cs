@@ -20,6 +20,5 @@
         Task<dynamic> GetRequirementCountAsync(CompanyGraphRequest request);
         Task<dynamic> GetVendorRequirementCountAsync(VendorGraphRequest request);
         Task<List<dynamic>> GetVendorTotalPlacementAndRequirementIdAsync(VendorGraphRequest request);
-        Task<dynamic> GetTopVendorsListAsync(CompanyActiveClientResponse request);
     }
 }

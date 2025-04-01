@@ -130,7 +130,7 @@
         public async Task<List<Users>> GetUserByOrgCodeAsync(string orgCode)
         {
                 var dbInstance = GetDbInstance();
-                var sql = "SELECT * FROM Users Where OrgCode=@orgCode";
+                var sql = "SELECT * FROM Users Where OrgCode=@orgCode and isDeleted<>1";
 
                 var users = dbInstance.Select<Users>(sql, new {orgCode}).ToList();
                 return users;

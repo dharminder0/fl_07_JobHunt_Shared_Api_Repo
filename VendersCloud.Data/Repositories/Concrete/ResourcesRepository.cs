@@ -115,6 +115,20 @@
             return result;
         }
 
+        public async Task<int> GetTotalPlacementsByUserIdsAsync(List<int> userId)
+        {
+            if (userId == null || userId.Count == 0)
+                return 0;
+
+            var dbInstance = GetDbInstance();
+            var query = new Query("Applications")
+                .Where("Status", 8)
+                .Where(q => q.WhereIn("CreatedBy", userId).OrWhereIn("UpdatedBy", userId))
+                .SelectRaw("COUNT(ResourceId)");
+
+            var result = await dbInstance.ExecuteScalarAsync<int>(query);
+            return result;
+        }
 
 
     }
