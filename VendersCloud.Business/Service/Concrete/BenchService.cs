@@ -1,7 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using SqlKata;
-using System.Collections.Generic;
-using VendersCloud.Business.CommonMethods;
+﻿using VendersCloud.Business.CommonMethods;
+using VendersCloud.Business.Entities.DataModels;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace VendersCloud.Business.Service.Concrete
 {
@@ -13,7 +12,8 @@ namespace VendersCloud.Business.Service.Concrete
         private readonly IOrganizationRepository _organizationRepository;
         private readonly IClientsRepository _clientsRepository;
         private readonly IOrgRelationshipsRepository _orgRelationshipsRepository;
-        public BenchService(IBenchRepository benchRepository, IResourcesRepository resourcesRepository, IRequirementRepository requirementsRepository, IOrganizationRepository organizationRepository, IClientsRepository clientsRepository, IOrgRelationshipsRepository orgRelationshipsRepository)
+        private readonly IUsersRepository _userRepository;
+        public BenchService(IBenchRepository benchRepository, IResourcesRepository resourcesRepository, IRequirementRepository requirementsRepository, IOrganizationRepository organizationRepository, IClientsRepository clientsRepository, IOrgRelationshipsRepository orgRelationshipsRepository,IUsersRepository _usersRepository)
         {
             _benchRepository = benchRepository;
             _resourcesRepository = resourcesRepository;
@@ -21,6 +21,7 @@ namespace VendersCloud.Business.Service.Concrete
             _organizationRepository = organizationRepository;
             _clientsRepository = clientsRepository;
             _orgRelationshipsRepository = orgRelationshipsRepository;
+            _userRepository = _usersRepository;
         }
 
         public async Task<ActionMessageResponse> UpsertBenchAsync(BenchRequest benchRequest)
@@ -351,7 +352,36 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-                var data = await _requirementsRepository.GetTopVendorsListAsync(request);
+                List<dynamic> data = new List<dynamic>();
+                var orgrelationshipdata = await _orgRelationshipsRepository.GetBenchResponseListByIdAsync(request.OrgCode);
+
+                // Get related organization codes
+                var relatedOrgCodes = orgrelationshipdata
+                    .Where(x => x.OrgCode == request.OrgCode)
+                    .Select(x => x.RelatedOrgCode)
+                    .ToList();
+
+                if (relatedOrgCodes.Any())
+                {
+                    foreach (var orgCode in relatedOrgCodes)
+                    {
+                        await ProcessVendorData(orgCode, data);
+                    }
+                }
+                else
+                {
+                    var orgCodes = orgrelationshipdata
+                        .Where(x => x.RelatedOrgCode == request.OrgCode)
+                        .Select(x => x.OrgCode)
+                        .ToList();
+
+                    foreach (var orgCode in orgCodes)
+                    {
+                        await ProcessVendorData(orgCode, data);
+                    }
+                }
+                data = data.OrderByDescending(x => x.TotalPlacements).ToList();
+                // Pagination logic
                 var totalRecords = data.Count;
                 var totalPages = (int)Math.Ceiling((double)totalRecords / request.PageSize);
                 return new PaginationDto<dynamic>
@@ -362,11 +392,33 @@ namespace VendersCloud.Business.Service.Concrete
                     List = data
                 };
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
         }
+
+        private async Task ProcessVendorData(string orgCode, List<dynamic> data)
+        {
+            var userlist = await _userRepository.GetUserByOrgCodeAsync(orgCode);
+            var organization = await _organizationRepository.GetOrganizationData(orgCode);
+
+            if (userlist != null && userlist.Any())
+            {
+                var userIds = userlist.Select(x => x.Id).ToList();
+                var applicationsData = await _resourcesRepository.GetTotalPlacementsByUserIdsAsync(userIds);
+                
+                var vendorInfo = new
+                {
+                    VendorName = organization?.OrgName,
+                    VendorLogo = organization?.Logo,
+                    TotalPlacements = applicationsData
+                };
+
+                data.Add(vendorInfo);
+            }
+        }
+
 
         public async Task<PaginationDto<OrgActivePositionsResponse>> GetActiveVacanciesByUserIdAsync(VendorActiveClientResponse request)
         {

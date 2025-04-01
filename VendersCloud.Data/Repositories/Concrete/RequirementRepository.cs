@@ -477,33 +477,5 @@ ORDER BY r.CreatedOn DESC;";
             return dbInstance.Select<dynamic>(requirementQuery, new { request.OrgCode, request.StartDate, request.EndDate ,request.UserId}).ToList();
         }
 
-        public async Task<dynamic> GetTopVendorsListAsync(CompanyActiveClientResponse request)
-        {
-            var dbInstance= GetDbInstance();
-            var sql = @"
-                    SELECT 
-                        u.FirstName, 
-                        u.LastName, 
-                        a.CreatedBy, 
-                    	o.OrgName,
-                        o.Logo,
-                        COUNT(a.ResourceId) AS Total_Placements
-                    FROM 
-                        Requirement r
-                    LEFT JOIN 
-                        Applications a ON r.Id = a.RequirementId 
-                    LEFT JOIN
-                        Users u ON u.Id = a.CreatedBy  
-                    LEFT JOIN
-                        Organization o ON o.OrgCode= u.OrgCode
-                    WHERE 
-                        r.OrgCode =  @orgCode
-                        AND (a.Status = 8)  
-                    GROUP BY 
-                        u.FirstName, u.LastName, a.CreatedBy,o.OrgName,o.Logo
-                    ORDER BY 
-                        Total_Placements DESC;";
-             return dbInstance.Select<dynamic>(sql, new { request.OrgCode }).ToList();
-        }
     }
 }

@@ -8,5 +8,6 @@
         Task<int> GetTotalApplicationsPerRequirementIdAsync(int requirementId);
         Task<List<Applications>> GetApplicationsPerRequirementIdAsync(int requirementId);
         Task<int> GetTotalPlacementsAsync(List<int> requirementIds);
+        Task<int> GetTotalPlacementsByUserIdsAsync(List<int> userId);
     }
 }
