@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SqlKata;
+using System.Collections.Generic;
 using VendersCloud.Business.CommonMethods;
 
 namespace VendersCloud.Business.Service.Concrete
@@ -11,13 +12,15 @@ namespace VendersCloud.Business.Service.Concrete
         private readonly IRequirementRepository _requirementsRepository;
         private readonly IOrganizationRepository _organizationRepository;
         private readonly IClientsRepository _clientsRepository;
-        public BenchService(IBenchRepository benchRepository, IResourcesRepository resourcesRepository, IRequirementRepository requirementsRepository, IOrganizationRepository organizationRepository, IClientsRepository clientsRepository)
+        private readonly IOrgRelationshipsRepository _orgRelationshipsRepository;
+        public BenchService(IBenchRepository benchRepository, IResourcesRepository resourcesRepository, IRequirementRepository requirementsRepository, IOrganizationRepository organizationRepository, IClientsRepository clientsRepository, IOrgRelationshipsRepository orgRelationshipsRepository)
         {
             _benchRepository = benchRepository;
             _resourcesRepository = resourcesRepository;
             _requirementsRepository = requirementsRepository;
             _organizationRepository = organizationRepository;
             _clientsRepository = clientsRepository;
+            _orgRelationshipsRepository = orgRelationshipsRepository;
         }
 
         public async Task<ActionMessageResponse> UpsertBenchAsync(BenchRequest benchRequest)
@@ -84,6 +87,28 @@ namespace VendersCloud.Business.Service.Concrete
             try
             {
                 var response = await _benchRepository.GetBenchListBySearchAsync(request);
+                var orgrelationshipdata = await _orgRelationshipsRepository.GetBenchResponseListByIdAsync(request.OrgCode);
+                var RelatedOrgcode=orgrelationshipdata.Where(x => x.OrgCode == request.OrgCode).Select(x => x.RelatedOrgCode);
+                if(RelatedOrgcode != null && RelatedOrgcode.Any())
+                {
+                    foreach (var item in RelatedOrgcode)
+                    {
+                        var benchdata = await _benchRepository.GetBenchResponseListAsync(item);
+                        response.AddRange(benchdata);
+                    }
+                }
+                else
+                {
+                  var orgcode  = orgrelationshipdata.Where(x => x.RelatedOrgCode == request.OrgCode).Select(x => x.OrgCode);
+                    if (orgcode != null && orgcode.Any())
+                    {
+                        foreach (var item in orgcode)
+                        {
+                            var benchdata = await _benchRepository.GetBenchResponseListAsync(item);
+                            response.AddRange(benchdata);
+                        }
+                    }
+                }
                 var totalRecords = response.Count;
                 var paginatedResponse = response.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToList();
                 var BenchAvailability = new List<BenchResponse>();
