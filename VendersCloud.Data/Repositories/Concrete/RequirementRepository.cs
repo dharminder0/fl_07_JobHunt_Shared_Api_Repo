@@ -223,6 +223,21 @@
             return true;
         }
 
+        public async Task<bool> UpdateHotByIdAsync(string requirementUniqueId, int hot)
+        {
+            var dbInstance = GetDbInstance();
+            var tableName = new Table<Requirement>();
+            var insertQuery = new Query(tableName.TableName)
+                .AsUpdate(new
+                {
+                    Hot = hot,
+                    IsDeleted = false
+                })
+                .Where("UniqueId", requirementUniqueId);
+            await dbInstance.ExecuteAsync(insertQuery);
+            return true;
+        }
+
         public async Task<List<Requirement>> GetRequirementByOrgCodeAsync(string orgCode)
         {
             var dbInstance = GetDbInstance();

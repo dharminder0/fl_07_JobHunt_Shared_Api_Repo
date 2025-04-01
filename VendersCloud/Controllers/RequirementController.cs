@@ -287,6 +287,26 @@
                 return BadRequest(ex.Message);
             }
         }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ServiceFilter(typeof(RequireAuthorizationFilter))]
+        [HttpPost]
+        [Route("api/V1/Requirement/Hot-Upsert")]
+        public async Task<IActionResult> HotRequirementUpsertAsync([FromBody] HotRequirementRequest request)
+        {
+            try
+            {
+                var result = await _requirementService.HotRequirementUpsertAsync(request);
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
     }
 }
 

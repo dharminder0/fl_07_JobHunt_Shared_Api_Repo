@@ -20,5 +20,6 @@
         Task<dynamic> GetRequirementCountAsync(CompanyGraphRequest request);
         Task<dynamic> GetVendorRequirementCountAsync(VendorGraphRequest request);
         Task<List<dynamic>> GetVendorTotalPlacementAndRequirementIdAsync(VendorGraphRequest request);
+        Task<bool> UpdateHotByIdAsync(string requirementUniqueId, int hot);
     }
 }

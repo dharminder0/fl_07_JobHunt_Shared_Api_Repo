@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
 using System.Collections.Generic;
 using VendersCloud.Business.CommonMethods;
 
@@ -592,7 +593,7 @@ namespace VendersCloud.Business.Service.Concrete
 
                 foreach (var item in data)
                 {
-                    var requirementIds = item.RequirementIds != null ? ((string)item.RequirementIds).Split(',').Select(int.Parse).ToList(): new List<int>(); 
+                    var requirementIds = item.RequirementIds != null ? ((string)item.RequirementIds).Split(',').Select(int.Parse).ToList() : new List<int>();
 
                     int totalPlacements = await _resourcesRepository.GetTotalPlacementsAsync(requirementIds);
 
@@ -617,7 +618,7 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-                var data= await _requirementRepository.GetRequirementCountAsync(request);
+                var data = await _requirementRepository.GetRequirementCountAsync(request);
                 return data;
             }
             catch (Exception ex)
@@ -666,6 +667,27 @@ namespace VendersCloud.Business.Service.Concrete
             catch (Exception ex)
             {
                 throw new Exception($"Error in GetDayWeekCountsAsync: {ex.Message}", ex);
+            }
+        }
+
+        public async Task<ActionMessageResponse> HotRequirementUpsertAsync(HotRequirementRequest request)
+        {
+            try
+            {
+                if (request == null || string.IsNullOrEmpty(request.RequirementUniqueId) || request.Hot < 0)
+                {
+                    return new ActionMessageResponse() { Success = false, Message = "Values cann't be null ", Content = "" };
+                }
+                var response = await _requirementRepository.UpdateHotByIdAsync(request.RequirementUniqueId, request.Hot);
+                if (response)
+                {
+                    return new ActionMessageResponse() { Success = true, Message = "Requirement Updated Successfully!! ", Content = "" };
+                }
+                return new ActionMessageResponse() { Success = false, Message = "Requirement Not Updated  ", Content = "" };
+            }
+            catch (Exception ex)
+            {
+                return new ActionMessageResponse() { Success = false, Message = ex.Message, Content = "" };
             }
         }
     }
