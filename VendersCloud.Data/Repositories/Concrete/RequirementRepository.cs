@@ -388,16 +388,16 @@ ORDER BY r.CreatedOn DESC;";
                    ?? new CompanyDashboardCountResponse();
         }
 
-        public async Task<List<dynamic>>GetActivePositionsByOrgCodeAsync(string orgCode)
-        {
+        public async Task<List<dynamic>>GetActivePositionsByOrgCodeAsync(string orgCode,string userId)
+        { 
             var dbInstance = GetDbInstance();
             var tableName = new Table<Requirement>();
             var sql = @"SELECT ClientCode,CreatedBy, SUM(Positions) AS TotalPositions 
                         FROM Requirement 
-                        WHERE  OrgCode = @orgCode and Status<>3 
+                        WHERE  (OrgCode = @orgCode OR (CreatedBy=@userId OR UpdatedBy=@userId))  and Status<>3 
                         GROUP BY ClientCode, CreatedBy
                         ORDER BY TotalPositions DESC;";
-            return dbInstance.Select<dynamic>(sql, new { orgCode }).ToList();
+            return dbInstance.Select<dynamic>(sql, new { orgCode,userId }).ToList();
         }
 
         public async Task<List<dynamic>> GetOrgTotalPlacementAndRequirementIdAsync(CompanyGraphRequest request)
@@ -486,6 +486,7 @@ ORDER BY r.CreatedOn DESC;";
                         u.LastName, 
                         a.CreatedBy, 
                     	o.OrgName,
+                        o.Logo,
                         COUNT(a.ResourceId) AS Total_Placements
                     FROM 
                         Requirement r
@@ -499,7 +500,7 @@ ORDER BY r.CreatedOn DESC;";
                         r.OrgCode =  @orgCode
                         AND (a.Status = 8)  
                     GROUP BY 
-                        u.FirstName, u.LastName, a.CreatedBy,o.OrgName
+                        u.FirstName, u.LastName, a.CreatedBy,o.OrgName,o.Logo
                     ORDER BY 
                         Total_Placements DESC;";
              return dbInstance.Select<dynamic>(sql, new { request.OrgCode }).ToList();
