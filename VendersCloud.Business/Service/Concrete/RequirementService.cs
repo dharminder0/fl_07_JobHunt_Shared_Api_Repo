@@ -3,6 +3,7 @@ using Microsoft.Extensions.Hosting;
 using System.Collections.Generic;
 using System.Dynamic;
 using VendersCloud.Business.CommonMethods;
+using VendersCloud.Business.Entities.DataModels;
 
 namespace VendersCloud.Business.Service.Concrete
 {
@@ -692,23 +693,18 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
-        public async Task<List<dynamic>> GetHotRequirementAsync(string orgcode)
+        public async Task<PaginationDto<dynamic>> GetHotRequirementAsync(GetHotRequirmentRequest request)
         {
             try
             {
-                if (string.IsNullOrEmpty(orgcode))
-                {
-                    return new List<dynamic>();
-                }
-
                 List<dynamic> res = new List<dynamic>();
 
-                List<Requirement> data = await _requirementRepository.GetRequirementByOrgCodeAsync(orgcode);
+                List<Requirement> data = await _requirementRepository.GetRequirementByOrgCodeAsync(request.OrgCode);
 
                 var clientCodes = data.Select(x => x.ClientCode).ToList();
 
                 List<Clients> clientData = await _clientsRepository.GetClientsByClientCodeListAsync(clientCodes);
-
+                
                 foreach (var req in data)
                 {
                     if (req.Hot == true)
@@ -729,8 +725,14 @@ namespace VendersCloud.Business.Service.Concrete
                         }
                     }
                 }
-
-                return res;
+                var totalRecords = res.Count;
+                return new PaginationDto<dynamic>
+                {
+                    Count = totalRecords,
+                    Page = request.Page,
+                    TotalPages = (int)Math.Ceiling(totalRecords / (double)request.PageSize),
+                    List = res
+                };
             }
             catch (Exception ex)
             {
