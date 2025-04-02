@@ -746,6 +746,11 @@ namespace VendersCloud.Business.Service.Concrete
                             obj.Title = req.Title;
                             obj.Positions = req.Positions;
                             obj.CreatedOn = req.CreatedOn;
+                            obj.Visibility= req.Visibility;
+                            obj.VisibilityName = Enum.GetName(typeof(Visibility), req.Visibility);
+                            obj.LocationType = req.LocationType;
+                            obj.LocationTypeName = Enum.GetName(typeof(LocationType), req.LocationType);
+                            obj.RequirementUniqueId = req.UniqueId;
                             obj.Hot = req.Hot;
                             res.Add(obj);
                         }
