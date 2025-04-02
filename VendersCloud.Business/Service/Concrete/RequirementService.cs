@@ -423,7 +423,7 @@ namespace VendersCloud.Business.Service.Concrete
                         }
 
                         // Filtering by status if provided
-                        if (request.Status > 0 && applicationItem.Status != request.Status)
+                        if (request.Status != null && request.Status.Any() && !request.Status.Contains(applicationItem.Status))
                         {
                             continue;
                         }
