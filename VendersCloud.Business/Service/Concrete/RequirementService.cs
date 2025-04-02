@@ -437,7 +437,7 @@ namespace VendersCloud.Business.Service.Concrete
                             ApplicationDate = applicationItem.CreatedOn,
                             FirstName = benchMember.FirstName,
                             LastName = benchMember.LastName,
-                            VendorOrgCode = requirementItem.OrgCode
+                            VendorOrgCode = benchMember.OrgCode
                         };
 
                         var orgdata = await _organizationRepository.GetOrganizationData(benchMember.OrgCode);
