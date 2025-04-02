@@ -19,5 +19,6 @@
         Task<dynamic> GetVendorRequirementCountsAsync(VendorGraphRequest request);
         Task<List<VendorGraphResponse>> GetVendorDayWeekCountsAsync(VendorGraphRequest request);
         Task<ActionMessageResponse> HotRequirementUpsertAsync(HotRequirementRequest request);
+        Task<List<dynamic>> GetHotRequirementAsync(string orgcode);
     }
 }

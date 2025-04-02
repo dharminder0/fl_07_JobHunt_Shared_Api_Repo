@@ -116,13 +116,13 @@
             });
 
         }
-        public async Task<List<Clients>> GetClientsByClientCodeListAsync(List<string> orgCode)
+        public async Task<List<Clients>> GetClientsByClientCodeListAsync(List<string> clientCode)
         {
 
             var dbInstance = GetDbInstance();
-            var sql = "SELECT * FROM Clients Where ClientCode In @orgCode And isDeleted=0";
+            var sql = "SELECT * FROM Clients Where ClientCode In @clientCode And isDeleted=0";
 
-            var clients = dbInstance.Select<Clients>(sql, new { orgCode }).ToList();
+            var clients = dbInstance.Select<Clients>(sql, new { clientCode }).ToList();
             return clients;
 
         }

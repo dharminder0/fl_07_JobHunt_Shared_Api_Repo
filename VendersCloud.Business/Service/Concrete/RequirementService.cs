@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
 using System.Collections.Generic;
+using System.Dynamic;
 using VendersCloud.Business.CommonMethods;
 
 namespace VendersCloud.Business.Service.Concrete
@@ -690,5 +691,53 @@ namespace VendersCloud.Business.Service.Concrete
                 return new ActionMessageResponse() { Success = false, Message = ex.Message, Content = "" };
             }
         }
+
+        public async Task<List<dynamic>> GetHotRequirementAsync(string orgcode)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(orgcode))
+                {
+                    return new List<dynamic>();
+                }
+
+                List<dynamic> res = new List<dynamic>();
+
+                List<Requirement> data = await _requirementRepository.GetRequirementByOrgCodeAsync(orgcode);
+
+                var clientCodes = data.Select(x => x.ClientCode).ToList();
+
+                List<Clients> clientData = await _clientsRepository.GetClientsByClientCodeListAsync(clientCodes);
+
+                foreach (var req in data)
+                {
+                    if (req.Hot == true)
+                    {
+                        var client = clientData.FirstOrDefault(c => c.ClientCode == req.ClientCode);
+
+                        if (client != null)
+                        {
+                            dynamic obj = new ExpandoObject();
+                            obj.ClientName = client.ClientName;
+                            obj.ClientLogo = client.LogoURL;
+                            obj.ClientCode = client.ClientCode;
+                            obj.Title = req.Title;
+                            obj.Positions = req.Positions;
+                            obj.CreatedOn = req.CreatedOn;
+                            obj.Hot = req.Hot;
+                            res.Add(obj);
+                        }
+                    }
+                }
+
+                return res;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+
     }
 }
