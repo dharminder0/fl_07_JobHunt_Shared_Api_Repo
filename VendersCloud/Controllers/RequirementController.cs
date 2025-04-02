@@ -154,13 +154,13 @@
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ServiceFilter(typeof(RequireAuthorizationFilter))]
-        [HttpGet]
+        [HttpPost]
         [Route("api/V1/Requirement/Get/Applicants")]
-        public async Task<IActionResult> GetApplicantsListByRequirementIdAsync(string requirementUniqueId)
+        public async Task<IActionResult> GetApplicantsListByRequirementIdAsync(GetApplicantsByRequirementRequest request)
         {
             try
             {
-                var result = await _requirementService.GetApplicantsListByRequirementIdAsync(requirementUniqueId);
+                var result = await _requirementService.GetApplicantsListByRequirementIdAsync(request);
                 return Json(result);
             }
             catch (Exception ex)

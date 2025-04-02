@@ -1,9 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Hosting;
-using System.Collections.Generic;
+﻿using Azure.Core;
 using System.Dynamic;
 using VendersCloud.Business.CommonMethods;
-using VendersCloud.Business.Entities.DataModels;
 
 namespace VendersCloud.Business.Service.Concrete
 {
@@ -388,9 +385,9 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
-        public async Task<List<ApplicationListResponse>> GetApplicantsListByRequirementIdAsync(string requirementUniqueId)
+        public async Task<PaginationDto<ApplicationListResponse>> GetApplicantsListByRequirementIdAsync(GetApplicantsByRequirementRequest request)
         {
-            if (string.IsNullOrEmpty(requirementUniqueId))
+            if (string.IsNullOrEmpty(request.RequirementUniqueId))
             {
                 throw new ArgumentException("Requirement ID cannot be null or empty");
             }
@@ -399,10 +396,10 @@ namespace VendersCloud.Business.Service.Concrete
 
             try
             {
-                var requirementData = await _requirementRepository.GetRequirementListByIdAsync(requirementUniqueId);
+                var requirementData = await _requirementRepository.GetRequirementListByIdAsync(request.RequirementUniqueId);
                 if (requirementData == null)
                 {
-                    return listResponse;
+                    return null;
                 }
 
                 foreach (var requirementItem in requirementData)
@@ -412,21 +409,42 @@ namespace VendersCloud.Business.Service.Concrete
 
                     foreach (var applicationItem in applicationData)
                     {
+                        var benchData = await _benchRepository.GetBenchResponseByIdAsync(applicationItem.ResourceId);
+                        if (benchData == null || !benchData.Any()) continue;
+
+                        var benchMember = benchData.First();
+
+                        // Filtering by search text if provided
+                        if (!string.IsNullOrEmpty(request.SearchText) &&
+                            !benchMember.FirstName.Contains(request.SearchText, StringComparison.OrdinalIgnoreCase) &&
+                            !benchMember.LastName.Contains(request.SearchText, StringComparison.OrdinalIgnoreCase))
+                        {
+                            continue;
+                        }
+
+                        // Filtering by status if provided
+                        if (request.Status > 0 && applicationItem.Status != request.Status)
+                        {
+                            continue;
+                        }
+
                         var applicationResponse = new ApplicationListResponse
                         {
                             Title = requirementItem.Title,
                             RequirementId = requirementItem.Id,
                             Status = applicationItem.Status,
                             StatusName = System.Enum.GetName(typeof(ApplyStatus), applicationItem.Status),
-                            ApplicationDate = applicationItem.CreatedOn
+                            ApplicationDate = applicationItem.CreatedOn,
+                            FirstName = benchMember.FirstName,
+                            LastName = benchMember.LastName,
+                            VendorOrgCode = requirementItem.OrgCode
                         };
 
-                        var benchData = await _benchRepository.GetBenchResponseByIdAsync(applicationItem.ResourceId);
-                        if (benchData != null && benchData.Any())
+                        var orgdata = await _organizationRepository.GetOrganizationData(benchMember.OrgCode);
+                        if (orgdata != null)
                         {
-                            var benchMember = benchData.First();
-                            applicationResponse.FirstName = benchMember.FirstName;
-                            applicationResponse.LastName = benchMember.LastName;
+                            applicationResponse.vendorLogo = orgdata.Logo;
+                            applicationResponse.VendorOrgName = orgdata.OrgName;
                         }
 
                         listResponse.Add(applicationResponse);
@@ -438,8 +456,16 @@ namespace VendersCloud.Business.Service.Concrete
                 throw;
             }
 
-            return listResponse;
+            var totalRecords = listResponse.Count;
+            return new PaginationDto<ApplicationListResponse>
+            {
+                Count = totalRecords,
+                Page = request.Page,
+                TotalPages = (int)Math.Ceiling(totalRecords / (double)request.PageSize),
+                List = listResponse
+            };
         }
+
 
         public async Task<PaginationDto<CompanyRequirementResponse>> GetRequirementListByOrgCode(CompanyRequirementSearchRequest request)
         {

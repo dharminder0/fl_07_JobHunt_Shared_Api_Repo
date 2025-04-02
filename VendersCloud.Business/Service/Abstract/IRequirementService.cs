@@ -10,7 +10,7 @@
         Task<List<RequirementResponse>> GetRequirementByOrgCodeAsync(string orgCode);
         Task<PaginationDto<RequirementResponse>> SearchRequirementAsync(SearchRequirementRequest request);
         Task<int> GetTotalApplicantsAsync(TotalApplicantsRequest request);
-        Task<List<ApplicationListResponse>> GetApplicantsListByRequirementIdAsync(string requirementUniqueId);
+        Task<PaginationDto<ApplicationListResponse>> GetApplicantsListByRequirementIdAsync(GetApplicantsByRequirementRequest request);
         Task<PaginationDto<CompanyRequirementResponse>> GetRequirementListByOrgCode(CompanyRequirementSearchRequest request);
         Task<CompanyDashboardCountResponse> GetCountsAsync(string orgCode);
         Task<CompanyDashboardCountResponse> GetVendorsCountsAsync(string orgCode, string userId);
