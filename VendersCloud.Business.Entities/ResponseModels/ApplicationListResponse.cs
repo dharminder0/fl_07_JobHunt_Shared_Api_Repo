@@ -9,6 +9,9 @@
         public int Status { get; set; }
         public string StatusName { get; set; }
         public DateTime ApplicationDate { get; set; }
+        public string VendorOrgCode { get; set; }
+        public string VendorOrgName { get; set; }
+        public string vendorLogo { get; set; }
 
     }
 }
