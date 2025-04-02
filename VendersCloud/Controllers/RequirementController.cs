@@ -313,13 +313,13 @@
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ServiceFilter(typeof(RequireAuthorizationFilter))]
-        [HttpGet]
+        [HttpPost]
         [Route("api/V1/Requirement/Hot-Vacancies")]
-        public async Task<IActionResult>GetHotRequirementAsync(string orgcode)
+        public async Task<IActionResult>GetHotRequirementAsync(GetHotRequirmentRequest request)
         {
             try
             {
-                var result = await _requirementService.GetHotRequirementAsync(orgcode);
+                var result = await _requirementService.GetHotRequirementAsync(request);
                 return Json(result);
             }
             catch (Exception ex)
