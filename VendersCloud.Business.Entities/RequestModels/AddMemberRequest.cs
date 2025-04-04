@@ -8,5 +8,6 @@
         public string Email { get; set; }
         public string Phone {  get; set; }
         public List<string> Access {  get; set; }
+        public int Status { get; set; }
     }
 }

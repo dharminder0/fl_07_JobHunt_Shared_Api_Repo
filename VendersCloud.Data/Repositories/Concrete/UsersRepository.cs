@@ -36,8 +36,9 @@
                     return res;
                 }
 
-                // Insert new user
-                var insertQuery = new Query(tableName.TableName).AsInsert(new
+            // Insert new user
+            DateTime? lastLoginTime = null;
+            var insertQuery = new Query(tableName.TableName).AsInsert(new
                 {
                     Phone= phone,
                     FirstName = request.FirstName,
@@ -48,7 +49,7 @@
                     Username = request.Email,
                     CreatedOn = DateTime.UtcNow,
                     UpdatedOn = DateTime.UtcNow,
-                    LastLoginTime = DateTime.UtcNow,
+                    LastLoginTime = lastLoginTime,
                     IsDeleted = false,
                     VerificationToken = verificationOtp,
                     Token=token
@@ -331,7 +332,11 @@
                 List<string> userProfileRoles = userProfileRole.Select(role => role.ProfileId.ToString()).ToList();
                 var userRoleString = userProfileRoles.Select(role => System.Enum.GetName(typeof(RoleType), Convert.ToInt32(role))).ToList();
 
-                if (user.IsDeleted == false)
+                if (user.LastLoginTime == DateTime.MinValue)
+                {
+                    Status = "Invited";
+                }
+                else if (user.IsDeleted == false)
                 {
                     Status = "Active";
                 }
@@ -339,6 +344,8 @@
                 {
                     Status = "InActive";
                 }
+              
+
                 var res = new UsersDto {
                     Id = user.Id,
                     FirstName = user.FirstName,
