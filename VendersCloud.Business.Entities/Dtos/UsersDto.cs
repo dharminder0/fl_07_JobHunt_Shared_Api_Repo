@@ -12,7 +12,7 @@
         public string ProfileAvatar { get; set; }
         public string CreatedOn { get; set; }
         public string UpdatedOn { get; set; }
-        public string LastLoginTime { get; set; }
+        public string ? LastLoginTime { get; set; }
         public List<string> Role { get; set; }
         public string DOB { get; set; }
         public string Phone { get; set; }

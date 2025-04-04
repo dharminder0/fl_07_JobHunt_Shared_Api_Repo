@@ -55,6 +55,12 @@ namespace VendersCloud.Data.Enum
             Active= 1,
             InActive=2,
         }
+        public enum MemberStatus
+        {
+            Invited=1,
+            Active = 2,
+            InActive = 3,
+        }
 
         public enum BenchAvailability
         {
