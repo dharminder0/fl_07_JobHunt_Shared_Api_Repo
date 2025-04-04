@@ -17,8 +17,13 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-                if (string.IsNullOrEmpty(fileRequest?.FileData))
+                if (string.IsNullOrEmpty(fileRequest.FileData))
                     throw new ArgumentException("File data is empty or null");
+                if (!IsBase64String(fileRequest.FileData))
+                {
+                    Console.WriteLine("Invalid base64 string.");
+                    return fileRequest.FileData;
+                }
                 var files= Convert.FromBase64String(fileRequest.FileData);
                 var filesnames = fileRequest.FileName;
                 var fileNames = fileRequest.FileName.Trim('\"');
@@ -35,7 +40,11 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
-       
+        private bool IsBase64String(string base64)
+        {
+            Span<byte> buffer = new Span<byte>(new byte[base64.Length]);
+            return Convert.TryFromBase64String(base64, buffer, out _);
+        }
 
         private async Task<string> UploadToBlobAsync(byte[] fileBytes, string originalFileName)
         {

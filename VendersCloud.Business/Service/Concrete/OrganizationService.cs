@@ -167,16 +167,21 @@ namespace VendersCloud.Business.Service.Concrete
                 request.EmpCount = request.EmpCount <= 0 ? orgData.EmpCount : request.EmpCount;
                 request.Description = string.IsNullOrEmpty(request.Description) ? orgData.Description : request.Description;
                 request.RegAddress = string.IsNullOrEmpty(request.RegAddress) ? orgData.RegAddress : request.RegAddress;
-                if (request.Logo != null && request.Logo.Count > 0)
+                if (request.Logo != null && request.Logo.Count > 0 )
                 {
                     List<string> uploadedLogos = new List<string>();
                     foreach (var file in request.Logo)
                     {
+                        if(string.IsNullOrEmpty(file.FileData) )
+                        {
+                            continue;   
+                        }
                         uploadedimageUrl = await _blobStorageService.UploadBase64ToBlobAsync(file);
 
                     }
 
                 }
+            
                 CompanyInfoRequest infoRequest = new CompanyInfoRequest();
                 infoRequest.OrgName = request.OrgName;
                 infoRequest.ContactMail = request.Email;
