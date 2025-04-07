@@ -1,6 +1,7 @@
 ﻿using Azure.Core;
 using System.Dynamic;
 using VendersCloud.Business.CommonMethods;
+using VendersCloud.Business.Entities.DataModels;
 
 namespace VendersCloud.Business.Service.Concrete
 {

@@ -65,12 +65,12 @@
             return applicationsData;
         }
 
-        public async Task<List<int>> GetApplicationsPerRequirementIdAsync(int requirementId, int status)
+        public async Task<List<dynamic>> GetApplicationsPerRequirementIdAsync(int requirementId, int status)
         {
             var dbInstance = GetDbInstance();
             var sql = "SELECT ResourceId FROM Applications where RequirementId=@requirementId and Status=@status";
 
-            var applicationsData = dbInstance.Select<int>(sql, new
+            var applicationsData = dbInstance.Select<dynamic>(sql, new
             {
                 requirementId,status
             }).ToList();
