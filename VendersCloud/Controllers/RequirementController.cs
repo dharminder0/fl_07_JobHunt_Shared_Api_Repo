@@ -154,13 +154,13 @@
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ServiceFilter(typeof(RequireAuthorizationFilter))]
-        [HttpGet]
+        [HttpPost]
         [Route("api/V1/Requirement/Get/Applicants")]
-        public async Task<IActionResult> GetApplicantsListByRequirementIdAsync(string requirementUniqueId)
+        public async Task<IActionResult> GetApplicantsListByRequirementIdAsync(GetApplicantsByRequirementRequest request)
         {
             try
             {
-                var result = await _requirementService.GetApplicantsListByRequirementIdAsync(requirementUniqueId);
+                var result = await _requirementService.GetApplicantsListByRequirementIdAsync(request);
                 return Json(result);
             }
             catch (Exception ex)
@@ -285,6 +285,46 @@
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
+            }
+        }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ServiceFilter(typeof(RequireAuthorizationFilter))]
+        [HttpPost]
+        [Route("api/V1/Requirement/Hot-Upsert")]
+        public async Task<IActionResult> HotRequirementUpsertAsync([FromBody] HotRequirementRequest request)
+        {
+            try
+            {
+                var result = await _requirementService.HotRequirementUpsertAsync(request);
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ServiceFilter(typeof(RequireAuthorizationFilter))]
+        [HttpPost]
+        [Route("api/V1/Requirement/Hot-Vacancies")]
+        public async Task<IActionResult>GetHotRequirementAsync(GetHotRequirmentRequest request)
+        {
+            try
+            {
+                var result = await _requirementService.GetHotRequirementAsync(request);
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
             }
         }
     }

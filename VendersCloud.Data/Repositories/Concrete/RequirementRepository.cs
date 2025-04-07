@@ -223,6 +223,21 @@
             return true;
         }
 
+        public async Task<bool> UpdateHotByIdAsync(string requirementUniqueId, int hot)
+        {
+            var dbInstance = GetDbInstance();
+            var tableName = new Table<Requirement>();
+            var insertQuery = new Query(tableName.TableName)
+                .AsUpdate(new
+                {
+                    Hot = hot,
+                    IsDeleted = false
+                })
+                .Where("UniqueId", requirementUniqueId);
+            await dbInstance.ExecuteAsync(insertQuery);
+            return true;
+        }
+
         public async Task<List<Requirement>> GetRequirementByOrgCodeAsync(string orgCode)
         {
             var dbInstance = GetDbInstance();
@@ -357,15 +372,27 @@ ORDER BY r.CreatedOn DESC;";
             parameters.Add("orgCode", orgCode);
 
             string query = @"
-        SELECT 
+                SELECT 
             (SELECT SUM(Positions) FROM Requirement WHERE Status = 1 AND OrgCode = @orgCode) AS OpenPositions,
+        
             (SELECT COUNT(*) FROM Requirement WHERE Hot = 1 AND Status = 1 AND OrgCode = @orgCode) AS HotRequirements,
+        
             (SELECT COUNT(*) FROM Applications WHERE Status IN (5, 6) 
              AND RequirementId IN (SELECT Id FROM Requirement WHERE OrgCode = @orgCode)) AS InterviewScheduled,
+        
             (SELECT COUNT(*) FROM Applications WHERE Status IN (2) 
              AND RequirementId IN (SELECT Id FROM Requirement WHERE OrgCode = @orgCode)) AS CandidatesToReview,
+        
             (SELECT COUNT(*) FROM Applications 
-             WHERE RequirementId IN (SELECT Id FROM Requirement WHERE OrgCode = @orgCode)) AS TotalApplicants";
+             WHERE RequirementId IN (SELECT Id FROM Requirement WHERE OrgCode = @orgCode)) AS TotalApplicants,
+        
+            (SELECT COUNT(*) 
+             FROM Requirement r 
+             WHERE r.OrgCode = @orgCode
+             AND NOT EXISTS (
+                 SELECT 1 FROM Applications a WHERE a.RequirementId = r.Id
+             )) AS NoApplications
+        ";
 
             return await connection.QueryFirstOrDefaultAsync<CompanyDashboardCountResponse>(query, parameters)
                    ?? new CompanyDashboardCountResponse();

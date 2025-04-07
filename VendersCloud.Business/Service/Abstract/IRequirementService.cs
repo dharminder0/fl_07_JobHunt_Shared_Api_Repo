@@ -10,7 +10,7 @@
         Task<List<RequirementResponse>> GetRequirementByOrgCodeAsync(string orgCode);
         Task<PaginationDto<RequirementResponse>> SearchRequirementAsync(SearchRequirementRequest request);
         Task<int> GetTotalApplicantsAsync(TotalApplicantsRequest request);
-        Task<List<ApplicationListResponse>> GetApplicantsListByRequirementIdAsync(string requirementUniqueId);
+        Task<PaginationDto<ApplicationListResponse>> GetApplicantsListByRequirementIdAsync(GetApplicantsByRequirementRequest request);
         Task<PaginationDto<CompanyRequirementResponse>> GetRequirementListByOrgCode(CompanyRequirementSearchRequest request);
         Task<CompanyDashboardCountResponse> GetCountsAsync(string orgCode);
         Task<CompanyDashboardCountResponse> GetVendorsCountsAsync(string orgCode, string userId);
@@ -18,5 +18,7 @@
         Task<dynamic> GetRequirementCountsAsync(CompanyGraphRequest request);
         Task<dynamic> GetVendorRequirementCountsAsync(VendorGraphRequest request);
         Task<List<VendorGraphResponse>> GetVendorDayWeekCountsAsync(VendorGraphRequest request);
+        Task<ActionMessageResponse> HotRequirementUpsertAsync(HotRequirementRequest request);
+        Task<PaginationDto<dynamic>> GetHotRequirementAsync(GetHotRequirmentRequest request);
     }
 }

@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
+﻿using Azure.Core;
+using System.Dynamic;
 using VendersCloud.Business.CommonMethods;
 
 namespace VendersCloud.Business.Service.Concrete
@@ -385,9 +385,9 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
-        public async Task<List<ApplicationListResponse>> GetApplicantsListByRequirementIdAsync(string requirementUniqueId)
+        public async Task<PaginationDto<ApplicationListResponse>> GetApplicantsListByRequirementIdAsync(GetApplicantsByRequirementRequest request)
         {
-            if (string.IsNullOrEmpty(requirementUniqueId))
+            if (string.IsNullOrEmpty(request.RequirementUniqueId))
             {
                 throw new ArgumentException("Requirement ID cannot be null or empty");
             }
@@ -396,10 +396,10 @@ namespace VendersCloud.Business.Service.Concrete
 
             try
             {
-                var requirementData = await _requirementRepository.GetRequirementListByIdAsync(requirementUniqueId);
+                var requirementData = await _requirementRepository.GetRequirementListByIdAsync(request.RequirementUniqueId);
                 if (requirementData == null)
                 {
-                    return listResponse;
+                    return null;
                 }
 
                 foreach (var requirementItem in requirementData)
@@ -409,21 +409,42 @@ namespace VendersCloud.Business.Service.Concrete
 
                     foreach (var applicationItem in applicationData)
                     {
+                        var benchData = await _benchRepository.GetBenchResponseByIdAsync(applicationItem.ResourceId);
+                        if (benchData == null || !benchData.Any()) continue;
+
+                        var benchMember = benchData.First();
+
+                        // Filtering by search text if provided
+                        if (!string.IsNullOrEmpty(request.SearchText) &&
+                            !benchMember.FirstName.Contains(request.SearchText, StringComparison.OrdinalIgnoreCase) &&
+                            !benchMember.LastName.Contains(request.SearchText, StringComparison.OrdinalIgnoreCase))
+                        {
+                            continue;
+                        }
+
+                        // Filtering by status if provided
+                        if (request.Status != null && request.Status.Any() && !request.Status.Contains(applicationItem.Status))
+                        {
+                            continue;
+                        }
+
                         var applicationResponse = new ApplicationListResponse
                         {
                             Title = requirementItem.Title,
                             RequirementId = requirementItem.Id,
                             Status = applicationItem.Status,
                             StatusName = System.Enum.GetName(typeof(ApplyStatus), applicationItem.Status),
-                            ApplicationDate = applicationItem.CreatedOn
+                            ApplicationDate = applicationItem.CreatedOn,
+                            FirstName = benchMember.FirstName,
+                            LastName = benchMember.LastName,
+                            VendorOrgCode = benchMember.OrgCode
                         };
 
-                        var benchData = await _benchRepository.GetBenchResponseByIdAsync(applicationItem.ResourceId);
-                        if (benchData != null && benchData.Any())
+                        var orgdata = await _organizationRepository.GetOrganizationData(benchMember.OrgCode);
+                        if (orgdata != null)
                         {
-                            var benchMember = benchData.First();
-                            applicationResponse.FirstName = benchMember.FirstName;
-                            applicationResponse.LastName = benchMember.LastName;
+                            applicationResponse.vendorLogo = orgdata.Logo;
+                            applicationResponse.VendorOrgName = orgdata.OrgName;
                         }
 
                         listResponse.Add(applicationResponse);
@@ -435,8 +456,16 @@ namespace VendersCloud.Business.Service.Concrete
                 throw;
             }
 
-            return listResponse;
+            var totalRecords = listResponse.Count;
+            return new PaginationDto<ApplicationListResponse>
+            {
+                Count = totalRecords,
+                Page = request.Page,
+                TotalPages = (int)Math.Ceiling(totalRecords / (double)request.PageSize),
+                List = listResponse
+            };
         }
+
 
         public async Task<PaginationDto<CompanyRequirementResponse>> GetRequirementListByOrgCode(CompanyRequirementSearchRequest request)
         {
@@ -592,7 +621,7 @@ namespace VendersCloud.Business.Service.Concrete
 
                 foreach (var item in data)
                 {
-                    var requirementIds = item.RequirementIds != null ? ((string)item.RequirementIds).Split(',').Select(int.Parse).ToList(): new List<int>(); 
+                    var requirementIds = item.RequirementIds != null ? ((string)item.RequirementIds).Split(',').Select(int.Parse).ToList() : new List<int>();
 
                     int totalPlacements = await _resourcesRepository.GetTotalPlacementsAsync(requirementIds);
 
@@ -617,7 +646,7 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-                var data= await _requirementRepository.GetRequirementCountAsync(request);
+                var data = await _requirementRepository.GetRequirementCountAsync(request);
                 return data;
             }
             catch (Exception ex)
@@ -668,5 +697,80 @@ namespace VendersCloud.Business.Service.Concrete
                 throw new Exception($"Error in GetDayWeekCountsAsync: {ex.Message}", ex);
             }
         }
+
+        public async Task<ActionMessageResponse> HotRequirementUpsertAsync(HotRequirementRequest request)
+        {
+            try
+            {
+                if (request == null || string.IsNullOrEmpty(request.RequirementUniqueId) || request.Hot < 0)
+                {
+                    return new ActionMessageResponse() { Success = false, Message = "Values cann't be null ", Content = "" };
+                }
+                var response = await _requirementRepository.UpdateHotByIdAsync(request.RequirementUniqueId, request.Hot);
+                if (response)
+                {
+                    return new ActionMessageResponse() { Success = true, Message = "Requirement Updated Successfully!! ", Content = "" };
+                }
+                return new ActionMessageResponse() { Success = false, Message = "Requirement Not Updated  ", Content = "" };
+            }
+            catch (Exception ex)
+            {
+                return new ActionMessageResponse() { Success = false, Message = ex.Message, Content = "" };
+            }
+        }
+
+        public async Task<PaginationDto<dynamic>> GetHotRequirementAsync(GetHotRequirmentRequest request)
+        {
+            try
+            {
+                List<dynamic> res = new List<dynamic>();
+
+                List<Requirement> data = await _requirementRepository.GetRequirementByOrgCodeAsync(request.OrgCode);
+
+                var clientCodes = data.Select(x => x.ClientCode).ToList();
+
+                List<Clients> clientData = await _clientsRepository.GetClientsByClientCodeListAsync(clientCodes);
+                
+                foreach (var req in data)
+                {
+                    if (req.Hot == true)
+                    {
+                        var client = clientData.FirstOrDefault(c => c.ClientCode == req.ClientCode);
+
+                        if (client != null)
+                        {
+                            dynamic obj = new ExpandoObject();
+                            obj.ClientName = client.ClientName;
+                            obj.ClientLogo = client.LogoURL;
+                            obj.ClientCode = client.ClientCode;
+                            obj.Title = req.Title;
+                            obj.Positions = req.Positions;
+                            obj.CreatedOn = req.CreatedOn;
+                            obj.Visibility= req.Visibility;
+                            obj.VisibilityName = Enum.GetName(typeof(Visibility), req.Visibility);
+                            obj.LocationType = req.LocationType;
+                            obj.LocationTypeName = Enum.GetName(typeof(LocationType), req.LocationType);
+                            obj.RequirementUniqueId = req.UniqueId;
+                            obj.Hot = req.Hot;
+                            res.Add(obj);
+                        }
+                    }
+                }
+                var totalRecords = res.Count;
+                return new PaginationDto<dynamic>
+                {
+                    Count = totalRecords,
+                    Page = request.Page,
+                    TotalPages = (int)Math.Ceiling(totalRecords / (double)request.PageSize),
+                    List = res
+                };
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+
     }
 }

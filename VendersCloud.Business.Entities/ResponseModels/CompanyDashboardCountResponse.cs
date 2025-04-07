@@ -7,6 +7,7 @@
         public int InterviewScheduled { get; set; }
         public int CandidatesToReview { get; set; }
         public int TotalApplicants { get; set; }
+        public int NoApplications { get; set; }
 
     }
 }
