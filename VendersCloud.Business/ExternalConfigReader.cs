@@ -10,41 +10,47 @@ namespace VendersCloud.Business
             _configuration = configuration;
         }
 
-        // Method to get API Key with fallback to external file if not available in appsettings.json
+       
         public string GetApiKey()
         {
             string apiKey = _configuration["OpenAI:ApiKey"];
 
-            // Check if the ApiKey is available in appsettings.json
+      
             if (!string.IsNullOrEmpty(apiKey))
             {
                 return apiKey;
             }
 
-            // If ApiKey is not available in appsettings.json, read from external file
+           
             return GetValueFromExternalFile("ApiKey");
         }
 
         // Method to get Base URL with fallback to external file if not available in appsettings.json
         public string GetBaseUrl()
         {
-            string baseUrl = _configuration["OpenAI:BaseUrl"];
+            // Prioritize AzureOpenAI from appsettings
+            string baseUrl = _configuration["AzureOpenAI:BaseUrl"];
 
-            // Check if the BaseUrl is available in appsettings.json
-            if (!string.IsNullOrEmpty(baseUrl))
+            // If AzureOpenAI not available, try OpenAI
+            if (string.IsNullOrEmpty(baseUrl))
             {
-                return baseUrl;
+                baseUrl = _configuration["OpenAI:BaseUrl"];
             }
 
-            // If BaseUrl is not available in appsettings.json, read from external file
-            return GetValueFromExternalFile("BaseUrl");
+            // If still not found, fallback to external file
+            if (string.IsNullOrEmpty(baseUrl))
+            {
+                baseUrl = GetValueFromExternalFile("BaseUrl");
+            }
+
+            return baseUrl;
         }
 
-        private string GetValueFromExternalFile(string key)
+
+        public string GetValueFromExternalFile(string key)
         {
             string filePath = _configuration["FilePath"];
 
-            // Ensure the file path is valid
             if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
             {
                 throw new FileNotFoundException($"The external settings file '{filePath}' does not exist or is invalid.");
@@ -53,15 +59,23 @@ namespace VendersCloud.Business
             var jsonContent = File.ReadAllText(filePath);
             var jsonObject = JObject.Parse(jsonContent);
 
-            // Assuming "OpenAI" section exists in the external file
-            var value = jsonObject["OpenAI"]?[key]?.ToString();
+            // Prioritize AzureOpenAI
+            var value = jsonObject["AzureOpenAI"]?[key]?.ToString();
+
             if (string.IsNullOrEmpty(value))
             {
-                throw new ArgumentException($"The '{key}' is not found in the external settings.");
+                value = jsonObject["OpenAI"]?[key]?.ToString();
+            }
+
+            if (string.IsNullOrEmpty(value))
+            {
+                throw new ArgumentException($"The key '{key}' was not found in either OpenAI or AzureOpenAI sections in the external settings file.");
             }
 
             return value;
         }
+
+
 
 
         // Method to get Base URL with fallback to external file if not available in appsettings.json
