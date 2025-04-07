@@ -51,7 +51,7 @@ public class PromptService : ExternalServiceBase, IPromptService
         try
         {
             
-;            _useAzure = true;
+           _useAzure = true;
             var transactionId = Guid.NewGuid().ToString();
             var requestPayload = JsonConvert.SerializeObject(request);
             string responsePayload = null;
