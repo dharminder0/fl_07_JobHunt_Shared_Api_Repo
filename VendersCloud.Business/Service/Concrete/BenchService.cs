@@ -88,28 +88,28 @@ namespace VendersCloud.Business.Service.Concrete
             try
             {
                 var response = await _benchRepository.GetBenchListBySearchAsync(request);
-                var orgrelationshipdata = await _orgRelationshipsRepository.GetBenchResponseListByIdAsync(request.OrgCode);
-                var RelatedOrgcode=orgrelationshipdata.Where(x => x.OrgCode == request.OrgCode).Select(x => x.RelatedOrgCode);
-                if(RelatedOrgcode != null && RelatedOrgcode.Any())
-                {
-                    foreach (var item in RelatedOrgcode)
-                    {
-                        var benchdata = await _benchRepository.GetBenchResponseListAsync(item);
-                        response.AddRange(benchdata);
-                    }
-                }
-                else
-                {
-                  var orgcode  = orgrelationshipdata.Where(x => x.RelatedOrgCode == request.OrgCode).Select(x => x.OrgCode);
-                    if (orgcode != null && orgcode.Any())
-                    {
-                        foreach (var item in orgcode)
-                        {
-                            var benchdata = await _benchRepository.GetBenchResponseListAsync(item);
-                            response.AddRange(benchdata);
-                        }
-                    }
-                }
+                //var orgrelationshipdata = await _orgRelationshipsRepository.GetBenchResponseListByIdAsync(request.OrgCode);
+                //var RelatedOrgcode=orgrelationshipdata.Where(x => x.OrgCode == request.OrgCode).Select(x => x.RelatedOrgCode);
+                //if(RelatedOrgcode != null && RelatedOrgcode.Any())
+                //{
+                //    foreach (var item in RelatedOrgcode)
+                //    {
+                //        var benchdata = await _benchRepository.GetBenchResponseListAsync(item);
+                //        response.AddRange(benchdata);
+                //    }
+                //}
+                //else
+                //{
+                //  var orgcode  = orgrelationshipdata.Where(x => x.RelatedOrgCode == request.OrgCode).Select(x => x.OrgCode);
+                //    if (orgcode != null && orgcode.Any())
+                //    {
+                //        foreach (var item in orgcode)
+                //        {
+                //            var benchdata = await _benchRepository.GetBenchResponseListAsync(item);
+                //            response.AddRange(benchdata);
+                //        }
+                //    }
+                //}
                 var totalRecords = response.Count;
                 var paginatedResponse = response.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToList();
                 var BenchAvailability = new List<BenchResponse>();
