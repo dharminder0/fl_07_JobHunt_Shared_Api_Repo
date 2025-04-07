@@ -80,7 +80,7 @@ public class PromptService : ExternalServiceBase, IPromptService
                 requestUrl = $"{_azureBaseUrl}openai/deployments/{_azureDeploymentId}/chat/completions?api-version={_apiVersion}";
                 headers = new Dictionary<string, string>
                 {
-                    { "api-key", _azureApiKey },
+                    //{ "api-key", _azureApiKey },
                     { "Authorization", $"Bearer {_azureApiKey}" }
                 };
 
