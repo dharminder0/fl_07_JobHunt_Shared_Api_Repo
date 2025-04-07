@@ -24,5 +24,7 @@
         public string LocationType { get; set; }
         public string Location { get; set; }
         public string Remarks { get; set; }
+
+        public string ExceptionLog { get; set; }
     }
 }

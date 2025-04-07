@@ -47,7 +47,7 @@ public class PromptService : ExternalServiceBase, IPromptService
 
     public async Task<UpdatedJobPostingResponse> GenerateUpdatedContent(PromptRequest request)
     {
-   
+        string stackTrace = "Started";
         try
         {
             _useAzure = true;
@@ -116,7 +116,7 @@ public class PromptService : ExternalServiceBase, IPromptService
                     top_p = (double)prompt.TopP
                 };
             }
-
+            stackTrace += "Make call";
             var response = await _httpService.PostAsyncV2<object>(requestUrl, aiRequest, headers);
             responsePayload = JsonConvert.SerializeObject(response);
 
@@ -124,7 +124,7 @@ public class PromptService : ExternalServiceBase, IPromptService
             string rawContent = responseObj.choices[0].message.content.ToString();
             string extractedJson = Regex.Replace(rawContent, @"^```json\s*|\s*```$", "", RegexOptions.Multiline);
             JobPostingResponse job = JsonConvert.DeserializeObject<JobPostingResponse>(extractedJson);
-
+            stackTrace += " call end";
             try
             {
                 var log = new PromptExecutionLog
@@ -141,7 +141,7 @@ public class PromptService : ExternalServiceBase, IPromptService
             {
                 // Optional logging failure
             }
-
+            stackTrace += " done";
             if (job == null)
                 return null;
 
@@ -157,11 +157,12 @@ public class PromptService : ExternalServiceBase, IPromptService
                 Remarks = job.Remark,
                 Budget = job.Budget
             };
+           
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error: {ex.Message}");
-            return null;
+            return new UpdatedJobPostingResponse { ExceptionLog = $@"{stackTrace} #### {ex.Message} };
         }
     }
 }
