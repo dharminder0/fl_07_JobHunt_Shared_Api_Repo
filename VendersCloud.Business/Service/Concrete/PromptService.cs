@@ -50,7 +50,8 @@ public class PromptService : ExternalServiceBase, IPromptService
         string stackTrace = "Started";
         try
         {
-            _useAzure = true;
+            
+;            _useAzure = true;
             var transactionId = Guid.NewGuid().ToString();
             var requestPayload = JsonConvert.SerializeObject(request);
             string responsePayload = null;
@@ -157,6 +158,22 @@ public class PromptService : ExternalServiceBase, IPromptService
                 Remarks = job.Remark,
                 Budget = job.Budget
             };
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+            return new UpdatedJobPostingResponse { ExceptionLog = $@"{stackTrace} #### {ex.Message}" };
+        }
+    }
+
+    public async Task<UpdatedJobPostingResponse> GenerateUpdatedContent2(PromptRequest request)
+    {
+        string stackTrace = "Started";
+        try
+        {
+
+            throw new Exception("started");
 
         }
         catch (Exception ex)
