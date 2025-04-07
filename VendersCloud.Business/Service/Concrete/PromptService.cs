@@ -11,7 +11,7 @@ public class PromptService : ExternalServiceBase, IPromptService
     private readonly ExternalConfigReader _configReader;
     private readonly IConfiguration _configuration;
 
-    private  bool _useAzure;
+    private bool _useAzure;
     private readonly string _azureDeploymentId;
     private readonly string _apiVersion;
     private readonly string _openAIModel;
@@ -157,12 +157,12 @@ public class PromptService : ExternalServiceBase, IPromptService
                 Remarks = job.Remark,
                 Budget = job.Budget
             };
-           
+
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error: {ex.Message}");
-            return new UpdatedJobPostingResponse { ExceptionLog = $@"{stackTrace} #### {ex.Message} };
+            return new UpdatedJobPostingResponse { ExceptionLog = $@"{stackTrace} #### {ex.Message}" };
         }
     }
 }
