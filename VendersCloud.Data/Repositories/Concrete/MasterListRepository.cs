@@ -61,7 +61,7 @@
             {
                 return await GetByAsync(new PredicateGroup
                     {
-                        Operator = GroupOperator.Or,
+                        Operator = GroupOperator.And,
                         Predicates = new List<IPredicate> {
                         Predicates.Field<MasterList>(f=>f.Name,Operator.Eq,name),
                         Predicates.Field<MasterList>(f=>f.IsDeleted,Operator.Eq,false),
