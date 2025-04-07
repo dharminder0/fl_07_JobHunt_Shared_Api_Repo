@@ -39,7 +39,8 @@ namespace VendersCloud.Data.Enum
 
         public enum MasterListValues
         {
-            State=1
+            State=1,
+            Technology= 2
         }
 
         public enum InviteStatus
