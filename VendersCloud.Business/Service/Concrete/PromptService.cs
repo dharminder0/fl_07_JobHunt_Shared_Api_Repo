@@ -63,7 +63,6 @@ public class PromptService : ExternalServiceBase, IPromptService
 
             var structuredInput = JsonConvert.SerializeObject(request.PromptJson);
             var promptDetailUpdated = prompt.PromptDetail.Replace("{RawRequirement}", structuredInput);
-
             object aiRequest;
             string requestUrl;
             Dictionary<string, string> headers;
@@ -82,7 +81,7 @@ public class PromptService : ExternalServiceBase, IPromptService
                     messages = new[]
                     {
                         new { role = "system", content = prompt.SystemRole },
-                        new { role = "user", content = promptDetailUpdated }
+                        new { role = "user", content  = promptDetailUpdated }
                     },
                     max_tokens = prompt.MaxToken,
                     temperature = (double)prompt.Temperature,
@@ -149,7 +148,9 @@ public class PromptService : ExternalServiceBase, IPromptService
                 LocationType = job.Location_Type,
                 Location = job.Location,
                 Remarks = job.Remark,
-                Budget = job.Budget
+                Budget = job.Budget,
+                Skills=job.Skills
+                
             };
 
         }
