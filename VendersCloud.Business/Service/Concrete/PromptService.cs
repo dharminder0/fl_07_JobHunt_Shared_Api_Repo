@@ -31,8 +31,8 @@ public class PromptService : ExternalServiceBase, IPromptService
         _configReader = new ExternalConfigReader(configuration);
         _configuration = configuration;
 
-        var useAzureRaw = _configReader.GetValueFromExternalFile("UseAzure") ?? configuration["AzureOpenAI:UseAzure"];
-        bool _useAzure = bool.TryParse(useAzureRaw, out var useAzureParsed) && useAzureParsed;
+        //var useAzureRaw = _configReader.GetValueFromExternalFile("UseAzure") ?? configuration["AzureOpenAI:UseAzure"];
+        //bool _useAzure = bool.TryParse(useAzureRaw, out var useAzureParsed) && useAzureParsed;
 
 
         _azureDeploymentId = _configReader.GetValueFromExternalFile("DeploymentId") ?? configuration["AzureOpenAI:DeploymentId"];
@@ -140,7 +140,7 @@ public class PromptService : ExternalServiceBase, IPromptService
             }
             catch (Exception)
             {
-                // Optional logging failure
+                
             }
             stackTrace += " done";
             if (job == null)
