@@ -29,8 +29,11 @@ namespace VendersCloud.Business.Service.Concrete
                     List<string> uploadedLogos = new List<string>();
                     foreach (var file in request.LogoURL)
                     {
-                         uploadedimageUrl = await _blobStorageService.UploadBase64ToBlobAsync(file);
-                        
+                        if (!string.IsNullOrEmpty(file.FileName)  || !string.IsNullOrEmpty(file.FileData))
+                        {
+                            uploadedimageUrl = await _blobStorageService.UploadBase64ToBlobAsync(file);
+                        }
+
                     }
                     
                 }
@@ -41,7 +44,10 @@ namespace VendersCloud.Business.Service.Concrete
                     List<string> uploadedFavicons = new List<string>();
                     foreach (var file in request.FaviconURL)
                     {
-                         uploadedUrl = await _blobStorageService.UploadBase64ToBlobAsync(file);
+                        if (!string.IsNullOrEmpty(file.FileName) || !string.IsNullOrEmpty(file.FileData))
+                        {
+                            uploadedUrl = await _blobStorageService.UploadBase64ToBlobAsync(file);
+                        }
                     }
                 }
 
