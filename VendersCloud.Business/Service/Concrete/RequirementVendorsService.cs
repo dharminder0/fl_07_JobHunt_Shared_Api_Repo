@@ -37,7 +37,6 @@
                     dto.Status = item.Status;
                     id = item.Id;
                     dto.UserId = item.CreatedBy;
-                    dto.Skills = item.Skills.Split(',').ToList();
                 }
                 var uniqueId = Guid.NewGuid().ToString().Substring(0, 12);
                 var res= await _requirementRepository.RequirementUpsertV2Async(dto, uniqueId);

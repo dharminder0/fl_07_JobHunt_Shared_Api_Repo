@@ -23,7 +23,6 @@
         public int UpdatedBy { get; set; }
         public bool IsDeleted { get; set; }
         public int UserId { get; set; }
-        public List<string> Skills{get;set;}
 
     }
 }
