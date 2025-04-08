@@ -22,8 +22,8 @@ public class PromptService : ExternalServiceBase, IPromptService
 
     public PromptService(IPromptRepository promptRepository, IPromptExecutionLogRepository executionLogRepository, IConfiguration configuration)
      : base(
-         new ExternalConfigReader(configuration).GetValueFromExternalFile("BaseUrl"),
-         new ExternalConfigReader(configuration).GetValueFromExternalFile("ApiKey")
+         new ExternalConfigReader(configuration).GetApiKey(),
+         new ExternalConfigReader(configuration).GetBaseUrl()
      )
     {
         _promptRepository = promptRepository;
@@ -31,18 +31,11 @@ public class PromptService : ExternalServiceBase, IPromptService
         _configReader = new ExternalConfigReader(configuration);
         _configuration = configuration;
 
-        //var useAzureRaw = _configReader.GetValueFromExternalFile("UseAzure") ?? configuration["AzureOpenAI:UseAzure"];
-        //bool _useAzure = bool.TryParse(useAzureRaw, out var useAzureParsed) && useAzureParsed;
+        _azureDeploymentId = _configReader.GetDeploymentId();
+        _apiVersion = _configReader.GetApiVersion();
+        _azureBaseUrl = _configReader.GetBaseUrl();
+        _azureApiKey = _configReader.GetApiKey();
 
-
-        _azureDeploymentId = _configReader.GetValueFromExternalFile("DeploymentId") ?? configuration["AzureOpenAI:DeploymentId"];
-        _apiVersion = _configReader.GetValueFromExternalFile("ApiVersion") ?? configuration["AzureOpenAI:ApiVersion"];
-        _azureBaseUrl = _configReader.GetValueFromExternalFile("BaseUrl") ?? configuration["AzureOpenAI:BaseUrl"];
-        _azureApiKey = _configReader.GetValueFromExternalFile("ApiKey") ?? configuration["AzureOpenAI:ApiKey"];
-
-        _openAIModel = _configReader.GetValueFromExternalFile("Model") ?? configuration["OpenAI:Model"];
-        _openAIBaseUrl = _configReader.GetValueFromExternalFile("BaseUrl") ?? configuration["OpenAI:BaseUrl"];
-        _openAIApiKey = _configReader.GetValueFromExternalFile("ApiKey") ?? configuration["OpenAI:ApiKey"];
     }
 
     public async Task<UpdatedJobPostingResponse> GenerateUpdatedContent(PromptRequest request)
