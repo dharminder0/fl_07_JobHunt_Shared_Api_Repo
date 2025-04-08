@@ -11,7 +11,7 @@ namespace VendersCloud.Business.Entities.ResponseModels
         public string Positions { get; set; }
         public string Contract_Period { get; set; }
         public string Location_Type { get; set; }
-        public string Location { get; set; }
+        public List< string> Location { get; set; }
         public string Remark { get; set; }
         public List<string> Skills { get; set; }
     }
@@ -25,7 +25,7 @@ namespace VendersCloud.Business.Entities.ResponseModels
         public string Positions { get; set; }
         public string Duration { get; set; }
         public string LocationType { get; set; }
-        public string Location { get; set; }
+        public  List<string> Location { get; set; }
         public string Remarks { get; set; }
         public List<string> Skills { get; set; }
 
