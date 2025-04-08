@@ -24,8 +24,6 @@ namespace VendersCloud.Data.Repositories.Concrete
                 var response = await dbInstance.SelectAsync<Requirement>(sql, new { Title = cleanedTitle, OrgCode = cleanedOrgCode });
                 string result = "";
 
-                var skillsCsv = request.Skills != null ? string.Join(",", request.Skills) : null;
-
                 if (response.Any())
                 {
                     var updateQuery = new Query(tableName).AsUpdate(new
@@ -44,8 +42,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                         request.Status,
                         UpdatedOn = DateTime.UtcNow,
                         UpdatedBy = Convert.ToInt32(request.UserId),
-                        IsDeleted = false,
-                        skills = skillsCsv
+                        IsDeleted = false
                     }).Where("Title", cleanedTitle).Where("OrgCode", cleanedOrgCode);
 
                     await dbInstance.ExecuteAsync(updateQuery);
@@ -72,8 +69,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                         CreatedOn = DateTime.UtcNow,
                         CreatedBy = Convert.ToInt32(request.UserId),
                         IsDeleted = false,
-                        UniqueId = uniqueId,
-                        skills = skillsCsv
+                        UniqueId = uniqueId
                     });
 
                     await dbInstance.ExecuteAsync(insertQuery);
@@ -102,7 +98,6 @@ namespace VendersCloud.Data.Repositories.Concrete
                 // Trim and validate input data
                 var cleanedTitle = request.Title.Trim();
                 var cleanedOrgCode = request.OrgCode.Trim();
-                var skillsCsv = request.Skills != null ? string.Join(",", request.Skills) : null;
                 var response = await dbInstance.SelectAsync<Requirement>(sql, new { Title = cleanedTitle, OrgCode = cleanedOrgCode });
                 if (response.Any())
                 {
@@ -124,8 +119,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                         request.Status,
                         UpdatedOn = DateTime.UtcNow,
                         UpdatedBy = Convert.ToInt32(request.UserId),
-                        IsDeleted = false,
-                        skills = skillsCsv
+                        IsDeleted = false
                     }).Where("Title", cleanedTitle).Where("OrgCode", cleanedOrgCode);
                     await dbInstance.ExecuteScalarAsync<string>(updateQuery);
                 }
@@ -149,8 +143,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                         request.Status,
                         CreatedOn = DateTime.UtcNow,
                         CreatedBy = Convert.ToInt32(request.UserId),
-                        IsDeleted = false,
-                        skills = skillsCsv
+                        IsDeleted = false
                     });
                     await dbInstance.ExecuteScalarAsync<string>(insertQuery);
                 }

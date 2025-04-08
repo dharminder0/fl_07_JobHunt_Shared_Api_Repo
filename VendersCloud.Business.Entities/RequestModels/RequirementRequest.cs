@@ -15,6 +15,5 @@
         public int Status {  get; set; }
         public string ClientCode { get; set; }
         public string  UserId { get; set; }
-        public List<string> Skills { get; set; }
     }
 }
