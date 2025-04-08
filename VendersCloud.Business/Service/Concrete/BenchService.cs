@@ -254,6 +254,7 @@ namespace VendersCloud.Business.Service.Concrete
                     {
                         Status = data.Status,
                         StatusName = CommonFunctions.GetEnumDescription((ApplyStatus)data.Status),
+                        Comment= data.Comment,
                         ApplicationDate = data.CreatedOn
                     };
 
@@ -272,7 +273,7 @@ namespace VendersCloud.Business.Service.Concrete
                             }
                         }
                     }
-
+                   
                     if (searchResponse.ClientOrgName == null && searchResponse.ClientOrgLogo == null)
                     {
                         continue;

@@ -14,5 +14,6 @@
         public string ClientOrgLogo {  get; set; }
         public string ClientOrgName { get; set; }
         public string ClientCode { get; set; }
+        public string Comment { get; set; }
     }
 }

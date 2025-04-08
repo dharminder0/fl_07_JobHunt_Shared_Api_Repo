@@ -24,6 +24,7 @@
         public int UpdatedBy { get; set; }
         public bool IsDeleted {  get; set; }
         public string UniqueId { get; set; }
+        public string Skills { get; set; }
 
     }
 

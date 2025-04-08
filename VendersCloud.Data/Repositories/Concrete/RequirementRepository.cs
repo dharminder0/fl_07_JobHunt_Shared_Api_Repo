@@ -1,4 +1,7 @@
-﻿namespace VendersCloud.Data.Repositories.Concrete
+﻿using Newtonsoft.Json;
+using VendersCloud.Common.Extensions;
+
+namespace VendersCloud.Data.Repositories.Concrete
 {
     public class RequirementRepository : StaticBaseRepository<Requirement>,IRequirementRepository
     {
@@ -39,7 +42,8 @@
                     UpdatedOn = DateTime.UtcNow,
                     UpdatedBy = Convert.ToInt32(request.UserId),
                     IsDeleted = false,
-                    UniqueId= uniqueId,
+                    skills = string.Join(",", request.Skills)
+
                 }).Where("Title", cleanedTitle).Where("OrgCode", cleanedOrgCode);
 
                 await dbInstance.ExecuteAsync(updateQuery);
@@ -69,6 +73,7 @@
                     CreatedBy = Convert.ToInt32(request.UserId),
                     IsDeleted = false,
                     UniqueId = uniqueId,
+                    skills = string.Join(",", request.Skills)
                 });
 
                 await dbInstance.ExecuteAsync(insertQuery);
@@ -115,7 +120,8 @@
                         request.Status,
                         UpdatedOn = DateTime.UtcNow,
                         UpdatedBy = Convert.ToInt32(request.UserId),
-                        IsDeleted = false
+                        IsDeleted = false,
+                        skills = string.Join(",", request.Skills)
                     }).Where("Title", cleanedTitle).Where("OrgCode", cleanedOrgCode);
                     await dbInstance.ExecuteScalarAsync<string>(updateQuery);
                 }
@@ -139,7 +145,8 @@
                         request.Status,
                         CreatedOn = DateTime.UtcNow,
                         CreatedBy = Convert.ToInt32(request.UserId),
-                        IsDeleted = false
+                        IsDeleted = false,
+                        skills = string.Join(",", request.Skills)
                     });
                     await dbInstance.ExecuteScalarAsync<string>(insertQuery);
                 }
