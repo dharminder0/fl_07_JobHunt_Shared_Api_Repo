@@ -5,11 +5,11 @@
     public class PromptController : BaseApiController
     {
         private readonly IPromptService  _promptService;
-        private IConfiguration _configuration;
-        public PromptController(IPromptService promptService, IConfiguration configuration)
+       
+        public PromptController(IPromptService promptService)
         {
             _promptService = promptService;
-            _configuration = configuration;
+ 
                 
         }
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -25,6 +25,28 @@
             try
             {
                 var result = await _promptService.GenerateUpdatedContent(promptRequest);
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ServiceFilter(typeof(RequireAuthorizationFilter))]
+        [HttpPost]
+        [Route("api/V1/Prompt/GenerateContent22")]
+
+        public async Task<IActionResult> GenerateContent2(PromptRequest promptRequest)
+        {
+            try
+            {
+                var result = await _promptService.GenerateUpdatedContent2(promptRequest);
                 return Json(result);
             }
             catch (Exception ex)

@@ -22,8 +22,8 @@ public class PromptService : ExternalServiceBase, IPromptService
 
     public PromptService(IPromptRepository promptRepository, IPromptExecutionLogRepository executionLogRepository, IConfiguration configuration)
      : base(
-         new ExternalConfigReader(configuration).GetValueFromExternalFile("BaseUrl"),
-         new ExternalConfigReader(configuration).GetValueFromExternalFile("ApiKey")
+         new ExternalConfigReader(configuration).GetApiKey(),
+         new ExternalConfigReader(configuration).GetBaseUrl()
      )
     {
         _promptRepository = promptRepository;
@@ -31,18 +31,11 @@ public class PromptService : ExternalServiceBase, IPromptService
         _configReader = new ExternalConfigReader(configuration);
         _configuration = configuration;
 
-        var useAzureRaw = _configReader.GetValueFromExternalFile("UseAzure") ?? configuration["AzureOpenAI:UseAzure"];
-        bool _useAzure = bool.TryParse(useAzureRaw, out var useAzureParsed) && useAzureParsed;
+        _azureDeploymentId = _configReader.GetDeploymentId();
+        _apiVersion = _configReader.GetApiVersion();
+        _azureBaseUrl = _configReader.GetBaseUrl();
+        _azureApiKey = _configReader.GetApiKey();
 
-
-        _azureDeploymentId = _configReader.GetValueFromExternalFile("DeploymentId") ?? configuration["AzureOpenAI:DeploymentId"];
-        _apiVersion = _configReader.GetValueFromExternalFile("ApiVersion") ?? configuration["AzureOpenAI:ApiVersion"];
-        _azureBaseUrl = _configReader.GetValueFromExternalFile("BaseUrl") ?? configuration["AzureOpenAI:BaseUrl"];
-        _azureApiKey = _configReader.GetValueFromExternalFile("ApiKey") ?? configuration["AzureOpenAI:ApiKey"];
-
-        _openAIModel = _configReader.GetValueFromExternalFile("Model") ?? configuration["OpenAI:Model"];
-        _openAIBaseUrl = _configReader.GetValueFromExternalFile("BaseUrl") ?? configuration["OpenAI:BaseUrl"];
-        _openAIApiKey = _configReader.GetValueFromExternalFile("ApiKey") ?? configuration["OpenAI:ApiKey"];
     }
 
     public async Task<UpdatedJobPostingResponse> GenerateUpdatedContent(PromptRequest request)
@@ -50,7 +43,8 @@ public class PromptService : ExternalServiceBase, IPromptService
         string stackTrace = "Started";
         try
         {
-            _useAzure = true;
+            
+           _useAzure = true;
             var transactionId = Guid.NewGuid().ToString();
             var requestPayload = JsonConvert.SerializeObject(request);
             string responsePayload = null;
@@ -79,7 +73,7 @@ public class PromptService : ExternalServiceBase, IPromptService
                 requestUrl = $"{_azureBaseUrl}openai/deployments/{_azureDeploymentId}/chat/completions?api-version={_apiVersion}";
                 headers = new Dictionary<string, string>
                 {
-                    { "api-key", _azureApiKey },
+                    //{ "api-key", _azureApiKey },
                     { "Authorization", $"Bearer {_azureApiKey}" }
                 };
 
@@ -139,7 +133,7 @@ public class PromptService : ExternalServiceBase, IPromptService
             }
             catch (Exception)
             {
-                // Optional logging failure
+                
             }
             stackTrace += " done";
             if (job == null)
@@ -157,6 +151,22 @@ public class PromptService : ExternalServiceBase, IPromptService
                 Remarks = job.Remark,
                 Budget = job.Budget
             };
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+            return new UpdatedJobPostingResponse { ExceptionLog = $@"{stackTrace} #### {ex.Message}" };
+        }
+    }
+
+    public async Task<UpdatedJobPostingResponse> GenerateUpdatedContent2(PromptRequest request)
+    {
+        string stackTrace = "Started";
+        try
+        {
+
+            throw new Exception("started");
 
         }
         catch (Exception ex)
