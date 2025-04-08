@@ -5,11 +5,11 @@
     public class PromptController : BaseApiController
     {
         private readonly IPromptService  _promptService;
-        private IConfiguration _configuration;
-        public PromptController(IPromptService promptService, IConfiguration configuration)
+       
+        public PromptController(IPromptService promptService)
         {
             _promptService = promptService;
-            _configuration = configuration;
+ 
                 
         }
         [ProducesResponseType(StatusCodes.Status200OK)]
