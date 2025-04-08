@@ -9,81 +9,85 @@ namespace VendersCloud.Data.Repositories.Concrete
         {
         }
 
-        public async Task<string> RequirementUpsertAsync(RequirementRequest request,string uniqueId)
+        public async Task<string> RequirementUpsertAsync(RequirementRequest request, string uniqueId)
         {
-            var dbInstance = GetDbInstance();
-            var tableName = new Table<Requirement>().TableName;
-            var sql = "SELECT * FROM Requirement WHERE Title = @Title AND OrgCode = @OrgCode";
-
-            // Trim and validate input data
-            var cleanedTitle = request.Title.Trim();
-            var cleanedOrgCode = request.OrgCode.Trim();
-
-            var response = await dbInstance.SelectAsync<Requirement>(sql, new { Title = cleanedTitle, OrgCode = cleanedOrgCode });
-            string result = "";
-
-            if (response.Any())
+            try
             {
-                // Update query
-                var updateQuery = new Query(tableName).AsUpdate(new
+                var dbInstance = GetDbInstance();
+                var tableName = new Table<Requirement>().TableName;
+                var sql = "SELECT * FROM Requirement WHERE Title = @Title AND OrgCode = @OrgCode";
+
+                // Trim and validate input
+                var cleanedTitle = request.Title.Trim();
+                var cleanedOrgCode = request.OrgCode.Trim();
+
+                var response = await dbInstance.SelectAsync<Requirement>(sql, new { Title = cleanedTitle, OrgCode = cleanedOrgCode });
+                string result = "";
+
+                var skillsCsv = request.Skills != null ? string.Join(",", request.Skills) : null;
+
+                if (response.Any())
                 {
-                    Title = cleanedTitle,
-                    OrgCode = cleanedOrgCode,
-                    request.Description,
-                    request.Experience,
-                    request.Budget,
-                    request.Positions,
-                    request.LocationType,
-                    request.Location,
-                    request.Duration,
-                    request.ClientCode,
-                    request.Remarks,
-                    request.Status,
-                    UpdatedOn = DateTime.UtcNow,
-                    UpdatedBy = Convert.ToInt32(request.UserId),
-                    IsDeleted = false,
-                    skills = string.Join(",", request.Skills)
+                    var updateQuery = new Query(tableName).AsUpdate(new
+                    {
+                        Title = cleanedTitle,
+                        OrgCode = cleanedOrgCode,
+                        request.Description,
+                        request.Experience,
+                        request.Budget,
+                        request.Positions,
+                        request.LocationType,
+                        request.Location,
+                        request.Duration,
+                        request.ClientCode,
+                        request.Remarks,
+                        request.Status,
+                        UpdatedOn = DateTime.UtcNow,
+                        UpdatedBy = Convert.ToInt32(request.UserId),
+                        IsDeleted = false,
+                        skills = skillsCsv
+                    }).Where("Title", cleanedTitle).Where("OrgCode", cleanedOrgCode);
 
-                }).Where("Title", cleanedTitle).Where("OrgCode", cleanedOrgCode);
+                    await dbInstance.ExecuteAsync(updateQuery);
 
-                await dbInstance.ExecuteAsync(updateQuery);
+                    var idResponse = await dbInstance.SelectAsync<Requirement>(sql, new { Title = cleanedTitle, OrgCode = cleanedOrgCode });
+                    result = idResponse.FirstOrDefault()?.Id.ToString() ?? string.Empty;
+                }
+                else
+                {
+                    var insertQuery = new Query(tableName).AsInsert(new
+                    {
+                        Title = cleanedTitle,
+                        OrgCode = cleanedOrgCode,
+                        request.Description,
+                        request.Experience,
+                        request.Budget,
+                        request.Positions,
+                        request.LocationType,
+                        request.Location,
+                        request.ClientCode,
+                        request.Duration,
+                        request.Remarks,
+                        request.Status,
+                        CreatedOn = DateTime.UtcNow,
+                        CreatedBy = Convert.ToInt32(request.UserId),
+                        IsDeleted = false,
+                        UniqueId = uniqueId,
+                        skills = skillsCsv
+                    });
 
-                // Fetch the Id
-                var idResponse = await dbInstance.SelectAsync<Requirement>(sql, new { Title = cleanedTitle, OrgCode = cleanedOrgCode });
-                result = idResponse.FirstOrDefault()?.Id.ToString() ?? string.Empty;
+                    await dbInstance.ExecuteAsync(insertQuery);
+
+                    var idResponse = await dbInstance.SelectAsync<Requirement>(sql, new { Title = cleanedTitle, OrgCode = cleanedOrgCode });
+                    result = idResponse.FirstOrDefault()?.UniqueId.ToString() ?? string.Empty;
+                }
+
+                return result;
             }
-            else
+            catch (Exception ex)
             {
-                // Insert query
-                var insertQuery = new Query(tableName).AsInsert(new
-                {
-                    Title = cleanedTitle,
-                    OrgCode = cleanedOrgCode,
-                    request.Description,
-                    request.Experience,
-                    request.Budget,
-                    request.Positions,
-                    request.LocationType,
-                    request.Location,
-                    request.ClientCode,
-                    request.Duration,
-                    request.Remarks,
-                    request.Status,
-                    CreatedOn = DateTime.UtcNow,
-                    CreatedBy = Convert.ToInt32(request.UserId),
-                    IsDeleted = false,
-                    UniqueId = uniqueId,
-                    skills = string.Join(",", request.Skills)
-                });
-
-                await dbInstance.ExecuteAsync(insertQuery);
-
-                // Fetch the Id
-                var idResponse = await dbInstance.SelectAsync<Requirement>(sql, new { Title = cleanedTitle, OrgCode = cleanedOrgCode });
-                result = idResponse.FirstOrDefault()?.UniqueId.ToString() ?? string.Empty;
+                throw new ApplicationException("An unexpected error occurred while processing the requirement.", ex);
             }
-
-            return result;
         }
 
 
@@ -98,7 +102,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                 // Trim and validate input data
                 var cleanedTitle = request.Title.Trim();
                 var cleanedOrgCode = request.OrgCode.Trim();
-
+                var skillsCsv = request.Skills != null ? string.Join(",", request.Skills) : null;
                 var response = await dbInstance.SelectAsync<Requirement>(sql, new { Title = cleanedTitle, OrgCode = cleanedOrgCode });
                 if (response.Any())
                 {
@@ -121,7 +125,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                         UpdatedOn = DateTime.UtcNow,
                         UpdatedBy = Convert.ToInt32(request.UserId),
                         IsDeleted = false,
-                        skills = string.Join(",", request.Skills)
+                        skills = skillsCsv
                     }).Where("Title", cleanedTitle).Where("OrgCode", cleanedOrgCode);
                     await dbInstance.ExecuteScalarAsync<string>(updateQuery);
                 }
@@ -146,7 +150,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                         CreatedOn = DateTime.UtcNow,
                         CreatedBy = Convert.ToInt32(request.UserId),
                         IsDeleted = false,
-                        skills = string.Join(",", request.Skills)
+                        skills = skillsCsv
                     });
                     await dbInstance.ExecuteScalarAsync<string>(insertQuery);
                 }
