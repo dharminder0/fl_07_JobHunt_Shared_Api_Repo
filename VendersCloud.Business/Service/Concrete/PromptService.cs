@@ -156,23 +156,9 @@ public class PromptService : ExternalServiceBase, IPromptService
         catch (Exception ex)
         {
             Console.WriteLine($"Error: {ex.Message}");
-            return new UpdatedJobPostingResponse { ExceptionLog = $@"{stackTrace} #### {ex.Message}" };
+            return null;
         }
     }
 
-    public async Task<UpdatedJobPostingResponse> GenerateUpdatedContent2(PromptRequest request)
-    {
-        string stackTrace = "Started";
-        try
-        {
-
-            throw new Exception("started");
-
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error: {ex.Message}");
-            return new UpdatedJobPostingResponse { ExceptionLog = $@"{stackTrace} #### {ex.Message}" };
-        }
-    }
+    
 }
