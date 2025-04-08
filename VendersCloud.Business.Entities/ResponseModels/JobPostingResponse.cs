@@ -1,4 +1,6 @@
-﻿namespace VendersCloud.Business.Entities.ResponseModels
+﻿using Newtonsoft.Json;
+
+namespace VendersCloud.Business.Entities.ResponseModels
 {
     public class JobPostingResponse
     {
@@ -11,6 +13,7 @@
         public string Location_Type { get; set; }
         public string Location { get; set; }
         public string Remark { get; set; }
+        public List<string> Skills { get; set; }
     }
 
     public class UpdatedJobPostingResponse
@@ -24,7 +27,8 @@
         public string LocationType { get; set; }
         public string Location { get; set; }
         public string Remarks { get; set; }
+        public List<string> Skills { get; set; }
 
-       
+
     }
 }
