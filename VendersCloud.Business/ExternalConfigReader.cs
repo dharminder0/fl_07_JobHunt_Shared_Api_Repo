@@ -9,41 +9,73 @@ namespace VendersCloud.Business
         {
             _configuration = configuration;
         }
-
-       
         public string GetApiKey()
         {
-            string apiKey = _configuration["OpenAI:ApiKey"];
+            string apiKey = _configuration["AzureOpenAI:ApiKey"];
 
-      
-            if (!string.IsNullOrEmpty(apiKey))
+            if (string.IsNullOrEmpty(apiKey))
             {
-                return apiKey;
+                apiKey = _configuration["OpenAI:ApiKey"];
             }
 
-           
-            return GetValueFromExternalFile("ApiKey");
+            if (string.IsNullOrEmpty(apiKey))
+            {
+                apiKey = GetValueFromExternalFile("ApiKey");
+            }
+
+            return apiKey;
         }
 
-        // Method to get Base URL with fallback to external file if not available in appsettings.json
         public string GetBaseUrl()
         {
-            // Prioritize AzureOpenAI from appsettings
             string baseUrl = _configuration["AzureOpenAI:BaseUrl"];
 
-            // If AzureOpenAI not available, try OpenAI
             if (string.IsNullOrEmpty(baseUrl))
             {
                 baseUrl = _configuration["OpenAI:BaseUrl"];
             }
 
-            // If still not found, fallback to external file
             if (string.IsNullOrEmpty(baseUrl))
             {
                 baseUrl = GetValueFromExternalFile("BaseUrl");
             }
 
             return baseUrl;
+        }
+
+        public string GetModel()
+        {
+            string model = _configuration["OpenAI:Model"];
+
+            if (string.IsNullOrEmpty(model))
+            {
+                model = GetValueFromExternalFile("Model");
+            }
+
+            return model;
+        }
+
+        public string GetDeploymentId()
+        {
+            string deploymentId = _configuration["AzureOpenAI:DeploymentId"];
+
+            if (string.IsNullOrEmpty(deploymentId))
+            {
+                deploymentId = GetValueFromExternalFile("DeploymentId");
+            }
+
+            return deploymentId;
+        }
+        public string GetApiVersion()
+        {
+            string apiVersion = _configuration["AzureOpenAI:ApiVersion"];
+
+            if (string.IsNullOrEmpty(apiVersion))
+            {
+                apiVersion = GetValueFromExternalFile("ApiVersion");
+            }
+
+            return apiVersion;
         }
 
 
