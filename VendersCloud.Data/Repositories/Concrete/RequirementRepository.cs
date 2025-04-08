@@ -48,7 +48,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                     await dbInstance.ExecuteAsync(updateQuery);
 
                     var idResponse = await dbInstance.SelectAsync<Requirement>(sql, new { Title = cleanedTitle, OrgCode = cleanedOrgCode });
-                    result = idResponse.FirstOrDefault()?.Id.ToString() ?? string.Empty;
+                    result = idResponse.FirstOrDefault()?.UniqueId.ToString() ?? string.Empty;
                 }
                 else
                 {
@@ -75,7 +75,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                     await dbInstance.ExecuteAsync(insertQuery);
 
                     var idResponse = await dbInstance.SelectAsync<Requirement>(sql, new { Title = cleanedTitle, OrgCode = cleanedOrgCode });
-                    result=idResponse.FirstOrDefault()?.Id.ToString() ?? string.Empty;
+                    result=idResponse.FirstOrDefault()?.UniqueId.ToString() ?? string.Empty;
                 }
 
                 return result;

@@ -35,8 +35,7 @@ namespace VendersCloud.Business.Service.Concrete
                 var response = await _requirementRepository.RequirementUpsertAsync(request, uniqueId);
                 if (response != null)
                 {
-                    var res = Convert.ToInt64(response);
-                    return new ActionMessageResponse() { Success = true, Message = "Requirement Submitted Successfully!! ", Content = uniqueId };
+                    return new ActionMessageResponse() { Success = true, Message = "Requirement Submitted Successfully!! ", Content = response };
                 }
                 return new ActionMessageResponse() { Success = false, Message = "Requirement Not Submitted  ", Content = "" };
 
