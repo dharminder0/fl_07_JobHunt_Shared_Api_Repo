@@ -292,7 +292,7 @@ namespace VendersCloud.Business.Service.Concrete
                     }
 
                     var orgRelationshipData = await _organizationRelationshipsRepository.GetStatusAsync(request.OrgCode, request.RelatedOrgCode);
-                    var orgRelationdata= orgRelationshipData.Where(x => x.OrgCode == request.OrgCode && x.RelatedOrgCode == request.RelatedOrgCode).FirstOrDefault();
+                    var orgRelationdata= orgRelationshipData.FirstOrDefault();
                     if (orgRelationdata != null)
                     {
                         profileResponse.Status = orgRelationdata.Status; 
