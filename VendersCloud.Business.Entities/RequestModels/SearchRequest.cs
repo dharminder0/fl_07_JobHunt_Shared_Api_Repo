@@ -2,6 +2,7 @@
 {
     public class SearchRequest
     {
+        public string OrgCode { get; set; }
         public string SearchText { get; set; } 
         public List<string> Technology { get; set; } 
         public List<string> Resource { get; set; }

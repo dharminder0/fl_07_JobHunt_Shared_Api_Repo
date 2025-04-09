@@ -191,6 +191,15 @@
             var list = dbInstance.Select<OrgRelationships>(sql, new { orgCode }).ToList();
             return list;
         }
+
+        public async Task<List<OrgRelationships>> GetOrgRelationshipsListAsync(string orgCode)
+        {
+            var dbInstance = GetDbInstance();
+            var sql = "SELECT * FROM OrgRelationships Where IsDeleted<>1 and (OrgCode = @orgCode OR RelatedOrgCode=@orgCode)";
+
+            var list = dbInstance.Select<OrgRelationships>(sql, new { orgCode }).ToList();
+            return list;
+        }
     }
 }
  

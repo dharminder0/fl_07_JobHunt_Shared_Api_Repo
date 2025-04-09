@@ -17,5 +17,7 @@
         public bool IsDeleted { get; set; }
         public List<string> Location { get; set; }
         public List<string> State { get; set; }
+        public int Status { get; set; }
+        public string StatusName { get; set; }
     }
 }
