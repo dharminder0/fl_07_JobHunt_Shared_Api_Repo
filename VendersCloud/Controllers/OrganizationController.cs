@@ -94,13 +94,13 @@
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ServiceFilter(typeof(RequireAuthorizationFilter))]
-        [HttpGet]
+        [HttpPost]
         [Route("api/V1/Organization/GetProfile")]
-         public async Task<IActionResult> GetOrganizationProfile(string orgCode)
+         public async Task<IActionResult> GetOrganizationProfile(GetProfileRequest request)
         {
             try
             {
-                var result= await _organizationService.GetOrganizationProfile(orgCode);
+                var result= await _organizationService.GetOrganizationProfile(request);
                 return Json(result);
             }
             catch(Exception ex)

@@ -7,5 +7,6 @@
         Task<PaginationDto<OrgRelationshipSearchResponse>> GetListRelationshipAsync(OrgRelationshipSearchRequest request);
         Task<IEnumerable<OrgRelationships>> GetBenchResponseListByIdAsync(string orgCode);
         Task<List<OrgRelationships>> GetOrgRelationshipsListAsync(string orgCode);
+        Task<IEnumerable<OrgRelationships>> GetStatusAsync(string orgCode, string relatedOrgCode);
     }
 }

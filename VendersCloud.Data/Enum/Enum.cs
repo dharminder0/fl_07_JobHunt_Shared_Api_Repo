@@ -45,6 +45,7 @@ namespace VendersCloud.Data.Enum
 
         public enum InviteStatus
         {
+            NotInvited = 0,
             Pending = 1,
             Accepted =2,
             Declined=3,
