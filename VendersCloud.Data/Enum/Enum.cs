@@ -45,11 +45,16 @@ namespace VendersCloud.Data.Enum
 
         public enum InviteStatus
         {
+            [Description("Not Invited")]
             NotInvited = 0,
+            [Description("Pending")]
             Pending = 1,
+            [Description("Accepted")]
             Accepted =2,
-            Declined=3,
-            Archived=4
+            [Description("Declined")]
+            Declined =3,
+            [Description("Archived")]
+            Archived =4
         }
 
         public enum ClientStatus

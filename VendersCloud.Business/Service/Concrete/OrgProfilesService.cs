@@ -1,4 +1,6 @@
-﻿namespace VendersCloud.Business.Service.Concrete
+﻿using VendersCloud.Business.CommonMethods;
+
+namespace VendersCloud.Business.Service.Concrete
 {
     public class OrgProfilesService : IOrgProfilesService
     {
@@ -113,7 +115,7 @@
                     Location = orgLocationMap.TryGetValue(org.OrgCode, out var locations) ? locations.Select(l => l.City).ToList() : new List<string>(),
                     State = orgLocationMap.TryGetValue(org.OrgCode, out var location) ? location.Select(l => l.StateName).ToList() : new List<string>(),
                     Status = orgStatusMap.TryGetValue(org.OrgCode, out var status) ? status : 0,
-                    StatusName= Enum.GetName(typeof(InviteStatus), status) 
+                    StatusName= CommonFunctions.GetEnumDescription((InviteStatus) status) 
                 }).ToList();
 
                 organizationDtos = organizationDtos

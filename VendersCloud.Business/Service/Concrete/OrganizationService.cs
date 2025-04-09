@@ -295,8 +295,8 @@ namespace VendersCloud.Business.Service.Concrete
                     var orgRelationdata= orgRelationshipData.Where(x => x.OrgCode == request.OrgCode && x.RelatedOrgCode == request.RelatedOrgCode).FirstOrDefault();
                     if (orgRelationdata != null)
                     {
-                        profileResponse.Status = orgRelationdata.Status;
-                        profileResponse.StatusName = System.Enum.GetName(typeof(InviteStatus), orgRelationdata.Status);
+                        profileResponse.Status = orgRelationdata.Status; 
+                        profileResponse.StatusName = CommonFunctions.GetEnumDescription((InviteStatus)orgRelationdata.Status);
                     }
                     else
                     {
