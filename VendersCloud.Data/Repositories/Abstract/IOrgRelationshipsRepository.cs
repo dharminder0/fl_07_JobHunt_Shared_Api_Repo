@@ -6,5 +6,6 @@
         Task<bool> ManageRelationshipStatusAsync(int orgRelationshipId, int status);
         Task<PaginationDto<OrgRelationshipSearchResponse>> GetListRelationshipAsync(OrgRelationshipSearchRequest request);
         Task<IEnumerable<OrgRelationships>> GetBenchResponseListByIdAsync(string orgCode);
+        Task<List<OrgRelationships>> GetOrgRelationshipsListAsync(string orgCode);
     }
 }

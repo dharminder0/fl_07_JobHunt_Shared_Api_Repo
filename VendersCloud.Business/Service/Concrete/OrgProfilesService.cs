@@ -5,11 +5,13 @@
         private readonly IOrgProfilesRepository _orgProfilesRepository;
         private readonly IOrgLocationRepository _orgLocationRepository;
         private readonly IListValuesRepository _listValuesRepository;
-        public OrgProfilesService(IOrgProfilesRepository orgProfilesRepository, IOrgLocationRepository orgLocationRepository, IListValuesRepository listValuesRepository)
+        private readonly IOrgRelationshipsRepository _orgRelationshipRepository;
+        public OrgProfilesService(IOrgProfilesRepository orgProfilesRepository, IOrgLocationRepository orgLocationRepository, IListValuesRepository listValuesRepository, IOrgRelationshipsRepository orgRelationshipRepository)
         {
             _orgProfilesRepository = orgProfilesRepository;
             _orgLocationRepository = orgLocationRepository;
             _listValuesRepository = listValuesRepository;
+            _orgRelationshipRepository = orgRelationshipRepository;
         }
         public async Task<bool> AddOrganizationProfileAsync(string orgCode, int profileId)
         {
@@ -77,6 +79,20 @@
                             StateName = listValues.TryGetValue(loc.State, out var stateName) ? stateName : "Unknown"
                         }).ToList()
                     );
+                // Fetch OrgRelationships once and build a map of OrgCode -> Status
+                var orgRelationshipData = await _orgRelationshipRepository.GetOrgRelationshipsListAsync(request.OrgCode);
+
+                // Build a map of OrgCode -> Status considering both OrgCode and RelatedOrgCode
+                var orgStatusMap = new Dictionary<string, int>();
+
+                foreach (var rel in orgRelationshipData)
+                {
+                    if (!orgStatusMap.ContainsKey(rel.OrgCode))
+                        orgStatusMap[rel.OrgCode] = rel.Status;
+
+                    if (!orgStatusMap.ContainsKey(rel.RelatedOrgCode))
+                        orgStatusMap[rel.RelatedOrgCode] = rel.Status;
+                }
 
                 // Convert Organization to OrganizationDto
                 var organizationDtos = data.List.Select(org => new OrganizationDto
@@ -95,9 +111,14 @@
                     RegAddress = org.RegAddress,
                     IsDeleted = org.IsDeleted,
                     Location = orgLocationMap.TryGetValue(org.OrgCode, out var locations) ? locations.Select(l => l.City).ToList() : new List<string>(),
-                    State = orgLocationMap.TryGetValue(org.OrgCode, out var location) ? locations.Select(l => l.StateName).ToList() : new List<string>()
+                    State = orgLocationMap.TryGetValue(org.OrgCode, out var location) ? location.Select(l => l.StateName).ToList() : new List<string>(),
+                    Status = orgStatusMap.TryGetValue(org.OrgCode, out var status) ? status : 0,
+                    StatusName= Enum.GetName(typeof(InviteStatus), status) 
                 }).ToList();
 
+                organizationDtos = organizationDtos
+                 .Where(o => o.OrgCode != request.OrgCode)
+                 .ToList();
                 return new PaginationDto<OrganizationDto>
                 {
                     Count = data.Count,
