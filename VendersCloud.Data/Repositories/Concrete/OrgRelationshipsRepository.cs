@@ -200,6 +200,15 @@
             var list = dbInstance.Select<OrgRelationships>(sql, new { orgCode }).ToList();
             return list;
         }
+        
+        public async Task<IEnumerable<OrgRelationships>> GetStatusAsync(string orgCode,string relatedOrgCode)
+        {
+            var dbInstance = GetDbInstance();
+            var sql = "SELECT * FROM OrgRelationships Where IsDeleted<>1 and (OrgCode = @orgCode OR RelatedOrgCode=@orgCode) And(OrgCode = @relatedOrgCode OR RelatedOrgCode=@relatedOrgCode)";
+
+            var list = dbInstance.Select<OrgRelationships>(sql, new { orgCode, relatedOrgCode }).ToList();
+            return list;
+        }
     }
 }
  

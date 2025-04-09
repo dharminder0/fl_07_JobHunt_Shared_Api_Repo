@@ -1,4 +1,5 @@
-﻿using System.Data;
+﻿using System.Collections.Generic;
+using System.Data;
 using VendersCloud.Business.CommonMethods;
 
 namespace VendersCloud.Business.Service.Concrete
@@ -232,26 +233,26 @@ namespace VendersCloud.Business.Service.Concrete
 
         }
 
-        public async Task<ActionMessageResponse> GetOrganizationProfile(string orgCode)
+        public async Task<ActionMessageResponse> GetOrganizationProfile(GetProfileRequest request)
         {
             try
             {
-                if (string.IsNullOrEmpty(orgCode))
+                if (string.IsNullOrEmpty(request.OrgCode))
                 {
                     return new ActionMessageResponse() { Success = false, Message = "Enter Valid Input!!", Content = "" };
                 }
 
-                var response = await _organizationRepository.GetOrganizationData(orgCode);
+                var response = await _organizationRepository.GetOrganizationData(request.OrgCode);
                 if (response != null)
                 {
                     // Await the tasks to get actual data
-                    var socialData = await _organizationSocialRepository.GetOrgSocialProfile(orgCode);
-                    var orgLocationData = await _organizationLocationRepository.GetOrgLocation(orgCode);
+                    var socialData = await _organizationSocialRepository.GetOrgSocialProfile(request.OrgCode);
+                    var orgLocationData = await _organizationLocationRepository.GetOrgLocation(request.OrgCode);
 
                     // Initialize the profile response
                     OrganizationProfileResponse profileResponse = new OrganizationProfileResponse
                     {
-                        OrgCode = orgCode,
+                        OrgCode = request.OrgCode,
                         OrgName = response.OrgName,
                         Phone = response.Phone,
                         Email = response.Email,
@@ -288,6 +289,19 @@ namespace VendersCloud.Business.Service.Concrete
                             State = dataLocation.State,
                             StateName = selectedValues
                         });
+                    }
+
+                    var orgRelationshipData = await _organizationRelationshipsRepository.GetStatusAsync(request.OrgCode, request.RelatedOrgCode);
+                    var orgRelationdata= orgRelationshipData.Where(x => x.OrgCode == request.OrgCode && x.RelatedOrgCode == request.RelatedOrgCode).FirstOrDefault();
+                    if (orgRelationdata != null)
+                    {
+                        profileResponse.Status = orgRelationdata.Status;
+                        profileResponse.StatusName = System.Enum.GetName(typeof(InviteStatus), orgRelationdata.Status);
+                    }
+                    else
+                    {
+                        profileResponse.Status = 0;
+                        profileResponse.StatusName = "Not Invited";
                     }
 
                     return new ActionMessageResponse()

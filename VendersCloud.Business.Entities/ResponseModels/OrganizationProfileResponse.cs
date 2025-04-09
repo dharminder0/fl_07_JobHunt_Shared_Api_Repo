@@ -15,6 +15,8 @@ namespace VendersCloud.Business.Entities.ResponseModels
         public bool IsDeleted { get; set; }
         public List<SocialProfiles> SocialLinks { get; set; }
         public List<OfficeLocations> OfficeLocation { get; set; }
+        public int Status { get; set; }
+        public string StatusName { get; set; }
     }
 
     public class SocialProfiles
