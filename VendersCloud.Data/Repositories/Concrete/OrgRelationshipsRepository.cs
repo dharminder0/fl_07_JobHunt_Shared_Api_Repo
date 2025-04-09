@@ -34,7 +34,7 @@
                     UpdatedBy = createdBy,
                     UpdatedOn = DateTime.UtcNow,
                     IsDeleted = false
-                });
+                }).Where("Id", existingOrgCode);
                 await dbInstance.ExecuteScalarAsync<string>(updateQuery);
                 return true;
             }
