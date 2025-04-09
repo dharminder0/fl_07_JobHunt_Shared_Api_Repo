@@ -345,7 +345,7 @@ namespace VendersCloud.Business.Service.Concrete
                     throw new ArgumentException("Organization as per your request is not found !!");
                 }
                 var selectedUserProfile= userProfiles.Where(x=>x.ProfileId==(request.Sender.RoleType)).ToList();
-                var dbOrgReciver = await _organizationRepository.GetOrganizationByEmailAndOrgCodeAsync(request.Receiver.Email, request.Receiver.OrgCode);
+                var dbOrgReciver = await _organizationRepository.GetOrganizationData(request.Receiver.OrgCode);
                 var dbOrgSender = await _organizationRepository.GetOrganizationData(request.Sender.OrgCode);
                 if (await _communicationService.DispatchedInvitationMailAsync(dbOrgReciver.OrgName, dbOrgSender.OrgName,request.Sender.Email, request.Receiver.Email,request.Message))
                 {
