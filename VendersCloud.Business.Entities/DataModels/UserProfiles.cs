@@ -8,10 +8,6 @@
         public int ProfileId { get; set; }
         public bool IsDeleted { get; set; }
 
-        public object Select(Func<object, string> value)
-        {
-            throw new NotImplementedException();
-        }
 
         public class UserProfilesMapper : ClassMapper<UserProfiles>
         {

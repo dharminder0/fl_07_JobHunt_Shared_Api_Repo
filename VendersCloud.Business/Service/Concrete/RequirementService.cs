@@ -1,4 +1,5 @@
 ﻿using Azure.Core;
+using System.Collections.Generic;
 using System.Dynamic;
 using VendersCloud.Business.CommonMethods;
 using VendersCloud.Business.Entities.DataModels;
@@ -13,7 +14,9 @@ namespace VendersCloud.Business.Service.Concrete
         private readonly IBenchRepository _benchRepository;
         private readonly IUsersRepository _usersRepository;
         private readonly IOrganizationRepository _organizationRepository;
-        public RequirementService(IRequirementRepository requirementRepository, IClientsRepository clientsRepository, IResourcesRepository resourcesRepository, IBenchRepository benchRepository, IUsersRepository usersRepository, IOrganizationRepository organizationRepository)
+        private readonly ISkillRepository _skillRepository;
+        private readonly ISkillRequirementMappingRepository _skillRequirementMappingRepository;
+        public RequirementService(IRequirementRepository requirementRepository, IClientsRepository clientsRepository, IResourcesRepository resourcesRepository, IBenchRepository benchRepository, IUsersRepository usersRepository, IOrganizationRepository organizationRepository, ISkillRepository skillRepository, ISkillRequirementMappingRepository skillRequirementMappingRepository)
         {
             _requirementRepository = requirementRepository;
             _clientsRepository = clientsRepository;
@@ -21,6 +24,8 @@ namespace VendersCloud.Business.Service.Concrete
             _benchRepository = benchRepository;
             _usersRepository = usersRepository;
             _organizationRepository = organizationRepository;
+            _skillRepository = skillRepository;
+            _skillRequirementMappingRepository = skillRequirementMappingRepository;
         }
 
         public async Task<ActionMessageResponse> RequirmentUpsertAsync(RequirementRequest request)
@@ -35,7 +40,23 @@ namespace VendersCloud.Business.Service.Concrete
                 var response = await _requirementRepository.RequirementUpsertAsync(request, uniqueId);
                 if (response != null)
                 {
-                    return new ActionMessageResponse() { Success = true, Message = "Requirement Submitted Successfully!! ", Content = response };
+                    var requirementdata = await _requirementRepository.GetRequirementListByIdAsync(response);
+                    if (requirementdata != null)
+                    {
+                        int requirementId = requirementdata.FirstOrDefault().Id;
+                        if (request.Skills != null)
+                        {
+                            var data = await _skillRepository.SkillUpsertAsync(request.Skills);
+                            if (data != null)
+                            {
+                                foreach (var item in data)
+                                {
+                                    await _skillRequirementMappingRepository.UpsertSkillRequirementMappingAsync(item.Id, requirementId);
+                                }
+                            }
+                        }
+                        return new ActionMessageResponse() { Success = true, Message = "Requirement Submitted Successfully!! ", Content = response };
+                    }
                 }
                 return new ActionMessageResponse() { Success = false, Message = "Requirement Not Submitted  ", Content = "" };
 
