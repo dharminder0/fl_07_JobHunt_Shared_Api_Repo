@@ -12,6 +12,7 @@
         public string Location { get; set; }
         public string Remarks { get; set; }
         public string OrgCode { get; set; }
+        public List<string> Skills { get; set; }
         public int Status {  get; set; }
         public string ClientCode { get; set; }
         public string  UserId { get; set; }
