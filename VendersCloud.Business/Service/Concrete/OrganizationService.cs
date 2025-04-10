@@ -93,6 +93,7 @@ namespace VendersCloud.Business.Service.Concrete
                         foreach (var item in infoRequest.registrationType)
                         {
                             int pId = Convert.ToInt32(item);
+                            
                             var uPres = await _userProfilesRepository.InsertUserProfileAsync(userId, pId);
                             var oPres = await _orgProfilesService.AddOrganizationProfileAsync(dbUser.OrgCode, pId);
 

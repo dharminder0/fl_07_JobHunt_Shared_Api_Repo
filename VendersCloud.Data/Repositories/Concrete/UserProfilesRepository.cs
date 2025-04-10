@@ -1,4 +1,6 @@
-﻿namespace VendersCloud.Data.Repositories.Concrete
+﻿using AutoMapper;
+
+namespace VendersCloud.Data.Repositories.Concrete
 {
     public class UserProfilesRepository:StaticBaseRepository<UserProfiles>, IUserProfilesRepository
     {
@@ -48,6 +50,26 @@
             }
         }
 
+        public async Task<bool> DeleteUserProfileAsync(int userId)
+        {
+            var dbInstance = GetDbInstance();
+            var tableName = new Table<UserProfiles>();
+            var checkUserExist = new Query(tableName.TableName)
+                  .Where("UserId", userId)
+                  .Select("Id");
+
+            var existing = await dbInstance.ExecuteScalarAsync<string>(checkUserExist);
+            if (existing != null)
+            {
+                var deletequery = new Query(tableName.TableName).AsUpdate(new
+                {
+                    IsDeleted = true
+                }).Where("UserId", userId);
+                await dbInstance.ExecuteScalarAsync<string>(deletequery);
+                return true;
+            }
+            return false;
+        }
 
         public async Task<List<UserProfiles>> GetProfileRole(int userId)
         {

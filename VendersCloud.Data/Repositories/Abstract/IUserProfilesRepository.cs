@@ -4,5 +4,6 @@
     {
         Task<bool> InsertUserProfileAsync(int userId, int profileId);
         Task<List<UserProfiles>> GetProfileRole(int userId);
+        Task<bool> DeleteUserProfileAsync(int userId);
     }
 }
