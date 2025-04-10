@@ -22,9 +22,12 @@
                 {
                     var deletequery = new Query(tableName.TableName).AsUpdate(new
                     {
-                        IsDeleted=true
-                    }).Where("UserId", userId);
+                        UserId = userId,
+                        ProfileId = profileId,
+                        IsDeleted = false
+                    }).Where("Id", existing);
                     await dbInstance.ExecuteScalarAsync<string>(deletequery);
+                    return true;
                 }
                 // Insert new user
                 var insertQuery = new Query(tableName.TableName).AsInsert(new
