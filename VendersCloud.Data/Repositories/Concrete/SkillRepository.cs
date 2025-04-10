@@ -49,5 +49,14 @@
             return skill;
         }
 
+        public async Task<List<string>> GetAllSkillNamesAsync(List<int> skillIds)
+        {
+            var dbInstance = GetDbInstance();
+            var sql = "SELECT SkillName FROM Skills WHERE Id IN @Ids";
+            var namedata = await dbInstance.SelectAsync<string>(sql, new { Ids = skillIds });
+            return namedata.ToList();
+        }
+
+
     }
 }

@@ -294,10 +294,11 @@ namespace VendersCloud.Business.Service.Concrete
             try
             {
                 int totalRecords = 0;
+                List<string> skillData= new List<string>();
                 List<Requirement> paginatedRequirements;
                 if (string.IsNullOrEmpty(request.OrgCode) || string.IsNullOrEmpty(request.UserId))
                 {
-                    throw new Exception("OrgCode is Mandatory!! ");
+                    throw new Exception("OrgCode is Mandatory!!");
                 }
                 int place, Applicants = 0;
                 var requirements = await _requirementRepository.GetRequirementsListAsync(request);
@@ -324,6 +325,16 @@ namespace VendersCloud.Business.Service.Concrete
                     ApplicantSearch.Status = 8;
                     Applicants = await _resourcesRepository.GetTotalApplicationsPerRequirementIdAsync(r.Id);
                     place = await GetTotalApplicantsAsync(ApplicantSearch);
+                    var skillMappingData= await _skillRequirementMappingRepository.GetSkillRequirementMappingAsync(r.Id);
+                    List<int> SkillId= new List<int>();
+                    if (skillMappingData != null && skillMappingData.Count > 0)
+                    {
+                        foreach (var item in skillMappingData)
+                        {
+                            SkillId.Add(item.SkillId);
+                        }
+                    }
+                  
                     var requirementResponse = new RequirementResponse
                     {
                         Id = r.Id,
@@ -353,12 +364,26 @@ namespace VendersCloud.Business.Service.Concrete
                         IsDeleted = r.IsDeleted,
                         UniqueId = r.UniqueId
                     };
+                    if (SkillId.Count > 0)
+                    {
+                        skillData = await _skillRepository.GetAllSkillNamesAsync(SkillId);
+                        requirementResponse.Skills = skillData;
 
+                    }
                     var orgData = await _clientsRepository.GetClientsByClientCodeAsync(r.ClientCode);
                     if (orgData != null)
                     {
                         requirementResponse.ClientName = orgData.ClientName;
                         requirementResponse.ClientLogo = orgData.LogoURL;
+                    }
+                    else
+                    {
+                        var clientData = await _organizationRepository.GetOrganizationData(r.ClientCode);
+                        if (clientData != null)
+                        {
+                            requirementResponse.ClientName = clientData.OrgName;
+                            requirementResponse.ClientLogo = clientData.Logo;
+                        }
                     }
 
                     requirementsResponseList.Add(requirementResponse);

@@ -30,5 +30,13 @@
             return insertedOrgCode; 
 
         }
+        public async Task<List<SkillRequirementMapping>> GetSkillRequirementMappingAsync(int requirementId)
+        {
+            var dbInstance = GetDbInstance();
+            var tableName = new Table<SkillRequirementMapping>();
+            var query= @"Select * from SkillRequirementMapping where RequirementId=@requirementId";
+            var orgdata = dbInstance.Select<SkillRequirementMapping>(query, new {requirementId}).ToList();
+            return orgdata;
+        }
     }
 }

@@ -30,6 +30,7 @@
         public int UpdatedBy { get; set; }
         public bool IsDeleted { get; set; }
         public string UniqueId { get; set; }
+        public List<string> Skills { get; set; }
     }
   
 }
