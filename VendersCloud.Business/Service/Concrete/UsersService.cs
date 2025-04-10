@@ -1,4 +1,6 @@
-﻿using VendersCloud.Business.CommonMethods;
+﻿using System.Security.Cryptography;
+using VendersCloud.Business.CommonMethods;
+using VendersCloud.Business.Entities.DataModels;
 
 namespace VendersCloud.Business.Service.Concrete
 {
@@ -10,7 +12,8 @@ namespace VendersCloud.Business.Service.Concrete
         private IConfiguration _configuration;
         private CommunicationService _communicationService;
         private readonly IBlobStorageService _blobStorageService;
-        public UsersService(IConfiguration configuration,IUsersRepository usersRepository, IOrganizationService organizationService, IUserProfilesService userProfilesService, IBlobStorageService blobStorageService)
+        private readonly IUserProfilesRepository _userProfilesRepository;
+        public UsersService(IConfiguration configuration,IUsersRepository usersRepository, IOrganizationService organizationService, IUserProfilesService userProfilesService, IBlobStorageService blobStorageService, IUserProfilesRepository userProfilesRepository)
         {
             _usersRepository = usersRepository;
             _organizationService = organizationService;
@@ -18,6 +21,7 @@ namespace VendersCloud.Business.Service.Concrete
             _configuration = configuration;
             _communicationService = new CommunicationService(configuration);
             _blobStorageService = blobStorageService;
+            _userProfilesRepository = userProfilesRepository;
         }
 
         public async Task<ActionMessageResponse>RegisterNewUserAsync(RegistrationRequest request)
@@ -302,6 +306,7 @@ namespace VendersCloud.Business.Service.Concrete
                 {
                     return new ActionMessageResponse { Success = false, Message = "UserId is not valid ", Content = "" };
                 }
+                await _userProfilesRepository.DeleteUserProfileAsync(userId);
                 var response = await _userProfilesService.InsertUserProfileAsync(userId, profileId);
                 return new ActionMessageResponse { Success = true, Message = "", Content = true };
             }
@@ -495,9 +500,11 @@ namespace VendersCloud.Business.Service.Concrete
                 if (data != null)
                 {
                     var dbUser = await _usersRepository.GetUserByEmailAsync(request.Email);
+                    await _userProfilesRepository.DeleteUserProfileAsync(dbUser.Id);
                     foreach (var pid in request.Access)
                     {
                         int profileId = Convert.ToInt32(pid);
+                       
                         var res = await _userProfilesService.InsertUserProfileAsync(dbUser.Id, profileId);
                     }
                     if (data.Equals("User Already Exists And Details Are Updated!!"))
