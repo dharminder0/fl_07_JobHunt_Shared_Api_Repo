@@ -323,6 +323,17 @@ namespace VendersCloud.Business.Service.Concrete
                     {
                         OrgActivePositionsResponse orgActivePositionsResponse = new OrgActivePositionsResponse();
                         orgActivePositionsResponse.ClientCode = item.ClientCode;
+                        if(string.IsNullOrEmpty(orgActivePositionsResponse.ClientCode))
+                        {
+                            orgActivePositionsResponse.ClientCode = "";
+                            return new PaginationDto<OrgActivePositionsResponse>
+                            {
+                                Count = totalCount,
+                                Page = request.PageNumber,
+                                TotalPages = totalPages,
+                                List = orgActivePositionsResponseList
+                            };
+                        }
                         orgActivePositionsResponse.TotalPositions = item.TotalPositions;
 
                         var clientData = await _clientsRepository.GetClientsByClientCodeAsync(item.ClientCode);
@@ -331,7 +342,11 @@ namespace VendersCloud.Business.Service.Concrete
                             orgActivePositionsResponse.ClientName = clientData.ClientName;
                             orgActivePositionsResponse.ClientLogo = clientData.LogoURL;
                         }
-
+                        else
+                        {
+                            orgActivePositionsResponse.ClientName = "";
+                            orgActivePositionsResponse.ClientLogo = "";
+                        }
                         orgActivePositionsResponseList.Add(orgActivePositionsResponse);
                     }
                 }
