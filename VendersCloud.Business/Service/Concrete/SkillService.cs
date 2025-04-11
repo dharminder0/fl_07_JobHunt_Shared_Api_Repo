@@ -23,7 +23,7 @@ namespace VendersCloud.Business.Service.Concrete
         
         }
 
-        public async Task<List<dynamic>> GetSkillListAsync()
+        public async Task<List<string>> GetSkillListAsync()
         {
             try
             {

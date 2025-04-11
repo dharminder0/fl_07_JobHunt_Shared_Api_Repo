@@ -57,11 +57,11 @@
             return namedata.ToList();
         }
 
-        public async Task<List<dynamic>> GetAllSkillNamesAsync()
+        public async Task<List<string>> GetAllSkillNamesAsync()
         {
             var dbInstance = GetDbInstance();
-            var sql = "SELECT * FROM Skills";
-            var namedata = await dbInstance.SelectAsync<dynamic>(sql);
+            var sql = "SELECT SkillName FROM Skills";
+            var namedata = await dbInstance.SelectAsync<string>(sql);
             return namedata.ToList();
         }
 
