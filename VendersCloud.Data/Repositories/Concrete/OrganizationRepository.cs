@@ -159,20 +159,22 @@
         }
         public async Task<Users> GetUserByIdAsync(int Id)
         {
-            try
-            {
                 var dbInstance = GetDbInstance();
                 var sql = "SELECT * FROM Users Where Id=@Id";
 
                 var users = await dbInstance.SelectAsync<Users>(sql, new { Id });
                 return users?.FirstOrDefault();
-            }
-            catch (Exception ex)
-            {
-                return null;
-            }
+            
         }
+        public async Task<List<Organization>> GetOrgByListAsync(List<string>? orgcode)
+        {
+            var dbInstance = GetDbInstance();
+            var sql = "SELECT * FROM Organization Where OrgCode In @orgcode";
 
+            var users = await dbInstance.SelectAsync<Organization>(sql, new { orgcode });
+            return users.ToList();
+
+        }
         public async Task<Organization> GetOrganizationByEmailAndOrgCodeAsync(string email, string orgCode)
         {
 

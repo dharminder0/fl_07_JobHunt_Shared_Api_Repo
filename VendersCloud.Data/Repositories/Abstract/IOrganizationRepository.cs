@@ -10,5 +10,6 @@
         Task<bool> UpdateOrganizationAddressByOrgCodeAsync(string regAddress, string orgCode);
         Task<Organization> GetOrganizationByEmailAndOrgCodeAsync(string email, string orgCode);
         Task<Organization> GetOrganizationDataByIdAsync(int Id);
+        Task<List<Organization>> GetOrgByListAsync(List<string>? orgcode);
     }
 }
