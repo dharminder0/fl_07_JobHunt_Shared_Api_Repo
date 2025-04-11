@@ -769,53 +769,103 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-                List<dynamic> res = new List<dynamic>();
+                List<Requirement> requirements = await _requirementRepository.GetRequirementByOrgCodeAsync(request.OrgCode);
+                var hotRequirements = requirements.Where(r => r.Hot).ToList();
 
-                List<Requirement> data = await _requirementRepository.GetRequirementByOrgCodeAsync(request.OrgCode);
+                // Safely filter out null/empty ClientCodes
+                var clientCodes = hotRequirements
+                    .Select(r => r.ClientCode)
+                    .Where(code => !string.IsNullOrWhiteSpace(code))
+                    .Distinct()
+                    .ToList();
 
-                var clientCodes = data.Select(x => x.ClientCode).ToList();
+                Dictionary<string, dynamic> clientData = new();
 
-                List<Clients> clientData = await _clientsRepository.GetClientsByClientCodeListAsync(clientCodes);
-                
-                foreach (var req in data)
+                foreach (var clientCode in clientCodes)
                 {
-                    if (req.Hot == true)
+                    var client = await _clientsRepository.GetClientsByClientCodeAsync(clientCode);
+                    if (client != null && !string.IsNullOrWhiteSpace(client.ClientCode))
                     {
-                        var client = clientData.FirstOrDefault(c => c.ClientCode == req.ClientCode);
-
-                        if (client != null)
+                        dynamic obj = new ExpandoObject();
+                        obj.ClientName = client.ClientName;
+                        obj.LogoURL = client.LogoURL;
+                        obj.ClientCode = client.ClientCode;
+                        clientData[client.ClientCode] = obj;
+                    }
+                    else
+                    {
+                        var orgData = await _organizationRepository.GetOrganizationData(clientCode);
+                        if (orgData != null && !string.IsNullOrWhiteSpace(orgData.OrgCode))
                         {
                             dynamic obj = new ExpandoObject();
-                            obj.ClientName = client.ClientName;
-                            obj.ClientLogo = client.LogoURL;
-                            obj.ClientCode = client.ClientCode;
-                            obj.Title = req.Title;
-                            obj.Positions = req.Positions;
-                            obj.CreatedOn = req.CreatedOn;
-                            obj.Visibility= req.Visibility;
-                            obj.VisibilityName = Enum.GetName(typeof(Visibility), req.Visibility);
-                            obj.LocationType = req.LocationType;
-                            obj.LocationTypeName = Enum.GetName(typeof(LocationType), req.LocationType);
-                            obj.RequirementUniqueId = req.UniqueId;
-                            obj.Hot = req.Hot;
-                            res.Add(obj);
+                            obj.ClientName = orgData.OrgName;
+                            obj.LogoURL = orgData.Logo;
+                            obj.ClientCode = orgData.OrgCode;
+                            clientData[orgData.OrgCode] = obj;
                         }
                     }
                 }
-                var totalRecords = res.Count;
+
+                var result = new List<dynamic>();
+                foreach (var req in hotRequirements)
+                {
+                    if (!string.IsNullOrWhiteSpace(req.ClientCode) && clientData.TryGetValue(req.ClientCode, out dynamic client))
+                    {
+                        dynamic obj = new ExpandoObject();
+                        obj.ClientName = client.ClientName;
+                        obj.ClientLogo = client.LogoURL;
+                        obj.ClientCode = client.ClientCode;
+                        obj.Title = req.Title;
+                        obj.Positions = req.Positions;
+                        obj.CreatedOn = req.CreatedOn;
+                        obj.Visibility = req.Visibility;
+                        obj.VisibilityName = Enum.GetName(typeof(Visibility), req.Visibility);
+                        obj.LocationType = req.LocationType;
+                        obj.LocationTypeName = Enum.GetName(typeof(LocationType), req.LocationType);
+                        obj.RequirementUniqueId = req.UniqueId;
+                        obj.Hot = req.Hot;
+                        result.Add(obj);
+                    }
+                    else
+                    {
+                        // fallback if no client info
+                        dynamic obj = new ExpandoObject();
+                        obj.ClientName = "";
+                        obj.ClientLogo = "";
+                        obj.ClientCode = "";
+                        obj.Title = req.Title;
+                        obj.Positions = req.Positions;
+                        obj.CreatedOn = req.CreatedOn;
+                        obj.Visibility = req.Visibility;
+                        obj.VisibilityName = Enum.GetName(typeof(Visibility), req.Visibility);
+                        obj.LocationType = req.LocationType;
+                        obj.LocationTypeName = Enum.GetName(typeof(LocationType), req.LocationType);
+                        obj.RequirementUniqueId = req.UniqueId;
+                        obj.Hot = req.Hot;
+                        result.Add(obj);
+                    }
+                }
+
+                int totalRecords = result.Count;
+                var pagedResult = result
+                    .Skip((request.Page - 1) * request.PageSize)
+                    .Take(request.PageSize)
+                    .ToList();
+
                 return new PaginationDto<dynamic>
                 {
                     Count = totalRecords,
                     Page = request.Page,
                     TotalPages = (int)Math.Ceiling(totalRecords / (double)request.PageSize),
-                    List = res
+                    List = pagedResult
                 };
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+                throw new Exception("Error fetching hot requirements: " + ex.Message);
             }
         }
+
 
 
     }
