@@ -3,6 +3,6 @@
     public interface ISkillService
     {
         Task<List<Skills>> SkillUpsertAsync(List<string> skillnames);
-        Task<List<dynamic>> GetSkillListAsync();
+        Task<List<string>> GetSkillListAsync();
     }
 }

@@ -4,7 +4,7 @@
     {
         Task<List<Skills>> SkillUpsertAsync(List<string> skillname);
         Task<List<string>> GetAllSkillNamesAsync(List<int> skillIds);
-        Task<List<dynamic>> GetAllSkillNamesAsync();
+        Task<List<string>> GetAllSkillNamesAsync();
     }
    
 }
