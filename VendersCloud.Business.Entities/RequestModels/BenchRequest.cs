@@ -6,8 +6,6 @@
         public string LastName { get; set; }
         public string Title { get; set; }
         public string Email { get; set; }
-        public string Phone { get; set; }
-        public string Linkedin { get; set; }
         public string CV { get; set; }
         public int Availability { get; set; }
         public string OrgCode { get; set; }
