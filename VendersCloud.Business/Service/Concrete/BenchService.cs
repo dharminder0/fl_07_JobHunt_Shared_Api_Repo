@@ -122,8 +122,6 @@ namespace VendersCloud.Business.Service.Concrete
                         LastName = item.LastName,
                         Title = item.Title,
                         Email = item.Email,
-                        Phone = item.Phone,
-                        Linkedin = item.Linkedin,
                         CV = item.CV,
                         OrgCode = item.OrgCode,
                         Availability = item.Availability,
