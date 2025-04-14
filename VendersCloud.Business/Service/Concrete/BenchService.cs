@@ -28,7 +28,7 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-                if (string.IsNullOrEmpty(benchRequest.OrgCode) || string.IsNullOrEmpty(benchRequest.FirstName) || string.IsNullOrEmpty(benchRequest.Email))
+                if (string.IsNullOrEmpty(benchRequest.OrgCode) || string.IsNullOrEmpty(benchRequest.FirstName))
                 {
                     return new ActionMessageResponse()
                     {
