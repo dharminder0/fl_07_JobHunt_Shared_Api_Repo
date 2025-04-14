@@ -1,4 +1,6 @@
-﻿namespace VendersCloud.Data.Repositories.Concrete
+﻿using Newtonsoft.Json;
+
+namespace VendersCloud.Data.Repositories.Concrete
 {
     public class BenchRepository : StaticBaseRepository<Resources>, IBenchRepository
     {
@@ -9,6 +11,8 @@
 
         public async Task<bool> UpsertBenchMembersAsync(BenchRequest request)
         {
+
+            string serializedCv = JsonConvert.SerializeObject(request.cv);
             var dbInstance = GetDbInstance();
             var tableName = new Table<Resources>();
             var query = new Query(tableName.TableName)
@@ -28,7 +32,7 @@
                         LastName = request.LastName,
                         Title = request.Title,
                         Email = request.Email,
-                        CV = request.CV,
+                        CV = serializedCv,
                         Availability = request.Availability,
                         OrgCode = request.OrgCode,
                         UpdatedOn = DateTime.UtcNow,
@@ -45,7 +49,7 @@
                     LastName = request.LastName,
                     Title = request.Title,
                     Email = request.Email,
-                    CV = request.CV,
+                    CV = serializedCv,
                     Availability = request.Availability,
                     OrgCode = request.OrgCode,
                     CreatedOn = DateTime.UtcNow,
