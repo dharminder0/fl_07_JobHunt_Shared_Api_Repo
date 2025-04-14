@@ -63,7 +63,7 @@ public class PromptService : ExternalServiceBase, IPromptService
                 return null;
 
             var structuredInput = JsonConvert.SerializeObject(request.PromptJson);
-            var promptDetailUpdated = prompt.PromptDetail.Replace("{RawRequirement}", structuredInput);
+            var promptDetailUpdated = prompt.PromptDetail.Replace("{RawContent}", structuredInput);
 
             object aiRequest;
             string requestUrl;
