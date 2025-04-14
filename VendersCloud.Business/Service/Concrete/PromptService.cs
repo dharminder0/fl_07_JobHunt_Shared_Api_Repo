@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using VendersCloud.Business.Service.Concrete;
 using VendersCloud.Business;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore.Mvc.Filters;
 
 public class PromptService : ExternalServiceBase, IPromptService
 {
@@ -124,7 +125,7 @@ public class PromptService : ExternalServiceBase, IPromptService
             if (!IsValidJson(extractedJson))
             {
     
-                return  "Error due to valid json";
+                return null;
             }
 
             dynamic job = JsonConvert.DeserializeObject<dynamic>(extractedJson);
