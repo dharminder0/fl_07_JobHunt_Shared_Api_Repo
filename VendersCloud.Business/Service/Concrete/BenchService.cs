@@ -1,4 +1,5 @@
 ﻿using Azure.Core;
+using Microsoft.AspNetCore.Mvc;
 using VendersCloud.Business.CommonMethods;
 using VendersCloud.Business.Entities.DataModels;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -16,7 +17,7 @@ namespace VendersCloud.Business.Service.Concrete
         private readonly IUsersRepository _userRepository;
         private readonly ISkillRepository _skillRepository;
         private readonly IResourcesSkillMappingRepository _skillRequirementMappingRepository;
-        public BenchService(IBenchRepository benchRepository, IResourcesRepository resourcesRepository, IRequirementRepository requirementsRepository, IOrganizationRepository organizationRepository, IClientsRepository clientsRepository, IOrgRelationshipsRepository orgRelationshipsRepository,IUsersRepository _usersRepository, ISkillRepository skillRepository, IResourcesSkillMappingRepository skillRequirementMappingRepository)
+        public BenchService(IBenchRepository benchRepository, IResourcesRepository resourcesRepository, IRequirementRepository requirementsRepository, IOrganizationRepository organizationRepository, IClientsRepository clientsRepository, IOrgRelationshipsRepository orgRelationshipsRepository, IUsersRepository _usersRepository, ISkillRepository skillRepository, IResourcesSkillMappingRepository skillRequirementMappingRepository)
         {
             _benchRepository = benchRepository;
             _resourcesRepository = resourcesRepository;
@@ -43,7 +44,7 @@ namespace VendersCloud.Business.Service.Concrete
                     };
                 }
                 var res = await _benchRepository.UpsertBenchMembersAsync(benchRequest);
-                if (res>0)
+                if (res > 0)
                     if (benchRequest.cv.top_skills != null)
                     {
                         var data = await _skillRepository.SkillUpsertAsync(benchRequest.cv.top_skills);
@@ -56,11 +57,11 @@ namespace VendersCloud.Business.Service.Concrete
                         }
                     }
                 return new ActionMessageResponse()
-                    {
-                        Success = true,
-                        Message = "Bench Member added",
-                        Content = ""
-                    };
+                {
+                    Success = true,
+                    Message = "Bench Member added",
+                    Content = ""
+                };
                 return new ActionMessageResponse()
                 {
                     Success = false,
@@ -260,9 +261,10 @@ namespace VendersCloud.Business.Service.Concrete
                 var requirementsData = requirementsList.ToDictionary(r => r.Id, r => r);
 
                 var clientCodes = requirementsList.Select(r => r.ClientCode).Where(code => !string.IsNullOrWhiteSpace(code)).Distinct().ToList();
-                if (clientCodes.Any()) { 
-                 clientsList = await _clientsRepository.GetClientsByClientCodeListAsync(clientCodes);
-                  clientsData = clientsList.ToDictionary(c => c.ClientCode, c => c);
+                if (clientCodes.Any())
+                {
+                    clientsList = await _clientsRepository.GetClientsByClientCodeListAsync(clientCodes);
+                    clientsData = clientsList.ToDictionary(c => c.ClientCode, c => c);
                 }
                 foreach (var data in pagedResults)
                 {
@@ -270,7 +272,7 @@ namespace VendersCloud.Business.Service.Concrete
                     {
                         Status = data.Status,
                         StatusName = CommonFunctions.GetEnumDescription((ApplyStatus)data.Status),
-                        Comment= data.Comment,
+                        Comment = data.Comment,
                         ApplicationDate = data.CreatedOn
                     };
 
@@ -292,7 +294,7 @@ namespace VendersCloud.Business.Service.Concrete
                             }
                         }
                     }
-                    
+
 
                     if (benchData.TryGetValue(data.ResourceId, out var resourceList))
                     {
@@ -327,7 +329,7 @@ namespace VendersCloud.Business.Service.Concrete
             {
                 List<OrgActivePositionsResponse> orgActivePositionsResponseList = new List<OrgActivePositionsResponse>();
 
-                var data = await _requirementsRepository.GetActivePositionsByOrgCodeAsync(request.OrgCode,null);
+                var data = await _requirementsRepository.GetActivePositionsByOrgCodeAsync(request.OrgCode, null);
                 var totalCount = data.Count();
                 var totalPages = (int)Math.Ceiling((double)totalCount / request.PageSize);
                 if (data != null)
@@ -338,7 +340,7 @@ namespace VendersCloud.Business.Service.Concrete
                     {
                         OrgActivePositionsResponse orgActivePositionsResponse = new OrgActivePositionsResponse();
                         orgActivePositionsResponse.ClientCode = item.ClientCode;
-                        if(string.IsNullOrEmpty(orgActivePositionsResponse.ClientCode))
+                        if (string.IsNullOrEmpty(orgActivePositionsResponse.ClientCode))
                         {
                             orgActivePositionsResponse.ClientCode = "";
                             return new PaginationDto<OrgActivePositionsResponse>
@@ -438,7 +440,7 @@ namespace VendersCloud.Business.Service.Concrete
             {
                 var userIds = userlist.Select(x => x.Id).ToList();
                 var applicationsData = await _resourcesRepository.GetTotalPlacementsByUserIdsAsync(userIds);
-                
+
                 var vendorInfo = new
                 {
                     VendorName = organization?.OrgName,
@@ -487,6 +489,18 @@ namespace VendersCloud.Business.Service.Concrete
                     TotalPages = totalPages,
                     List = orgActivePositionsResponseList
                 };
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public async Task<dynamic> GetCountTechStackByOrgCodeAsync(string orgCode)
+        {
+            try
+            {
+               return await _requirementsRepository.GetCountTechStackByOrgCodeAsync(orgCode);
             }
             catch (Exception ex)
             {
