@@ -6,7 +6,7 @@
         public string UniqueId {  get; set; }
         public string FirstName {  get; set; }
         public string LastName { get; set; }
-        public string Requirement {  get; set; }
+        public string Title {  get; set; }
         public int Status {  get; set; }
         public string StatusName {  get; set; }
         public DateTime ApplicationDate {  get; set; }
