@@ -17,9 +17,7 @@ namespace VendersCloud.Data.Repositories.Concrete
             var tableName = new Table<Resources>();
             var query = new Query(tableName.TableName)
                    .Where("IsDeleted", false)
-                   .Where("Title", request.Title)
-                   .Where("FirstName", request.FirstName)
-                   .Where("LastName", request.LastName)
+                   .Where("Id", request.Id)
                    .Select("OrgCode");
 
             var existingOrgCode = await dbInstance.ExecuteScalarAsync<string>(query);
@@ -38,7 +36,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                         UpdatedOn = DateTime.UtcNow,
                         UpdatedBy = Convert.ToInt32(request.UserId),
                         IsDeleted = false
-                    }).Where("OrgCode", request.OrgCode);
+                    }).Where("Id", request.Id);
                 await dbInstance.ExecuteAsync(updateQuery);
                 return true;
             }
