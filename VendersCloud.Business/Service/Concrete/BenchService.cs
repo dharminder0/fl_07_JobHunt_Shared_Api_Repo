@@ -224,7 +224,8 @@ namespace VendersCloud.Business.Service.Concrete
 
                 var applications = await _resourcesRepository.GetApplicationsList();
                 var query = applications.AsQueryable();
-
+                var clientsList = new List<Clients>();
+                var clientsData = new Dictionary<string, Clients>();
                 if (!string.IsNullOrEmpty(request.UserId) && int.TryParse(request.UserId, out var id))
                 {
                     query = query.Where(a => a.CreatedBy == id);
@@ -258,10 +259,11 @@ namespace VendersCloud.Business.Service.Concrete
                 var requirementsList = await _requirementsRepository.GetRequirementByIdAsync(requirementIds);
                 var requirementsData = requirementsList.ToDictionary(r => r.Id, r => r);
 
-                var clientCodes = requirementsList.Select(r => r.ClientCode).Distinct().ToList();
-                var clientsList = await _clientsRepository.GetClientsByClientCodeListAsync(clientCodes);
-                var clientsData = clientsList.ToDictionary(c => c.ClientCode, c => c);
-
+                var clientCodes = requirementsList.Select(r => r.ClientCode).Where(code => !string.IsNullOrWhiteSpace(code)).Distinct().ToList();
+                if (clientCodes.Any()) { 
+                 clientsList = await _clientsRepository.GetClientsByClientCodeListAsync(clientCodes);
+                  clientsData = clientsList.ToDictionary(c => c.ClientCode, c => c);
+                }
                 foreach (var data in pagedResults)
                 {
                     var searchResponse = new ApplicantsSearchResponse
@@ -274,24 +276,23 @@ namespace VendersCloud.Business.Service.Concrete
 
                     if (requirementsData.TryGetValue(data.RequirementId, out var requirement))
                     {
-                        searchResponse.Requirement = requirement.Title;
+                        searchResponse.Title = requirement.Title;
                         searchResponse.Id = requirement.Id;
                         searchResponse.UniqueId = requirement.UniqueId;
-                        if (clientsData.TryGetValue(requirement.ClientCode, out var client))
+                        if (clientCodes.Count != 0)
                         {
-                            if (request.ClientOrgCode == null || !request.ClientOrgCode.Any() || request.ClientOrgCode.Contains(client.ClientCode))
+                            if (clientsData.TryGetValue(requirement.ClientCode, out var client))
                             {
-                                searchResponse.ClientOrgName = client.ClientName;
-                                searchResponse.ClientOrgLogo = client.LogoURL;
-                                searchResponse.ClientCode = requirement.ClientCode;
+                                if (request.ClientOrgCode == null || !request.ClientOrgCode.Any() || request.ClientOrgCode.Contains(client.ClientCode))
+                                {
+                                    searchResponse.ClientOrgName = client.ClientName;
+                                    searchResponse.ClientOrgLogo = client.LogoURL;
+                                    searchResponse.ClientCode = requirement.ClientCode;
+                                }
                             }
                         }
                     }
-                   
-                    if (searchResponse.ClientOrgName == null && searchResponse.ClientOrgLogo == null)
-                    {
-                        continue;
-                    }
+                    
 
                     if (benchData.TryGetValue(data.ResourceId, out var resourceList))
                     {
