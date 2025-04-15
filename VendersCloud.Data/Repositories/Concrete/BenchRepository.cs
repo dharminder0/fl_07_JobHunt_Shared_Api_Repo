@@ -9,39 +9,41 @@ namespace VendersCloud.Data.Repositories.Concrete
 
         }
 
-        public async Task<bool> UpsertBenchMembersAsync(BenchRequest request)
+        public async Task<int> UpsertBenchMembersAsync(BenchRequest request)
         {
-
             string serializedCv = JsonConvert.SerializeObject(request.cv);
             var dbInstance = GetDbInstance();
             var tableName = new Table<Resources>();
-            var query = new Query(tableName.TableName)
-                   .Where("IsDeleted", false)
-                   .Where("Id", request.Id)
-                   .Select("OrgCode");
 
-            var existingOrgCode = await dbInstance.ExecuteScalarAsync<string>(query);
-            if (existingOrgCode != null)
+            var existsQuery = new Query(tableName.TableName)
+                .Where("IsDeleted", false)
+                .Where("Id", request.Id)
+                .Select("Id");
+
+            bool exists = await dbInstance.ExecuteScalarAsync<int?>(existsQuery) != null;
+
+            if (exists)
             {
-                var updateQuery = new Query(tableName.TableName).AsUpdate(
-                    new
-                    {
-                        FirstName = request.FirstName,
-                        LastName = request.LastName,
-                        Title = request.Title,
-                        Email = request.Email,
-                        CV = serializedCv,
-                        Availability = request.Availability,
-                        OrgCode = request.OrgCode,
-                        UpdatedOn = DateTime.UtcNow,
-                        UpdatedBy = Convert.ToInt32(request.UserId),
-                        IsDeleted = false
-                    }).Where("Id", request.Id);
+                var updateQuery = new Query(tableName.TableName).AsUpdate(new
+                {
+                    FirstName = request.FirstName,
+                    LastName = request.LastName,
+                    Title = request.Title,
+                    Email = request.Email,
+                    CV = serializedCv,
+                    Availability = request.Availability,
+                    OrgCode = request.OrgCode,
+                    UpdatedOn = DateTime.UtcNow,
+                    UpdatedBy = Convert.ToInt32(request.UserId),
+                    IsDeleted = false
+                }).Where("Id", request.Id);
+
                 await dbInstance.ExecuteAsync(updateQuery);
-                return true;
+                return request.Id; 
             }
-            var insertQuery = new Query(tableName.TableName).AsInsert(
-                new
+            else
+            {
+                var insertQuery = new Query(tableName.TableName).AsInsert(new
                 {
                     FirstName = request.FirstName,
                     LastName = request.LastName,
@@ -54,9 +56,17 @@ namespace VendersCloud.Data.Repositories.Concrete
                     CreatedBy = Convert.ToInt32(request.UserId),
                     IsDeleted = false
                 });
-            await dbInstance.ExecuteAsync(insertQuery);
-            return true;
+
+                await dbInstance.ExecuteAsync(insertQuery);
+                var query2 = new Query(tableName.TableName).Where("FirstName", request.FirstName).Where("OrgCode", request.OrgCode)
+                .Select("Id");
+
+                var insertedOrgCode = await dbInstance.ExecuteScalarAsync<string>(query2);
+                var res= Convert.ToInt32(insertedOrgCode);
+                return res;
+            }
         }
+
 
         public async Task<List<Resources>>GetBenchResponseListAsync(string orgCode)
         {

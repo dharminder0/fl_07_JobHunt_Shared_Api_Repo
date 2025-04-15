@@ -1,4 +1,5 @@
-﻿using VendersCloud.Business.CommonMethods;
+﻿using Azure.Core;
+using VendersCloud.Business.CommonMethods;
 using VendersCloud.Business.Entities.DataModels;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -13,7 +14,9 @@ namespace VendersCloud.Business.Service.Concrete
         private readonly IClientsRepository _clientsRepository;
         private readonly IOrgRelationshipsRepository _orgRelationshipsRepository;
         private readonly IUsersRepository _userRepository;
-        public BenchService(IBenchRepository benchRepository, IResourcesRepository resourcesRepository, IRequirementRepository requirementsRepository, IOrganizationRepository organizationRepository, IClientsRepository clientsRepository, IOrgRelationshipsRepository orgRelationshipsRepository,IUsersRepository _usersRepository)
+        private readonly ISkillRepository _skillRepository;
+        private readonly IResourcesSkillMappingRepository _skillRequirementMappingRepository;
+        public BenchService(IBenchRepository benchRepository, IResourcesRepository resourcesRepository, IRequirementRepository requirementsRepository, IOrganizationRepository organizationRepository, IClientsRepository clientsRepository, IOrgRelationshipsRepository orgRelationshipsRepository,IUsersRepository _usersRepository, ISkillRepository skillRepository, IResourcesSkillMappingRepository skillRequirementMappingRepository)
         {
             _benchRepository = benchRepository;
             _resourcesRepository = resourcesRepository;
@@ -22,6 +25,8 @@ namespace VendersCloud.Business.Service.Concrete
             _clientsRepository = clientsRepository;
             _orgRelationshipsRepository = orgRelationshipsRepository;
             _userRepository = _usersRepository;
+            _skillRepository = skillRepository;
+            _skillRequirementMappingRepository = skillRequirementMappingRepository;
         }
 
         public async Task<ActionMessageResponse> UpsertBenchAsync(BenchRequest benchRequest)
@@ -38,8 +43,19 @@ namespace VendersCloud.Business.Service.Concrete
                     };
                 }
                 var res = await _benchRepository.UpsertBenchMembersAsync(benchRequest);
-                if (res)
-                    return new ActionMessageResponse()
+                if (res>0)
+                    if (benchRequest.cv.top_skills != null)
+                    {
+                        var data = await _skillRepository.SkillUpsertAsync(benchRequest.cv.top_skills);
+                        if (data != null)
+                        {
+                            foreach (var item in data)
+                            {
+                                await _skillRequirementMappingRepository.UpsertSkillRequirementMappingAsync(item.Id, res);
+                            }
+                        }
+                    }
+                return new ActionMessageResponse()
                     {
                         Success = true,
                         Message = "Bench Member added",
