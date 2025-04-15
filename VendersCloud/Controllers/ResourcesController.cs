@@ -132,6 +132,26 @@
                 return BadRequest(ex.Message);
             }
         }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ServiceFilter(typeof(RequireAuthorizationFilter))]
+        [HttpPost]
+        [Route("api/V1/Resources/TechStack")]
+        public async Task<IActionResult> GetCountTechStackByOrgCodeAsync(string orgCode)
+        {
+            try
+            {
+                var result = await _benchService.GetCountTechStackByOrgCodeAsync(orgCode);
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 
 }

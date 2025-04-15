@@ -508,5 +508,25 @@ ORDER BY r.CreatedOn DESC;";
             return dbInstance.Select<dynamic>(requirementQuery, new { request.OrgCode, request.StartDate, request.EndDate ,request.UserId}).ToList();
         }
 
+        public async Task<dynamic> GetCountTechStackByOrgCodeAsync(string orgCode)
+        {
+            var dbInstance = GetDbInstance();
+            var tableName = new Table<Resources>();
+            var query = @"SELECT 
+                s.SkillName,
+                COUNT(DISTINCT rr.Id) AS ResourceCount
+            FROM 
+                Skills s
+            INNER JOIN ResourcesSkillMapping srm ON s.Id = srm.SkillId
+            INNER JOIN Resources rr ON srm.ResourcesId = rr.Id
+            WHERE 
+                rr.OrgCode = @orgCode
+            GROUP BY 
+                s.SkillName
+            ORDER BY 
+                ResourceCount DESC;";
+            return dbInstance.Select<dynamic>(query, new { orgCode }).ToList();
+        }
+
     }
 }
