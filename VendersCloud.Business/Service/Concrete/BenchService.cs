@@ -483,6 +483,16 @@ namespace VendersCloud.Business.Service.Concrete
                             orgActivePositionsResponse.ClientName = clientData.ClientName;
                             orgActivePositionsResponse.ClientLogo = clientData.LogoURL;
                         }
+                        else
+                        {
+                            return new PaginationDto<OrgActivePositionsResponse>
+                            {
+                                Count = totalCount,
+                                Page = request.PageNumber,
+                                TotalPages = totalPages,
+                                List = orgActivePositionsResponseList
+                            };
+                        }
 
                         orgActivePositionsResponseList.Add(orgActivePositionsResponse);
                     }
