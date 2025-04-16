@@ -1,8 +1,8 @@
 ﻿namespace VendersCloud.Data.Repositories.Concrete
 {
-    public class ResourcesSkillMappingRepository : StaticBaseRepository<ResourcesSkillMapping>, IResourcesSkillMappingRepository
+    public class SkillResourcesMappingRepository : StaticBaseRepository<SkillResourcesMapping>, ISkillResourcesMappingRepository
     {
-        public ResourcesSkillMappingRepository(IConfiguration configuration) : base(configuration)
+        public SkillResourcesMappingRepository(IConfiguration configuration) : base(configuration)
         {
                 
         }
@@ -10,7 +10,7 @@
         public async Task<int> UpsertSkillRequirementMappingAsync(int skillId, int resourcesId)
         {
             var dbInstance = GetDbInstance();
-            var tableName = new Table<ResourcesSkillMapping>();
+            var tableName = new Table<SkillResourcesMapping>();
             var query = new Query(tableName.TableName)
                    .Where("SkillId", skillId)
                    .Where("ResourcesId", resourcesId)

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace VendersCloud.Data.Repositories.Abstract
 {
-    public interface IResourcesSkillMappingRepository : IBaseRepository<ResourcesSkillMapping>
+    public interface ISkillResourcesMappingRepository : IBaseRepository<SkillResourcesMapping>
     {
         Task<int> UpsertSkillRequirementMappingAsync(int skillId, int requirementId);
     }
