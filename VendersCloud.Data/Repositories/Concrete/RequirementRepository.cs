@@ -517,7 +517,7 @@ ORDER BY r.CreatedOn DESC;";
                 COUNT(DISTINCT rr.Id) AS ResourceCount
             FROM 
                 Skills s
-            INNER JOIN ResourcesSkillMapping srm ON s.Id = srm.SkillId
+            INNER JOIN SkillResourcesMapping srm ON s.Id = srm.SkillId
             INNER JOIN Resources rr ON srm.ResourcesId = rr.Id
             WHERE 
                 rr.OrgCode = @orgCode
