@@ -442,7 +442,7 @@ ORDER BY r.CreatedOn DESC;";
                    STRING_AGG(Id, ',') AS RequirementIds
                FROM Requirement
                WHERE OrgCode = @orgCode 
-                   AND CreatedOn BETWEEN  @StartDate AND @EndDate and Status<>3 and ISDeleted<>1
+                   AND CreatedOn BETWEEN  @StartDate AND (SELECT DATEADD(day, 1, @EndDate)) and Status<>3 and ISDeleted<>1
                GROUP BY OrgCode, LEFT(DATENAME(WEEKDAY, CreatedOn), 3)
                ORDER BY 
                    CASE 
@@ -468,7 +468,7 @@ ORDER BY r.CreatedOn DESC;";
                    STRING_AGG(Id, ',') AS RequirementIds
                FROM Requirement
                WHERE OrgCode = @orgCode 
-                   AND CreatedOn BETWEEN  @StartDate AND @EndDate and Status<>3 AND ISDeleted<>1 AND CreatedBy=@UserId
+                   AND CreatedOn BETWEEN  @StartDate AND (SELECT DATEADD(day, 1, @EndDate)) and Status<>3 AND ISDeleted<>1 AND CreatedBy=@UserId
                GROUP BY OrgCode, LEFT(DATENAME(WEEKDAY, CreatedOn), 3)
                ORDER BY 
                    CASE 
@@ -492,7 +492,7 @@ ORDER BY r.CreatedOn DESC;";
                 COUNT(CASE WHEN status = 2 THEN 1 END) AS [Onhold],
                 COUNT(CASE WHEN status = 3 THEN 1 END) AS [Closed]
             FROM Requirement  WHERE OrgCode = @orgCode 
-                   AND CreatedOn BETWEEN  @StartDate AND @EndDate  AND ISDeleted<>1;";
+                   AND CreatedOn BETWEEN  @StartDate AND (SELECT DATEADD(day, 1, @EndDate))  AND ISDeleted<>1;";
             return dbInstance.Select<dynamic>(requirementQuery, new { request.OrgCode, request.StartDate, request.EndDate }).ToList();
         }
         public async Task<dynamic> GetVendorRequirementCountAsync(VendorGraphRequest request)
@@ -504,7 +504,7 @@ ORDER BY r.CreatedOn DESC;";
                 COUNT(CASE WHEN status = 2 THEN 1 END) AS [Onhold],
                 COUNT(CASE WHEN status = 3 THEN 1 END) AS [Closed]
             FROM Requirement  WHERE OrgCode = @orgCode 
-                   AND CreatedOn BETWEEN  @StartDate AND @EndDate  AND ISDeleted<>1 AND CreatedBy=@UserId;";
+                   AND CreatedOn BETWEEN  @StartDate AND (SELECT DATEADD(day, 1, @EndDate))  AND ISDeleted<>1 AND CreatedBy=@UserId;";
             return dbInstance.Select<dynamic>(requirementQuery, new { request.OrgCode, request.StartDate, request.EndDate ,request.UserId}).ToList();
         }
 
