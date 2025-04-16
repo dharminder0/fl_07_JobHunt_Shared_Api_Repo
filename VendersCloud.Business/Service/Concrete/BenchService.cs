@@ -260,6 +260,10 @@ namespace VendersCloud.Business.Service.Concrete
                     {
                         searchResponse.Title = requirement.Title;
                         searchResponse.Id = data.Id;
+                        var Cvdata = await _benchRepository.GetBenchResponseByIdAsync(data.Id);
+                        var cv = Cvdata.FirstOrDefault();
+                        var jsonString = cv.CV.ToString();
+                        searchResponse.CV = JsonConvert.DeserializeObject<dynamic>(jsonString);
                         searchResponse.UniqueId = requirement.UniqueId;
                         if (clientCodes.Count != 0)
                         {
