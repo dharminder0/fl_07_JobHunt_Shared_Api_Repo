@@ -16,8 +16,8 @@ namespace VendersCloud.Business.Service.Concrete
         private readonly IOrgRelationshipsRepository _orgRelationshipsRepository;
         private readonly IUsersRepository _userRepository;
         private readonly ISkillRepository _skillRepository;
-        private readonly IResourcesSkillMappingRepository _skillRequirementMappingRepository;
-        public BenchService(IBenchRepository benchRepository, IResourcesRepository resourcesRepository, IRequirementRepository requirementsRepository, IOrganizationRepository organizationRepository, IClientsRepository clientsRepository, IOrgRelationshipsRepository orgRelationshipsRepository, IUsersRepository _usersRepository, ISkillRepository skillRepository, IResourcesSkillMappingRepository skillRequirementMappingRepository)
+        private readonly ISkillResourcesMappingRepository _skillRequirementMappingRepository;
+        public BenchService(IBenchRepository benchRepository, IResourcesRepository resourcesRepository, IRequirementRepository requirementsRepository, IOrganizationRepository organizationRepository, IClientsRepository clientsRepository, IOrgRelationshipsRepository orgRelationshipsRepository, IUsersRepository _usersRepository, ISkillRepository skillRepository, ISkillResourcesMappingRepository skillRequirementMappingRepository)
         {
             _benchRepository = benchRepository;
             _resourcesRepository = resourcesRepository;
