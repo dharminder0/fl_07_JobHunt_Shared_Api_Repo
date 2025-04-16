@@ -1,5 +1,6 @@
 ﻿using Azure.Core;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using VendersCloud.Business.CommonMethods;
 using VendersCloud.Business.Entities.DataModels;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -105,28 +106,7 @@ namespace VendersCloud.Business.Service.Concrete
             try
             {
                 var response = await _benchRepository.GetBenchListBySearchAsync(request);
-                //var orgrelationshipdata = await _orgRelationshipsRepository.GetBenchResponseListByIdAsync(request.OrgCode);
-                //var RelatedOrgcode=orgrelationshipdata.Where(x => x.OrgCode == request.OrgCode).Select(x => x.RelatedOrgCode);
-                //if(RelatedOrgcode != null && RelatedOrgcode.Any())
-                //{
-                //    foreach (var item in RelatedOrgcode)
-                //    {
-                //        var benchdata = await _benchRepository.GetBenchResponseListAsync(item);
-                //        response.AddRange(benchdata);
-                //    }
-                //}
-                //else
-                //{
-                //  var orgcode  = orgrelationshipdata.Where(x => x.RelatedOrgCode == request.OrgCode).Select(x => x.OrgCode);
-                //    if (orgcode != null && orgcode.Any())
-                //    {
-                //        foreach (var item in orgcode)
-                //        {
-                //            var benchdata = await _benchRepository.GetBenchResponseListAsync(item);
-                //            response.AddRange(benchdata);
-                //        }
-                //    }
-                //}
+               
                 var totalRecords = response.Count;
                 var paginatedResponse = response.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToList();
                 var BenchAvailability = new List<BenchResponse>();
@@ -279,7 +259,7 @@ namespace VendersCloud.Business.Service.Concrete
                     if (requirementsData.TryGetValue(data.RequirementId, out var requirement))
                     {
                         searchResponse.Title = requirement.Title;
-                        searchResponse.Id = requirement.Id;
+                        searchResponse.Id = data.Id;
                         searchResponse.UniqueId = requirement.UniqueId;
                         if (clientCodes.Count != 0)
                         {
@@ -516,6 +496,21 @@ namespace VendersCloud.Business.Service.Concrete
             try
             {
                return await _requirementsRepository.GetCountTechStackByOrgCodeAsync(orgCode);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public async Task<dynamic> GetCvByIdAsync(int id)
+        {
+            try
+            {
+                var data= await _benchRepository.GetBenchResponseByIdAsync(id);
+                var cv= data.FirstOrDefault();
+                var jsonString = cv.CV.ToString();
+                return JsonConvert.DeserializeObject<dynamic>(jsonString);
             }
             catch (Exception ex)
             {
