@@ -12,5 +12,6 @@ namespace VendersCloud.Business.Service.Abstract
         Task<PaginationDto<dynamic>> GetTopVendorsListAsync(CompanyActiveClientResponse request);
         Task<PaginationDto<OrgActivePositionsResponse>> GetActiveVacanciesByUserIdAsync(VendorActiveClientResponse request);
         Task<dynamic> GetCountTechStackByOrgCodeAsync(string orgCode);
+        Task<dynamic> GetCvByIdAsync(int id);
     }
 }

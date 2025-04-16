@@ -71,6 +71,25 @@
             }
         }
 
-        
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ServiceFilter(typeof(RequireAuthorizationFilter))]
+        [HttpGet]
+        [Route("api/V1/Bench/GetCv")]
+        public async Task<IActionResult>GetCvByIdAsync(int id)
+        {
+            try
+            {
+                var result = await _benchService.GetCvByIdAsync(id);
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
     }
 }
