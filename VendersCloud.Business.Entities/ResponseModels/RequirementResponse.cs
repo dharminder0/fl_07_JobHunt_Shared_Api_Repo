@@ -31,6 +31,6 @@
         public bool IsDeleted { get; set; }
         public string UniqueId { get; set; }
         public List<string> Skills { get; set; }
+        public int MatchingCandidates { get; set; }
     }
-  
 }
