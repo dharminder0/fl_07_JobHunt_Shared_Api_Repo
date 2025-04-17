@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using VendersCloud.Business.CommonMethods;
 using VendersCloud.Business.Entities.DataModels;
+using VendersCloud.Business.Service.Abstract;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace VendersCloud.Business.Service.Concrete
@@ -18,7 +19,8 @@ namespace VendersCloud.Business.Service.Concrete
         private readonly IUsersRepository _userRepository;
         private readonly ISkillRepository _skillRepository;
         private readonly ISkillResourcesMappingRepository _skillRequirementMappingRepository;
-        public BenchService(IBenchRepository benchRepository, IResourcesRepository resourcesRepository, IRequirementRepository requirementsRepository, IOrganizationRepository organizationRepository, IClientsRepository clientsRepository, IOrgRelationshipsRepository orgRelationshipsRepository, IUsersRepository _usersRepository, ISkillRepository skillRepository, ISkillResourcesMappingRepository skillRequirementMappingRepository)
+        private readonly IBlobStorageService _blobStorageService;
+        public BenchService(IBenchRepository benchRepository, IResourcesRepository resourcesRepository, IRequirementRepository requirementsRepository, IOrganizationRepository organizationRepository, IClientsRepository clientsRepository, IOrgRelationshipsRepository orgRelationshipsRepository, IUsersRepository _usersRepository, ISkillRepository skillRepository, ISkillResourcesMappingRepository skillRequirementMappingRepository, IBlobStorageService blobStorageService)
         {
             _benchRepository = benchRepository;
             _resourcesRepository = resourcesRepository;
@@ -29,6 +31,7 @@ namespace VendersCloud.Business.Service.Concrete
             _userRepository = _usersRepository;
             _skillRepository = skillRepository;
             _skillRequirementMappingRepository = skillRequirementMappingRepository;
+            _blobStorageService = blobStorageService;
         }
 
         public async Task<ActionMessageResponse> UpsertBenchAsync(BenchRequest benchRequest)
@@ -106,7 +109,7 @@ namespace VendersCloud.Business.Service.Concrete
             try
             {
                 var response = await _benchRepository.GetBenchListBySearchAsync(request);
-               
+
                 var totalRecords = response.Count;
                 var paginatedResponse = response.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToList();
                 var BenchAvailability = new List<BenchResponse>();
@@ -499,7 +502,7 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-               return await _requirementsRepository.GetCountTechStackByOrgCodeAsync(orgCode);
+                return await _requirementsRepository.GetCountTechStackByOrgCodeAsync(orgCode);
             }
             catch (Exception ex)
             {
@@ -511,10 +514,52 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-                var data= await _benchRepository.GetBenchResponseByIdAsync(id);
-                var cv= data.FirstOrDefault();
+                var data = await _benchRepository.GetBenchResponseByIdAsync(id);
+                var cv = data.FirstOrDefault();
                 var jsonString = cv.CV.ToString();
                 return JsonConvert.DeserializeObject<dynamic>(jsonString);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public async Task<bool> UpsertCvAvtarAsync(UpsertCvAvtarRequest request)
+        {
+            try
+            {
+                string uploadedimageUrl = string.Empty;
+                // Upload Logo files if provided
+                if (request.LogoURL != null && request.LogoURL.Count > 0)
+                {
+                    List<string> uploadedLogos = new List<string>();
+                    foreach (var file in request.LogoURL)
+                    {
+                        if (!string.IsNullOrEmpty(file.FileName) || !string.IsNullOrEmpty(file.FileData))
+                        {
+                            uploadedimageUrl = await _blobStorageService.UploadBase64ToBlobAsync(file);
+
+                        }
+
+                    }
+                    bool result = await _benchRepository.UpsertAvtarbyIdAsync(request.BenchId, uploadedimageUrl);
+                    return result;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public async Task<string> GetAvtarByIdAsync(int benchId)
+        {
+            try
+            {
+                var link= await _benchRepository.GetAvtarByIdAsync(benchId);
+                return link.FirstOrDefault();
             }
             catch (Exception ex)
             {

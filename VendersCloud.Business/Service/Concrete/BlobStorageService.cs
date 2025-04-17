@@ -27,7 +27,7 @@ namespace VendersCloud.Business.Service.Concrete
                 var files= Convert.FromBase64String(fileRequest.FileData);
                 var filesnames = fileRequest.FileName;
                 var fileNames = fileRequest.FileName.Trim('\"');
-                fileNames = fileNames.Replace(" ", "").Replace("-", "");
+                fileNames = fileNames.Replace(" ", "").Replace("-", "")+".png";
 
                 // Upload to Azure Blob Storage
                 var res= await UploadToBlobAsync(files, fileRequest.FileName);
@@ -56,7 +56,7 @@ namespace VendersCloud.Business.Service.Concrete
                 BlobContainerClient containerClient = new BlobContainerClient(connectionString, containerName);
                 await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob);
 
-                string fileName = Guid.NewGuid().ToString() + Path.GetExtension(originalFileName);
+                string fileName = Guid.NewGuid().ToString() + Path.GetExtension(originalFileName)+".png";
                 BlobClient blobClient = containerClient.GetBlobClient(fileName);
 
                 await blobClient.UploadAsync(stream, overwrite: true);
