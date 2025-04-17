@@ -13,5 +13,7 @@ namespace VendersCloud.Business.Service.Abstract
         Task<PaginationDto<OrgActivePositionsResponse>> GetActiveVacanciesByUserIdAsync(VendorActiveClientResponse request);
         Task<dynamic> GetCountTechStackByOrgCodeAsync(string orgCode);
         Task<dynamic> GetCvByIdAsync(int id);
+        Task<bool> UpsertCvAvtarAsync(UpsertCvAvtarRequest request);
+        Task<string> GetAvtarByIdAsync(int benchId);
     }
 }

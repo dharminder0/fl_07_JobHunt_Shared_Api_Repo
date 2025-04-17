@@ -24,7 +24,8 @@
                 var result = await _benchService.UpsertBenchAsync(request);
                 return Json(result);
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 return BadRequest(ex.Message);
             }
         }
@@ -78,7 +79,7 @@
         [ServiceFilter(typeof(RequireAuthorizationFilter))]
         [HttpGet]
         [Route("api/V1/Bench/GetCv")]
-        public async Task<IActionResult>GetCvByIdAsync(int id)
+        public async Task<IActionResult> GetCvByIdAsync(int id)
         {
             try
             {
@@ -91,5 +92,44 @@
             }
         }
 
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ServiceFilter(typeof(RequireAuthorizationFilter))]
+        [HttpPost]
+        [Route("api/V1/Bench/Cv/UpsertAvtar")]
+        public async Task<IActionResult> UpsertCvAvtarAsync(UpsertCvAvtarRequest request)
+        {
+            try
+            {
+                var result = await _benchService.UpsertCvAvtarAsync(request);
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ServiceFilter(typeof(RequireAuthorizationFilter))]
+        [HttpGet]
+        [Route("api/V1/Bench/Cv/GetAvtar")]
+        public async Task<IActionResult> GetAvtarByIdAsync(int benchId)
+        {
+            try
+            {
+                var result = await _benchService.GetAvtarByIdAsync(benchId);
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }

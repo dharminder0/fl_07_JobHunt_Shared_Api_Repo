@@ -39,7 +39,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                 }).Where("Id", request.Id);
 
                 await dbInstance.ExecuteAsync(updateQuery);
-                return request.Id; 
+                return request.Id;
             }
             else
             {
@@ -62,13 +62,13 @@ namespace VendersCloud.Data.Repositories.Concrete
                 .Select("Id");
 
                 var insertedOrgCode = await dbInstance.ExecuteScalarAsync<string>(query2);
-                var res= Convert.ToInt32(insertedOrgCode);
+                var res = Convert.ToInt32(insertedOrgCode);
                 return res;
             }
         }
 
 
-        public async Task<List<Resources>>GetBenchResponseListAsync(string orgCode)
+        public async Task<List<Resources>> GetBenchResponseListAsync(string orgCode)
         {
             var dbInstance = GetDbInstance();
             var sql = "SELECT * FROM Resources Where IsDeleted<>1 and OrgCode=@orgCode";
@@ -100,10 +100,10 @@ namespace VendersCloud.Data.Repositories.Concrete
             var predicates = new List<string>();
             var parameters = new DynamicParameters();
 
-            if(!string.IsNullOrWhiteSpace(request.SearchText))
+            if (!string.IsNullOrWhiteSpace(request.SearchText))
             {
                 predicates.Add("(r.FirstName LIKE @searchText OR r.FirstName Like @searchText)");
-                parameters.Add("searchText",$"%{request.SearchText}%");
+                parameters.Add("searchText", $"%{request.SearchText}%");
             }
             if (request.Availability != null && request.Availability.Any(a => a > 0))
             {
@@ -116,11 +116,49 @@ namespace VendersCloud.Data.Repositories.Concrete
             string whereClause = predicates.Any() ? "WHERE " + string.Join(" AND ", predicates) : "";
             string query = $@" Select * From Resources r {whereClause} Order By r. CreatedOn DESC;";
 
-            using var multi = await connection.QueryMultipleAsync(query,parameters);
+            using var multi = await connection.QueryMultipleAsync(query, parameters);
             var response = (await multi.ReadAsync<Resources>()).ToList();
             return response;
         }
 
+        public async Task<bool> UpsertAvtarbyIdAsync(int id, string avtar)
+        {
+            var dbInstance = GetDbInstance();
+            var tableName = new Table<Resources>();
+            var existsQuery = new Query(tableName.TableName)
+               .Where("IsDeleted", false)
+               .Where("Id", id)
+               .Select("Id");
 
+            bool exists = await dbInstance.ExecuteScalarAsync<int?>(existsQuery) != null;
+
+            if (exists)
+            {
+                var updateQuery = new Query(tableName.TableName).AsUpdate(new
+                {
+                    Avtar = avtar,
+                }).Where("Id", id);
+
+                await dbInstance.ExecuteAsync(updateQuery);
+                return true;
+            }
+            else
+            {
+                var insertQuery = new Query(tableName.TableName).AsInsert(new
+                {
+                    Avtar = avtar,
+                });
+                await dbInstance.ExecuteAsync(insertQuery);
+                return true;
+            }
+        }
+
+        public async Task<IEnumerable<string>> GetAvtarByIdAsync(int benchId)
+        {
+            var dbInstance = GetDbInstance();
+            var sql = "SELECT Avtar FROM Resources Where IsDeleted<>1 and Id = @benchId";
+            var list = dbInstance.Select<string>(sql, new { benchId });
+            return list;
+        }
     }
 }
