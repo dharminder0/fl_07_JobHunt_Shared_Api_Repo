@@ -10,6 +10,7 @@
         public string Phone { get; set; }
         public string Linkedin { get; set; }
         public string CV { get; set; }
+        public string Avtar { get; set; }
         public string OrgCode { get; set; }
         public int Availability { get; set; }
         public string  AvailabilityName{get;set;}

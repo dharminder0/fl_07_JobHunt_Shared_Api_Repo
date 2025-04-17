@@ -123,6 +123,7 @@ namespace VendersCloud.Business.Service.Concrete
                         Title = item.Title,
                         Email = item.Email,
                         CV = item.CV,
+                        Avtar= item.Avtar,
                         OrgCode = item.OrgCode,
                         Availability = item.Availability,
                         AvailabilityName = CommonFunctions.GetEnumDescription((BenchAvailability)item.Availability),
