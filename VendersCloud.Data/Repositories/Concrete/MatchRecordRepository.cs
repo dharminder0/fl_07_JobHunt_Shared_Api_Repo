@@ -32,7 +32,7 @@
         public async Task<List<dynamic>> GetMatchRecordByResourceAndRequirementIdAsync(List<int> resourceIds, List<int> requirementIds,int matchscores)
         {
             var dbInstance = GetDbInstance();
-            var sql = "SELECT Count(RequirementId) As MatchingRequirements,ResourceId, MatchScore FROM MatchResults WHERE ResourceId IN @ResourceIds AND RequirementId IN @RequirementIds And MatchScore >= @matchscores Group By RequirementId,ResourceId, MatchScore";
+            var sql = "SELECT ResourceId,RequirementId, MatchScore FROM MatchResults WHERE ResourceId IN @ResourceIds AND RequirementId IN @RequirementIds And MatchScore >= @matchscores Group By RequirementId,ResourceId, MatchScore";
             var namedata = await dbInstance.SelectAsync<dynamic>(sql, new { ResourceIds = resourceIds, RequirementIds = requirementIds, matchscores });
             return namedata.ToList();
         }
