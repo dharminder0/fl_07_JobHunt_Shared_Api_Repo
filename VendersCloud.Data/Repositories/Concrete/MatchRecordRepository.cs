@@ -32,17 +32,17 @@
         public async Task<List<dynamic>> GetMatchRecordByResourceAndRequirementIdAsync(List<int> resourceIds, List<int> requirementIds,int matchscores)
         {
             var dbInstance = GetDbInstance();
-            var sql = "SELECT Count(RequirementId) As MatchingRequirements,Distinct ResourceId, MatchScore FROM MatchResults WHERE ResourceId IN @ResourceIds AND RequirementId IN @RequirementIds And MatchScore >= @matchscores";
+            var sql = "SELECT Count(RequirementId) As MatchingRequirements,ResourceId, MatchScore FROM MatchResults WHERE ResourceId IN @ResourceIds AND RequirementId IN @RequirementIds And MatchScore >= @matchscores";
             var namedata = await dbInstance.SelectAsync<dynamic>(sql, new { ResourceIds = resourceIds, RequirementIds = requirementIds, matchscores });
             return namedata.ToList();
         }
 
-        public async Task<int> GetMatchingCountByRequirementId(int requirementId)
+        public async Task<List<int>> GetMatchingCountByRequirementId(int requirementId)
         {
             var dbInstance = GetDbInstance();
-            var sql = "SELECT Count(ResourceId) As MatchingCandidate FROM MatchResults WHERE RequirementId = @Ids ";
+            var sql = "SELECT ResourceId As MatchingCandidate FROM MatchResults WHERE RequirementId = @Ids ";
             var namedata = await dbInstance.SelectAsync<int>(sql, new { Ids = requirementId });
-            var namedatas = namedata.FirstOrDefault();
+            var namedatas = namedata.ToList();
             return namedatas;
         }
 }}
