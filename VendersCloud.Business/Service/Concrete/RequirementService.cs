@@ -298,7 +298,7 @@ namespace VendersCloud.Business.Service.Concrete
                 int totalRecords = 0;
                 List<string> skillData= new List<string>();
                 List<Requirement> paginatedRequirements;
-                int matchingCandidate = 0;
+               List<int> matchingCandidate;
                 if (string.IsNullOrEmpty(request.OrgCode) || string.IsNullOrEmpty(request.UserId))
                 {
                     throw new Exception("OrgCode is Mandatory!!");
@@ -328,6 +328,9 @@ namespace VendersCloud.Business.Service.Concrete
                     ApplicantSearch.Status = 8;
                     Applicants = await _resourcesRepository.GetTotalApplicationsPerRequirementIdAsync(r.Id);
                     matchingCandidate = await _matchRecordRepository.GetMatchingCountByRequirementId(r.Id);
+                    var data = await _benchRepository.GetBenchResponseListByIdAsync(matchingCandidate);
+                    var resourcesList = data.Where(x => x.OrgCode == request.OrgCode);
+                    var count = resourcesList.Count();
                     place = await GetTotalApplicantsAsync(ApplicantSearch);
                     var skillMappingData= await _skillRequirementMappingRepository.GetSkillRequirementMappingAsync(r.Id);
                     List<int> SkillId= new List<int>();
@@ -366,7 +369,7 @@ namespace VendersCloud.Business.Service.Concrete
                         CreatedBy = r.CreatedBy,
                         UpdatedBy = r.UpdatedBy,
                         IsDeleted = r.IsDeleted,
-                        MatchingCandidates = matchingCandidate,
+                        MatchingCandidates = count,
                         UniqueId = r.UniqueId
                     };
                     if (SkillId.Count > 0)

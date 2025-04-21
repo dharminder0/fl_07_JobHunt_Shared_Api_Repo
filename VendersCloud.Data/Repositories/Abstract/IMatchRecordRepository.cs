@@ -11,7 +11,7 @@ namespace VendersCloud.Data.Repositories.Abstract
         Task<List<dynamic>> GetMatchRecordByRequirementIdAsync(List<int> requirementIds, int matchscores);
         Task<List<dynamic>> GetMatchRecordByResourceIdAsync(List<int> resourceIds, int matchscores);
         Task<List<dynamic>> GetMatchRecordByResourceAndRequirementIdAsync(List<int> resourceIds, List<int> requirementIds, int matchscores);
-        Task<int> GetMatchingCountByRequirementId(int requirementId);
+        Task<List<int>> GetMatchingCountByRequirementId(int requirementId);
     }
     
 }

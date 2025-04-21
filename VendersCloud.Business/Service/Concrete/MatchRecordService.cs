@@ -35,7 +35,7 @@ namespace VendersCloud.Business.Service.Concrete
                 }
                 return result;
             }
-            else if (request.RequirementId.Count == 0 && request.ResourceId.Count != 0)
+            else if (request.RequirementId.Count <= 0 && request.ResourceId.Count != 0)
             {
                 var data= await _matchRecordRepository.GetMatchRecordByResourceIdAsync(request.ResourceId, request.MatchScore);
                 List<dynamic> result = new List<dynamic>();
