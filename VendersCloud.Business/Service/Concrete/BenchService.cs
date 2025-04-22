@@ -128,7 +128,7 @@ namespace VendersCloud.Business.Service.Concrete
                         LastName = item.LastName,
                         Title = item.Title,
                         Email = item.Email,
-                        CV = item.CV,
+                        CV = await GetCvByIdAsync(item.Id),
                         Avtar= item.Avtar,
                         OrgCode = item.OrgCode,
                         Availability = item.Availability,
@@ -270,10 +270,7 @@ namespace VendersCloud.Business.Service.Concrete
                     {
                         searchResponse.Title = requirement.Title;
                         searchResponse.Id = data.Id;
-                        var Cvdata = await _benchRepository.GetBenchResponseByIdAsync(data.Id);
-                        var cv = Cvdata.FirstOrDefault();
-                        var jsonString = cv.CV.ToString();
-                        searchResponse.CV = JsonConvert.DeserializeObject<dynamic>(jsonString);
+                        searchResponse.CV = await GetCvByIdAsync(data.Id);
                         searchResponse.UniqueId = requirement.UniqueId;
                         if (clientCodes.Count != 0)
                         {
@@ -523,14 +520,22 @@ namespace VendersCloud.Business.Service.Concrete
             {
                 var data = await _benchRepository.GetBenchResponseByIdAsync(id);
                 var cv = data.FirstOrDefault();
-                var jsonString = cv.CV.ToString();
-                return JsonConvert.DeserializeObject<dynamic>(jsonString);
+
+                if (cv == null)
+                    return null;
+
+                var avatar = await GetAvtarByIdAsync(id);
+                var cvJson = JsonConvert.DeserializeObject<Dictionary<string, object>>(cv.CV.ToString());
+                cvJson["avatar"] = avatar;
+
+                return cvJson;
             }
             catch (Exception ex)
             {
-                throw ex;
+                throw; 
             }
         }
+
 
         public async Task<bool> UpsertCvAvtarAsync(UpsertCvAvtarRequest request)
         {
