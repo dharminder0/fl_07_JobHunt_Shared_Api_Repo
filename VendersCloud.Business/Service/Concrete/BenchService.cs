@@ -285,13 +285,16 @@ namespace VendersCloud.Business.Service.Concrete
                         searchResponse.UniqueId = requirement.UniqueId;
                         if (clientCodes.Count != 0)
                         {
-                            if (clientsData.TryGetValue(requirement.ClientCode, out var client))
+                            if (!string.IsNullOrEmpty(requirement.ClientCode))
                             {
-                                if (request.ClientOrgCode == null || !request.ClientOrgCode.Any() || request.ClientOrgCode.Contains(client.ClientCode))
+                                if (clientsData.TryGetValue(requirement.ClientCode, out var client))
                                 {
-                                    searchResponse.ClientOrgName = client.ClientName;
-                                    searchResponse.ClientOrgLogo = client.LogoURL;
-                                    searchResponse.ClientCode = requirement.ClientCode;
+                                    if (request.ClientOrgCode == null || !request.ClientOrgCode.Any() || request.ClientOrgCode.Contains(client.ClientCode))
+                                    {
+                                        searchResponse.ClientOrgName = client.ClientName;
+                                        searchResponse.ClientOrgLogo = client.LogoURL;
+                                        searchResponse.ClientCode = requirement.ClientCode;
+                                    }
                                 }
                             }
                         }
