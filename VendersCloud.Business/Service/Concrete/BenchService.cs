@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using System.Dynamic;
 using VendersCloud.Business.CommonMethods;
 using VendersCloud.Business.Entities.DataModels;
+using VendersCloud.Business.Entities.ResponseModels;
 using VendersCloud.Business.Service.Abstract;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -625,7 +626,23 @@ namespace VendersCloud.Business.Service.Concrete
                     obj.UpdatedBy = requirement.UpdatedBy;
                     obj.Status = requirement.Status;
                     obj.UpdatedOn = requirement.UpdatedOn;
-
+                    obj.ClientCode = requirement.ClientCode;
+                    obj.CreatedOn = requirement.CreatedOn;
+                    var orgData = await _clientsRepository.GetClientsByClientCodeAsync(requirement.ClientCode);
+                    if (orgData != null)
+                    {
+                        obj.ClientName = orgData.ClientName;
+                        obj.ClientLogo = orgData.LogoURL;
+                    }
+                    else
+                    {
+                        var clientData = await _organizationRepository.GetOrganizationData(requirement.ClientCode);
+                        if (clientData != null)
+                        {
+                            obj.ClientName = clientData.OrgName;
+                            obj.ClientLogo = clientData.Logo;
+                        }
+                    }
                     if (int.TryParse(Convert.ToString(requirement.Location), out int locationValue))
                     {
                         obj.LocationTypeName = Enum.GetName(typeof(LocationType), locationValue);
