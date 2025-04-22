@@ -1,4 +1,7 @@
 ﻿using Azure.Core;
+using Humanizer.Localisation;
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Dynamic;
 using VendersCloud.Business.CommonMethods;
@@ -874,7 +877,85 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
+        public async Task<List<dynamic>> GetRequirementMatchResultAsync(RequirementMatchRequest request)
+        {
+            try
+            {
+                if(string.IsNullOrEmpty(request.OrgCode) || request.RequirementId<= 0)
+                {
+                    throw new ArgumentException("Enter valid inputs");
+                }
 
+                List<dynamic> result = new List<dynamic>();
+                List<int>matchingCandidate = await _matchRecordRepository.GetMatchingCountByRequirementId(request.RequirementId);
+                var benchData = await _benchRepository.GetBenchResponseListByIdAsync(matchingCandidate);
+                foreach(var item in benchData)
+                {
+                    dynamic obj = new ExpandoObject();
+                    obj.MatchScore = await _matchRecordRepository.GetMatchScoreAsync(request.RequirementId, item.Id);
+                    obj.FirstName = item.FirstName;
+                    obj.LastName = item.LastName;
+                    obj.Email = item.Email;
+                    obj.BenchId = item.Id;
+                    obj.Title = item.Title;
+                    obj.ResourceOrgCode = item.OrgCode;
+                    obj.Cv = await GetCvByIdAsync(item.Id);
+                    obj.CreatedOn = item.CreatedOn;
+                    obj.CreatedBy = item.CreatedBy;
+                    obj.IsDeleted = item.IsDeleted;
+                    obj.UpdatedBy = item.UpdatedBy;
+                    obj.UpdatedOn = item.UpdatedOn;
+                    obj.Availability = item.Availability;
+                    obj.AvailabilityName = CommonFunctions.GetEnumDescription((BenchAvailability)item.Availability);
+                    result.Add(obj);
+                }
+                var filteredList = result
+             .Where(x=> x.ResourceOrgCode == request.OrgCode)
+             .ToList();
 
+                dynamic resultList = new ExpandoObject();
+                resultList.MatchingRecordCount = filteredList.Count;
+                resultList.Records = filteredList;
+
+                return new List<dynamic> { resultList };
+            }
+            catch(Exception ex)
+            {
+                throw;
+            }
+        }
+        public async Task<dynamic> GetCvByIdAsync(int id)
+        {
+            try
+            {
+                var data = await _benchRepository.GetBenchResponseByIdAsync(id);
+                var cv = data.FirstOrDefault();
+
+                if (cv == null)
+                    return null;
+
+                var avatar = await GetAvtarByIdAsync(id);
+                var cvJson = JsonConvert.DeserializeObject<Dictionary<string, object>>(cv.CV.ToString());
+                cvJson["avatar"] = avatar;
+
+                return cvJson;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+        public async Task<string> GetAvtarByIdAsync(int benchId)
+        {
+            try
+            {
+                var link = await _benchRepository.GetAvtarByIdAsync(benchId);
+                return link.FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
     }
 }
