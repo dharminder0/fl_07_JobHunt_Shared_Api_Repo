@@ -19,5 +19,6 @@
         public int CreatedBy { get; set; }
         public int UpdatedBy { get; set; }
         public bool IsDeleted { get; set; }
+        public int MatchingCount { get; set; }
     }
 }

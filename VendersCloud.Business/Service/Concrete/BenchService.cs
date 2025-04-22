@@ -110,18 +110,25 @@ namespace VendersCloud.Business.Service.Concrete
         {
             if (string.IsNullOrEmpty(request.OrgCode))
             {
-                throw new Exception("Enter Valid Inputs");
+                throw new ArgumentException("Enter Valid Inputs");
             }
+
             try
             {
                 var response = await _benchRepository.GetBenchListBySearchAsync(request);
-
                 var totalRecords = response.Count;
                 var paginatedResponse = response.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToList();
-                var BenchAvailability = new List<BenchResponse>();
+                var benchResponseList = new List<BenchResponse>();
+
                 foreach (var item in paginatedResponse)
                 {
-                    var benchresponse = new BenchResponse
+                    var matchResultList = await GetBenchMatchResultAsync(new BenchMatchRecord
+                    {
+                        ResourcesId = item.Id,
+                        OrgCode = item.OrgCode
+                    });
+                    int totalMatchCount = matchResultList.Sum(x => (int)x.MatchingRecordCount);
+                    var benchResponse = new BenchResponse
                     {
                         Id = item.Id,
                         FirstName = item.FirstName,
@@ -129,7 +136,7 @@ namespace VendersCloud.Business.Service.Concrete
                         Title = item.Title,
                         Email = item.Email,
                         CV = await GetCvByIdAsync(item.Id),
-                        Avtar= item.Avtar,
+                        Avtar = item.Avtar,
                         OrgCode = item.OrgCode,
                         Availability = item.Availability,
                         AvailabilityName = CommonFunctions.GetEnumDescription((BenchAvailability)item.Availability),
@@ -138,8 +145,10 @@ namespace VendersCloud.Business.Service.Concrete
                         CreatedBy = item.CreatedBy,
                         UpdatedBy = item.UpdatedBy,
                         IsDeleted = item.IsDeleted,
+                        MatchingCount = totalMatchCount
                     };
-                    BenchAvailability.Add(benchresponse);
+
+                    benchResponseList.Add(benchResponse);
                 }
 
                 return new PaginationDto<BenchResponse>
@@ -147,14 +156,15 @@ namespace VendersCloud.Business.Service.Concrete
                     Count = totalRecords,
                     Page = request.Page,
                     TotalPages = (int)Math.Ceiling(totalRecords / (double)request.PageSize),
-                    List = BenchAvailability
+                    List = benchResponseList
                 };
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
         }
+
 
         public async Task<ActionMessageResponse> UpsertApplicants(ApplicationsRequest request)
         {
