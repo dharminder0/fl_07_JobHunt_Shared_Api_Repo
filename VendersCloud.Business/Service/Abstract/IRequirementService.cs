@@ -20,5 +20,6 @@
         Task<List<VendorGraphResponse>> GetVendorDayWeekCountsAsync(VendorGraphRequest request);
         Task<ActionMessageResponse> HotRequirementUpsertAsync(HotRequirementRequest request);
         Task<PaginationDto<dynamic>> GetHotRequirementAsync(GetHotRequirmentRequest request);
+        Task<List<dynamic>> GetRequirementMatchResultAsync(RequirementMatchRequest request);
     }
 }
