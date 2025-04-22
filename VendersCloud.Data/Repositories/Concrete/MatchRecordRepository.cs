@@ -29,6 +29,13 @@
             return namedata.ToList();
         }
 
+        public async Task<List<dynamic>> GetMatchRecordByResourceIdAsync(int resourceIds)
+        {
+            var dbInstance = GetDbInstance();
+            var sql = "SELECT * FROM MatchResults WHERE ResourceId = @Ids ";
+            var namedata = await dbInstance.SelectAsync<dynamic>(sql, new { Ids = resourceIds });
+            return namedata.ToList();
+        }
         public async Task<List<dynamic>> GetMatchRecordByResourceAndRequirementIdAsync(List<int> resourceIds, List<int> requirementIds,int matchscores)
         {
             var dbInstance = GetDbInstance();

@@ -1,6 +1,7 @@
 ﻿using Azure.Core;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using System.Dynamic;
 using VendersCloud.Business.CommonMethods;
 using VendersCloud.Business.Entities.DataModels;
 using VendersCloud.Business.Service.Abstract;
@@ -20,7 +21,9 @@ namespace VendersCloud.Business.Service.Concrete
         private readonly ISkillRepository _skillRepository;
         private readonly ISkillResourcesMappingRepository _skillRequirementMappingRepository;
         private readonly IBlobStorageService _blobStorageService;
-        public BenchService(IBenchRepository benchRepository, IResourcesRepository resourcesRepository, IRequirementRepository requirementsRepository, IOrganizationRepository organizationRepository, IClientsRepository clientsRepository, IOrgRelationshipsRepository orgRelationshipsRepository, IUsersRepository _usersRepository, ISkillRepository skillRepository, ISkillResourcesMappingRepository skillRequirementMappingRepository, IBlobStorageService blobStorageService)
+        private readonly IMatchRecordRepository _matchRecordRepository;
+        private readonly IRequirementRepository _requirementRepository;
+        public BenchService(IBenchRepository benchRepository, IResourcesRepository resourcesRepository, IRequirementRepository requirementsRepository, IOrganizationRepository organizationRepository, IClientsRepository clientsRepository, IOrgRelationshipsRepository orgRelationshipsRepository, IUsersRepository _usersRepository, ISkillRepository skillRepository, ISkillResourcesMappingRepository skillRequirementMappingRepository, IBlobStorageService blobStorageService, IMatchRecordRepository matchRecordRepository, IRequirementRepository requirementRepository)
         {
             _benchRepository = benchRepository;
             _resourcesRepository = resourcesRepository;
@@ -32,6 +35,8 @@ namespace VendersCloud.Business.Service.Concrete
             _skillRepository = skillRepository;
             _skillRequirementMappingRepository = skillRequirementMappingRepository;
             _blobStorageService = blobStorageService;
+            _matchRecordRepository = matchRecordRepository;
+             _requirementRepository = requirementRepository;
         }
 
         public async Task<ActionMessageResponse> UpsertBenchAsync(BenchRequest benchRequest)
@@ -58,14 +63,15 @@ namespace VendersCloud.Business.Service.Concrete
                             {
                                 await _skillRequirementMappingRepository.UpsertSkillRequirementMappingAsync(item.Id, res);
                             }
+                            return new ActionMessageResponse()
+                            {
+                                Success = true,
+                                Message = "Bench Member added",
+                                Content = ""
+                            };
                         }
                     }
-                return new ActionMessageResponse()
-                {
-                    Success = true,
-                    Message = "Bench Member added",
-                    Content = ""
-                };
+              
                 return new ActionMessageResponse()
                 {
                     Success = false,
@@ -567,6 +573,74 @@ namespace VendersCloud.Business.Service.Concrete
                 throw ex;
             }
         }
+
+
+        public async Task<List<dynamic>> GetBenchMatchResultAsync(BenchMatchRecord request)
+        {
+            if (request.ResourcesId <= 0 || string.IsNullOrEmpty(request.OrgCode))
+            {
+                throw new ArgumentException("Enter valid inputs");
+            }
+
+            List<dynamic> resultList = new List<dynamic>();
+            var data = await _matchRecordRepository.GetMatchRecordByResourceIdAsync(request.ResourcesId);
+
+            if (data != null)
+            {
+                foreach (var item in data)
+                {
+                    var requirement = await _requirementRepository.GetRequirementByRequirementIdAsync(item.RequirementId);
+                    if (requirement == null) continue;
+
+                    dynamic obj = new ExpandoObject();
+                    obj.RequirementId = item.RequirementId;
+                    obj.MatchingScore = item.MatchScore;
+                    obj.Title = requirement.Title;
+                    obj.RequirementOrgCode = requirement.OrgCode;
+                    obj.Description = requirement.Description;
+                    obj.Duration = requirement.Duration;
+                    obj.Experience = requirement.Experience;
+                    obj.Hot = requirement.Hot;
+                    obj.IsDeleted = requirement.IsDeleted;
+                    obj.Location = requirement.Location;
+                    obj.Positions = requirement.Positions;
+                    obj.Remarks = requirement.Remarks;
+                    obj.UniqueId = requirement.UniqueId;
+                    obj.Visibility = requirement.Visibility;
+                    obj.UpdatedBy = requirement.UpdatedBy;
+                    obj.Status = requirement.Status;
+                    obj.UpdatedOn = requirement.UpdatedOn;
+
+                    if (int.TryParse(Convert.ToString(requirement.Location), out int locationValue))
+                    {
+                        obj.LocationTypeName = Enum.GetName(typeof(LocationType), locationValue);
+                    }
+
+                    if (int.TryParse(Convert.ToString(requirement.Visibility), out int visibilityValue))
+                    {
+                        obj.VisibilityName = Enum.GetName(typeof(Visibility), visibilityValue);
+                    }
+
+                    if (int.TryParse(Convert.ToString(requirement.Status), out int statusValue))
+                    {
+                        obj.StatusName = Enum.GetName(typeof(RequirementsStatus), statusValue);
+                    }
+
+                    resultList.Add(obj);
+                }
+            }
+
+            var filteredList = resultList
+                .Where(x => x.Visibility == 3 || x.RequirementOrgCode == request.OrgCode)
+                .ToList();
+
+            dynamic result = new ExpandoObject();
+            result.MatchingRecordCount = filteredList.Count;
+            result.Records = filteredList;
+
+            return new List<dynamic> { result };
+        }
+
     }
 }
 

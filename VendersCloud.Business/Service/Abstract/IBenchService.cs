@@ -15,5 +15,6 @@ namespace VendersCloud.Business.Service.Abstract
         Task<dynamic> GetCvByIdAsync(int id);
         Task<bool> UpsertCvAvtarAsync(UpsertCvAvtarRequest request);
         Task<string> GetAvtarByIdAsync(int benchId);
+        Task<List<dynamic>> GetBenchMatchResultAsync(BenchMatchRecord request);
     }
 }

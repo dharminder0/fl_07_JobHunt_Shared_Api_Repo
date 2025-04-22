@@ -131,5 +131,26 @@
                 return BadRequest(ex.Message);
             }
         }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ServiceFilter(typeof(RequireAuthorizationFilter))]
+        [HttpPost]
+        [Route("api/V1/Bench/MatchResult")]
+        public async Task<IActionResult> GetBenchMatchResultAsync(BenchMatchRecord request)
+        {
+            try
+            {
+                var result = await _benchService.GetBenchMatchResultAsync(request);
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+        }
     }
 }
