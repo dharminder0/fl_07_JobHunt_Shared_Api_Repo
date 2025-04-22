@@ -196,11 +196,11 @@
         [ServiceFilter(typeof(RequireAuthorizationFilter))]
         [HttpGet]
         [Route("api/V1/Requirement/Vendor-dashboard/{userId}/{orgCode}")]
-        public async Task<IActionResult> GetVendorsCountsAsync(string orgCode,string userId)
+        public async Task<IActionResult> GetVendorsCountsAsync(string orgCode, string userId)
         {
             try
             {
-                var result = await _requirementService.GetVendorsCountsAsync(orgCode,userId);
+                var result = await _requirementService.GetVendorsCountsAsync(orgCode, userId);
                 return Json(result);
             }
             catch (Exception ex)
@@ -315,7 +315,7 @@
         [ServiceFilter(typeof(RequireAuthorizationFilter))]
         [HttpPost]
         [Route("api/V1/Requirement/Hot-Vacancies")]
-        public async Task<IActionResult>GetHotRequirementAsync(GetHotRequirmentRequest request)
+        public async Task<IActionResult> GetHotRequirementAsync(GetHotRequirmentRequest request)
         {
             try
             {
@@ -327,6 +327,26 @@
                 return BadRequest(ex);
             }
         }
+
+        //[ProducesResponseType(StatusCodes.Status200OK)]
+        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
+        //[ProducesResponseType(StatusCodes.Status404NotFound)]
+        //[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        //[ServiceFilter(typeof(RequireAuthorizationFilter))]
+        //[HttpPost]
+        //[Route("api/V1/Requirement/MatchResult")]
+        //public async Task<IActionResult> GetRequirementMatchResultAsync([FromBody] RequirementMatchRequest request)
+        //{
+        //    try
+        //    {
+        //        var result = await _requirementService.GetRequirementMatchResultAsync(request);
+        //        return Json(result);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(ex);
+        //    }
+        //}
     }
 }
 
