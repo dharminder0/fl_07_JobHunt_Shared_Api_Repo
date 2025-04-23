@@ -9,7 +9,7 @@ namespace VendersCloud.Data.Repositories.Concrete
         {
         }
 
-        public async Task<string> RequirementUpsertAsync(RequirementRequest request, string uniqueId)
+        public async Task<Requirement> RequirementUpsertAsync(RequirementRequest request, string uniqueId)
         {
             try
             {
@@ -22,8 +22,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                 var cleanedOrgCode = request.OrgCode.Trim();
 
                 var response = await dbInstance.SelectAsync<Requirement>(sql, new { Title = cleanedTitle, OrgCode = cleanedOrgCode });
-                string result = "";
-
+                var result= new Requirement();
                 if (response.Any())
                 {
                     var updateQuery = new Query(tableName).AsUpdate(new
@@ -49,7 +48,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                     await dbInstance.ExecuteAsync(updateQuery);
 
                     var idResponse = await dbInstance.SelectAsync<Requirement>(sql, new { Title = cleanedTitle, OrgCode = cleanedOrgCode });
-                    result = idResponse.FirstOrDefault()?.UniqueId.ToString() ?? string.Empty;
+                    result= idResponse.FirstOrDefault();
                 }
                 else
                 {
@@ -76,7 +75,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                     await dbInstance.ExecuteAsync(insertQuery);
 
                     var idResponse = await dbInstance.SelectAsync<Requirement>(sql, new { Title = cleanedTitle, OrgCode = cleanedOrgCode });
-                    result=idResponse.FirstOrDefault()?.UniqueId.ToString() ?? string.Empty;
+                    result= result = idResponse.FirstOrDefault(); 
                 }
 
                 return result;
