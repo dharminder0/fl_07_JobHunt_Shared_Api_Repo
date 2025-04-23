@@ -17,6 +17,7 @@
        public int UpdatedBy { get; set; }
        public bool IsDeleted { get; set; }
        public string Avtar { get; set; }
+       public string SkillsEmbedding { get; set; }
     }
 
     public class ResourcesMapper : ClassMapper<Resources>

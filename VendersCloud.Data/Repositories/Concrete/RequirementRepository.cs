@@ -42,6 +42,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                         request.Status,
                         UpdatedOn = DateTime.UtcNow,
                         UpdatedBy = Convert.ToInt32(request.UserId),
+                        Embedding="",
                         IsDeleted = false
                     }).Where("Title", cleanedTitle).Where("OrgCode", cleanedOrgCode);
 
@@ -119,6 +120,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                         request.Status,
                         UpdatedOn = DateTime.UtcNow,
                         UpdatedBy = Convert.ToInt32(request.UserId),
+                        Embedding="",
                         IsDeleted = false
                     }).Where("Title", cleanedTitle).Where("OrgCode", cleanedOrgCode);
                     await dbInstance.ExecuteScalarAsync<string>(updateQuery);
