@@ -35,6 +35,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                     OrgCode = request.OrgCode,
                     UpdatedOn = DateTime.UtcNow,
                     UpdatedBy = Convert.ToInt32(request.UserId),
+                    SkillsEmbedding="",
                     IsDeleted = false
                 }).Where("Id", request.Id);
 
