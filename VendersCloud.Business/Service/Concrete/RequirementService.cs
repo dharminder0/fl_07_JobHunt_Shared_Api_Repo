@@ -45,7 +45,7 @@ namespace VendersCloud.Business.Service.Concrete
                 var response = await _requirementRepository.RequirementUpsertAsync(request, uniqueId);
                 if (response != null)
                 {
-                    var requirementdata = await _requirementRepository.GetRequirementListByIdAsync(response);
+                    var requirementdata = await _requirementRepository.GetRequirementListByIdAsync(response.UniqueId);
                     if (requirementdata != null)
                     {
                         int requirementId = requirementdata.FirstOrDefault().Id;
@@ -60,7 +60,10 @@ namespace VendersCloud.Business.Service.Concrete
                                 }
                             }
                         }
-                        return new ActionMessageResponse() { Success = true, Message = "Requirement Submitted Successfully!! ", Content = response };
+                        dynamic res = new ExpandoObject();
+                        res.Id= response.Id;
+                        res.UniqueId = response.UniqueId;
+                        return new ActionMessageResponse() { Success = true, Message = "Requirement Submitted Successfully!! ", Content = res };
                     }
                 }
                 return new ActionMessageResponse() { Success = false, Message = "Requirement Not Submitted  ", Content = "" };
@@ -385,7 +388,7 @@ namespace VendersCloud.Business.Service.Concrete
                     if (orgData != null)
                     {
                         requirementResponse.ClientName = orgData.ClientName;
-                        requirementResponse.ClientLogo = orgData.LogoURL;
+                        requirementResponse.ClientLogo = orgData.FaviconURL;
                     }
                     else
                     {
