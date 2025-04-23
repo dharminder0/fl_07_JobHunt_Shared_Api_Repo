@@ -68,7 +68,7 @@ namespace VendersCloud.Business.Service.Concrete
                             {
                                 Success = true,
                                 Message = "Bench Member added",
-                                Content = ""
+                                Content = res
                             };
                         }
                     }
