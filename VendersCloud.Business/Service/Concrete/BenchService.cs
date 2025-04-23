@@ -283,6 +283,8 @@ namespace VendersCloud.Business.Service.Concrete
                         searchResponse.Id = data.Id;
                         searchResponse.CV = await GetCvByIdAsync(data.Id);
                         searchResponse.UniqueId = requirement.UniqueId;
+                        var matchScoreResult = await _matchRecordRepository.GetMatchScoreAsync(data.RequirementId, data.ResourceId);
+                        searchResponse.MatchScore = matchScoreResult.MatchScore;
                         if (clientCodes.Count != 0)
                         {
                             if (!string.IsNullOrEmpty(requirement.ClientCode))
