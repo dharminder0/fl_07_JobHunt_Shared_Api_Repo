@@ -881,18 +881,22 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-                if(string.IsNullOrEmpty(request.OrgCode) || request.RequirementId<= 0)
+                if (string.IsNullOrEmpty(request.OrgCode) || request.RequirementId <= 0)
                 {
                     throw new ArgumentException("Enter valid inputs");
                 }
 
                 List<dynamic> result = new List<dynamic>();
-                List<int>matchingCandidate = await _matchRecordRepository.GetMatchingCountByRequirementId(request.RequirementId);
+                List<int> matchingCandidate = await _matchRecordRepository.GetMatchingCountByRequirementId(request.RequirementId);
                 var benchData = await _benchRepository.GetBenchResponseListByIdAsync(matchingCandidate);
-                foreach(var item in benchData)
+
+                foreach (var item in benchData)
                 {
                     dynamic obj = new ExpandoObject();
-                    obj.MatchScore = await _matchRecordRepository.GetMatchScoreAsync(request.RequirementId, item.Id);
+
+                    var matchScoreResult = await _matchRecordRepository.GetMatchScoreAsync(request.RequirementId, item.Id);
+                    obj.MatchScore = matchScoreResult.MatchScore;
+
                     obj.FirstName = item.FirstName;
                     obj.LastName = item.LastName;
                     obj.Email = item.Email;
@@ -907,11 +911,13 @@ namespace VendersCloud.Business.Service.Concrete
                     obj.UpdatedOn = item.UpdatedOn;
                     obj.Availability = item.Availability;
                     obj.AvailabilityName = CommonFunctions.GetEnumDescription((BenchAvailability)item.Availability);
+
                     result.Add(obj);
                 }
+
                 var filteredList = result
-             .Where(x=> x.ResourceOrgCode == request.OrgCode)
-             .ToList();
+                    .Where(x => x.ResourceOrgCode == request.OrgCode)
+                    .ToList();
 
                 dynamic resultList = new ExpandoObject();
                 resultList.MatchingRecordCount = filteredList.Count;
@@ -919,11 +925,12 @@ namespace VendersCloud.Business.Service.Concrete
 
                 return new List<dynamic> { resultList };
             }
-            catch(Exception ex)
+            catch (Exception)
             {
                 throw;
             }
         }
+
         public async Task<dynamic> GetCvByIdAsync(int id)
         {
             try
