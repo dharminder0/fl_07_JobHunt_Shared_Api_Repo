@@ -20,7 +20,8 @@ namespace VendersCloud.Business.Service.Concrete
         private readonly ISkillRepository _skillRepository;
         private readonly ISkillRequirementMappingRepository _skillRequirementMappingRepository;
         private readonly IMatchRecordRepository _matchRecordRepository;
-        public RequirementService(IRequirementRepository requirementRepository, IClientsRepository clientsRepository, IResourcesRepository resourcesRepository, IBenchRepository benchRepository, IUsersRepository usersRepository, IOrganizationRepository organizationRepository, ISkillRepository skillRepository, ISkillRequirementMappingRepository skillRequirementMappingRepository, IMatchRecordRepository matchRecordRepository)
+        private readonly IOrgRelationshipsRepository _orgRelationshipsRepository;
+        public RequirementService(IRequirementRepository requirementRepository, IClientsRepository clientsRepository, IResourcesRepository resourcesRepository, IBenchRepository benchRepository, IUsersRepository usersRepository, IOrganizationRepository organizationRepository, ISkillRepository skillRepository, ISkillRequirementMappingRepository skillRequirementMappingRepository, IMatchRecordRepository matchRecordRepository, IOrgRelationshipsRepository orgRelationshipsRepository)
         {
             _requirementRepository = requirementRepository;
             _clientsRepository = clientsRepository;
@@ -31,6 +32,7 @@ namespace VendersCloud.Business.Service.Concrete
             _skillRepository = skillRepository;
             _skillRequirementMappingRepository = skillRequirementMappingRepository;
             _matchRecordRepository = matchRecordRepository;
+            _orgRelationshipsRepository = orgRelationshipsRepository;
         }
 
         public async Task<ActionMessageResponse> RequirmentUpsertAsync(RequirementRequest request)
@@ -304,24 +306,42 @@ namespace VendersCloud.Business.Service.Concrete
                 int totalRecords = 0;
                 List<string> skillData= new List<string>();
                 List<Requirement> paginatedRequirements;
-               List<int> matchingCandidate;
+                List<Requirement> filteredEmplanelRequirement = new List<Requirement>(); 
+                List<int> matchingCandidate;
                 if (string.IsNullOrEmpty(request.OrgCode) || string.IsNullOrEmpty(request.UserId))
                 {
                     throw new Exception("OrgCode is Mandatory!!");
                 }
                 int place, Applicants = 0;
                 var requirements = await _requirementRepository.GetRequirementsListAsync(request);
+                var emplanedRequirements = await _requirementRepository.GetRequirementListAsync();
+                var orgRelationshipdata = await _orgRelationshipsRepository.GetBenchResponseListByIdAsync(request.OrgCode);
+                foreach(var rel in orgRelationshipdata)
+                {
+                    if (rel.OrgCode == request.OrgCode)
+                    {
+                        var reqdata = emplanedRequirements.Where(x => x.OrgCode == rel.RelatedOrgCode && x.Visibility == 2);
+                        filteredEmplanelRequirement.AddRange(reqdata);
+                    }
+                    else
+                    {
+                        var reqdata = emplanedRequirements.Where(x => (x.OrgCode == rel.OrgCode && x.Visibility == 2));
+                        filteredEmplanelRequirement.AddRange(reqdata);
+                    }
+                }
+
                 if (request.RoleType.Contains("1"))
                 {
                     var visibleRequirements = await _requirementRepository.GetRequirementsListByVisibilityAsync(request);
-                    var allRequirements = requirements.Concat(visibleRequirements).ToList();
+                    var allRequirements = requirements.Concat(visibleRequirements).Concat(filteredEmplanelRequirement).Distinct().ToList();
                     totalRecords = allRequirements.Count;
                     paginatedRequirements = allRequirements.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToList();
                 }
                 else
                 {
-                    totalRecords = requirements.Count;
-                    paginatedRequirements = requirements.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToList();
+                    var allRequirements = requirements.Concat(filteredEmplanelRequirement).Distinct().ToList();
+                    totalRecords = allRequirements.Count;
+                    paginatedRequirements = allRequirements.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToList();
                 }
 
 
