@@ -32,6 +32,13 @@
 
 
         }
+        public async Task<List<int>> GetRequirementShareJobsAsync(string orgCode)
+        {
+            var dbInstance = GetDbInstance();
+            var sql = "SELECT RequirementId FROM RequirementVendors Where OrgCode=@orgCode";
 
+            var profile = dbInstance.Select<int>(sql, new { orgCode }).ToList();
+            return profile;
+        }
     }
 }
