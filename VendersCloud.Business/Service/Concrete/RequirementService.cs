@@ -22,7 +22,9 @@ namespace VendersCloud.Business.Service.Concrete
         private readonly IMatchRecordRepository _matchRecordRepository;
         private readonly IOrgRelationshipsRepository _orgRelationshipsRepository;
         private readonly IRequirementVendorsRepository _requirementVendorsRepository;
-        public RequirementService(IRequirementRepository requirementRepository, IClientsRepository clientsRepository, IResourcesRepository resourcesRepository, IBenchRepository benchRepository, IUsersRepository usersRepository, IOrganizationRepository organizationRepository, ISkillRepository skillRepository, ISkillRequirementMappingRepository skillRequirementMappingRepository, IMatchRecordRepository matchRecordRepository, IOrgRelationshipsRepository orgRelationshipsRepository, IRequirementVendorsRepository requirementVendorsRepository)
+        private readonly IOrgLocationRepository _organizationLocationRepository;
+        private readonly IListValuesRepository _listValuesRepository;
+        public RequirementService(IRequirementRepository requirementRepository, IClientsRepository clientsRepository, IResourcesRepository resourcesRepository, IBenchRepository benchRepository, IUsersRepository usersRepository, IOrganizationRepository organizationRepository, ISkillRepository skillRepository, ISkillRequirementMappingRepository skillRequirementMappingRepository, IMatchRecordRepository matchRecordRepository, IOrgRelationshipsRepository orgRelationshipsRepository, IRequirementVendorsRepository requirementVendorsRepository, IOrgLocationRepository organizationLocationRepository, IListValuesRepository listValuesRepository)
         {
             _requirementRepository = requirementRepository;
             _clientsRepository = clientsRepository;
@@ -35,6 +37,8 @@ namespace VendersCloud.Business.Service.Concrete
             _matchRecordRepository = matchRecordRepository;
             _orgRelationshipsRepository = orgRelationshipsRepository;
             _requirementVendorsRepository = requirementVendorsRepository;
+            _organizationLocationRepository = organizationLocationRepository;
+            _listValuesRepository = listValuesRepository;
         }
 
         public async Task<ActionMessageResponse> RequirmentUpsertAsync(RequirementRequest request)
@@ -65,7 +69,7 @@ namespace VendersCloud.Business.Service.Concrete
                             }
                         }
                         dynamic res = new ExpandoObject();
-                        res.Id= response.Id;
+                        res.Id = response.Id;
                         res.UniqueId = response.UniqueId;
                         return new ActionMessageResponse() { Success = true, Message = "Requirement Submitted Successfully!! ", Content = res };
                     }
@@ -306,9 +310,9 @@ namespace VendersCloud.Business.Service.Concrete
             try
             {
                 int totalRecords = 0;
-                List<string> skillData= new List<string>();
+                List<string> skillData = new List<string>();
                 List<Requirement> paginatedRequirements;
-                List<Requirement> filteredEmplanelRequirement = new List<Requirement>(); 
+                List<Requirement> filteredEmplanelRequirement = new List<Requirement>();
                 List<int> matchingCandidate;
                 List<int> RequirementVendorsId;
                 if (string.IsNullOrEmpty(request.OrgCode) || string.IsNullOrEmpty(request.UserId))
@@ -320,7 +324,7 @@ namespace VendersCloud.Business.Service.Concrete
                 var emplanedRequirements = await _requirementRepository.GetRequirementListAsync();
                 var orgRelationshipdata = await _orgRelationshipsRepository.GetBenchResponseListByIdAsync(request.OrgCode);
                 RequirementVendorsId = await _requirementVendorsRepository.GetRequirementShareJobsAsync(request.OrgCode);
-                var sharedrequirement= await _requirementRepository.GetRequirementByIdAsync(RequirementVendorsId);
+                var sharedrequirement = await _requirementRepository.GetRequirementByIdAsync(RequirementVendorsId);
                 foreach (var rel in orgRelationshipdata)
                 {
                     if (rel.OrgCode == request.OrgCode)
@@ -363,8 +367,8 @@ namespace VendersCloud.Business.Service.Concrete
                     var resourcesList = data.Where(x => x.OrgCode == request.OrgCode);
                     var count = resourcesList.Count();
                     place = await GetTotalApplicantsAsync(ApplicantSearch);
-                    var skillMappingData= await _skillRequirementMappingRepository.GetSkillRequirementMappingAsync(r.Id);
-                    List<int> SkillId= new List<int>();
+                    var skillMappingData = await _skillRequirementMappingRepository.GetSkillRequirementMappingAsync(r.Id);
+                    List<int> SkillId = new List<int>();
                     if (skillMappingData != null && skillMappingData.Count > 0)
                     {
                         foreach (var item in skillMappingData)
@@ -372,7 +376,7 @@ namespace VendersCloud.Business.Service.Concrete
                             SkillId.Add(item.SkillId);
                         }
                     }
-                  
+
                     var requirementResponse = new RequirementResponse
                     {
                         Id = r.Id,
@@ -992,5 +996,96 @@ namespace VendersCloud.Business.Service.Concrete
                 throw ex;
             }
         }
+
+        public async Task<dynamic> GetMatchingVendorsAsync(MatchingVendorRequest request)
+        {
+            try
+            {
+                List<dynamic> result = new List<dynamic>();
+
+                if (string.IsNullOrEmpty(request.OrgCode) || request.RequirementId <= 0)
+                {
+                    throw new ArgumentException("Enter valid inputs");
+                }
+
+                var matchingdata = await _matchRecordRepository.GetMatchingResultByRequirementId(request.RequirementId);
+
+                var empaneledOrgs = await _orgRelationshipsRepository.GetBenchResponseListByIdAsync(request.OrgCode);
+                var empOrgCodes = empaneledOrgs
+                    .Where(x => x.OrgCode == request.OrgCode || x.RelatedOrgCode == request.OrgCode)
+                    .Select(x => x.OrgCode == request.OrgCode ? x.RelatedOrgCode : x.OrgCode)
+                    .Distinct()
+                    .ToList();
+
+                foreach (var item in matchingdata)
+                {
+                    dynamic obj = new ExpandoObject();
+                    obj.City = null;
+                    obj.State = null;
+                    obj.StateName = null;
+                    obj.MatchingScore = item.MatchScore;
+                    obj.MatchingResourceId = item.ResourceId;
+                    var resourcedata = await _benchRepository.GetBenchResponseByIdAsync(item.ResourceId);
+
+                    if (resourcedata != null && resourcedata.Count > 0)
+                    {
+                        var rdata = resourcedata[0];
+                        obj.MatchingOrgCode = rdata.OrgCode;
+
+                        var orgdata = await _organizationRepository.GetOrganizationData(rdata.OrgCode);
+                        var orgLocationData = await _organizationLocationRepository.GetOrgLocation(rdata.OrgCode);
+                        foreach (var dataLocation in orgLocationData)
+                        {
+                            var data = await _listValuesRepository.GetListValuesAsync();
+                            var selectedValues = data.Where(x => x.Id == dataLocation.State).Select(x => x.Value).FirstOrDefault();
+                            obj.City = dataLocation.City;
+                            obj.State = dataLocation.State;
+                            obj.StateName = selectedValues;
+                          
+                        }
+                        obj.OrgName = orgdata.OrgName;
+                        obj.OrgLogo = orgdata.Logo;
+                        result.Add(obj);
+                    }
+                }
+
+
+                var grouped = result
+                    .GroupBy(r => r.MatchingOrgCode)
+                    .Select(g => new
+                    {
+                        MatchingOrgCode = g.Key,
+                        OrgName = g.First().OrgName,
+                        OrgLogo = g.First().OrgLogo,
+                        City=g.First().City,
+                        State=g.First().State,
+                        StateName=g.First().StateName,
+                        AverageMatchingScore = g.Average(x => (double)x.MatchingScore),
+                        NumberOfCandidates = g
+                        .Select(x => x.MatchingResourceId)
+                        .Distinct()
+                        .Count()
+                    });
+
+                var empaneledVendors = grouped
+                    .Where(g => empOrgCodes.Contains(g.MatchingOrgCode))
+                    .ToList();
+
+                var publicVendors = grouped
+                    .Where(g => !empOrgCodes.Contains(g.MatchingOrgCode) && g.MatchingOrgCode != request.OrgCode)
+                    .ToList();
+
+                return new
+                {
+                    EmpaneledVendor = empaneledVendors,
+                    PublicVendor = publicVendors
+                };
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
     }
 }
