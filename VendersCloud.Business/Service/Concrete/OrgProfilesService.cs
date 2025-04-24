@@ -37,6 +37,7 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
+                List<OrgRelationships> orgRelationshipData = new List<OrgRelationships>();
                 var data = await _orgProfilesRepository.SearchOrganizationsDetails(request);
                 if (data?.List == null || !data.List.Any())
                     return null;
@@ -82,8 +83,12 @@ namespace VendersCloud.Business.Service.Concrete
                         }).ToList()
                     );
                 // Fetch OrgRelationships once and build a map of OrgCode -> Status
-                var orgRelationshipData = await _orgRelationshipRepository.GetOrgRelationshipsListAsync(request.OrgCode);
-
+                foreach (var item in request.Role)
+                {
+                   int role = Convert.ToInt32(item);
+                   var orgRelationshipDatas = await _orgRelationshipRepository.GetOrgRelationshipsListAsync(request.OrgCode, role);
+                    orgRelationshipData.AddRange(orgRelationshipDatas);
+                }
                 // Build a map of OrgCode -> Status considering both OrgCode and RelatedOrgCode
                 var orgStatusMap = new Dictionary<string, int>();
 
