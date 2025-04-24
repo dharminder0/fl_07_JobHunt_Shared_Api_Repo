@@ -3,5 +3,6 @@
     public interface IRequirementVendorsRepository :IBaseRepository<RequirementVendors>
     {
         Task<bool> AddRequirementVendorsDataAsync(int requirementId, string orgCode);
+        Task<List<int>> GetRequirementShareJobsAsync(string orgCode);
     }
 }
