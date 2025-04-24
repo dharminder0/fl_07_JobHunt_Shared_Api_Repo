@@ -347,6 +347,26 @@
                 return BadRequest(ex);
             }
         }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ServiceFilter(typeof(RequireAuthorizationFilter))]
+        [HttpPost]
+        [Route("api/V1/Requirement/MatchingVendors")]
+        public async Task<IActionResult> GetMatchingVendorsAsync(MatchingVendorRequest request)
+        {
+            try
+            {
+                var result = await _requirementService.GetMatchingVendorsAsync(request);
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
     }
 }
 

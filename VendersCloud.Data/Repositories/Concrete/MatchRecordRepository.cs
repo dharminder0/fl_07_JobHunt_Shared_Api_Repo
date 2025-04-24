@@ -61,4 +61,13 @@
             var namedatas = namedata.FirstOrDefault();
             return namedatas;
         }
-}}
+        public async Task<dynamic> GetMatchingResultByRequirementId(int requirementId)
+        {
+            var dbInstance = GetDbInstance();
+            var sql = "SELECT * FROM MatchResults WHERE RequirementId = @Ids ";
+            var namedata = await dbInstance.SelectAsync<dynamic>(sql, new { Ids = requirementId });
+            var namedatas = namedata.ToList();
+            return namedatas;
+        }
+    }
+}
