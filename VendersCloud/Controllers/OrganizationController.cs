@@ -154,7 +154,7 @@
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ServiceFilter(typeof(RequireAuthorizationFilter))]
         [HttpPost]
-        [Route("api/V1/Organization/List/Invitation")]
+        [Route("api/V1/Organization/Empaneled-list")]
         public async Task<IActionResult> GetListRelationshipAsync(OrgRelationshipSearchRequest request)
         {
             try
