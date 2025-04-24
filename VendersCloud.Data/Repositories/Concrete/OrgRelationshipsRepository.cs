@@ -93,18 +93,18 @@
 
             if (!string.IsNullOrWhiteSpace(request.OrgCode))
             {
-                predicates.Add("r.OrgCode = @orgCode");
+                predicates.Add("r.OrgCode = @orgCode Or r.RelatedOrgCode=@orgCode");
                 parameters.Add("orgCode", request.OrgCode);
             }
 
             if (!string.IsNullOrWhiteSpace(request.RelatedOrgCode))
             {
-                predicates.Add("r.RelatedOrgCode = @relatedOrgCode");
+                predicates.Add("r.RelatedOrgCode = @relatedOrgCode Or r.OrgCode= @relatedOrgCode");
                 parameters.Add("relatedOrgCode", request.RelatedOrgCode);
             }
             if (request.RelationshipType?.Any() == true)
             {
-                predicates.Add("r.RelationshipType In @relationshipType");
+                predicates.Add("r.RelationshipType NOT IN @relationshipType");
                 parameters.Add("relationshipType", request.RelationshipType);
             }
             string whereClause = predicates.Any() ? "WHERE " + string.Join(" AND ", predicates) : "";
