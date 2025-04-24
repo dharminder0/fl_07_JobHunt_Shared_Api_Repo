@@ -195,7 +195,7 @@
         public async Task<List<OrgRelationships>> GetOrgRelationshipsListAsync(string orgCode ,int role)
         {
             var dbInstance = GetDbInstance();
-            var sql = "SELECT * FROM OrgRelationships Where IsDeleted<>1 and (OrgCode = @orgCode OR RelatedOrgCode=@orgCode) and RelationshipType=@role";
+            var sql = "SELECT * FROM OrgRelationships Where IsDeleted<>1 and (OrgCode = @orgCode OR RelatedOrgCode=@orgCode) and RelationshipType<>@role";
 
             var list = dbInstance.Select<OrgRelationships>(sql, new { orgCode,role }).ToList();
             return list;
