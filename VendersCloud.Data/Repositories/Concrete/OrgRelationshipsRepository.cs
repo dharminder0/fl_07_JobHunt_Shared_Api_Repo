@@ -104,7 +104,7 @@
             }
             if (request.RelationshipType?.Any() == true)
             {
-                predicates.Add("r.RelationshipType NOT IN @relationshipType");
+                predicates.Add("r.RelationshipType IN @relationshipType");
                 parameters.Add("relationshipType", request.RelationshipType);
             }
             string whereClause = predicates.Any() ? "WHERE " + string.Join(" AND ", predicates) : "";
