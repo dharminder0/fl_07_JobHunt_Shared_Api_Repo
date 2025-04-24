@@ -93,16 +93,20 @@
 
             if (!string.IsNullOrWhiteSpace(request.OrgCode))
             {
-                predicates.Add("r.OrgCode = @orgCode");
+                predicates.Add("r.OrgCode = @orgCode Or r.RelatedOrgCode=@orgCode");
                 parameters.Add("orgCode", request.OrgCode);
             }
 
             if (!string.IsNullOrWhiteSpace(request.RelatedOrgCode))
             {
-                predicates.Add("r.RelatedOrgCode = @relatedOrgCode");
+                predicates.Add("r.RelatedOrgCode = @relatedOrgCode Or r.OrgCode= @relatedOrgCode");
                 parameters.Add("relatedOrgCode", request.RelatedOrgCode);
             }
-
+            if (request.RelationshipType?.Any() == true)
+            {
+                predicates.Add("r.RelationshipType NOT IN @relationshipType");
+                parameters.Add("relationshipType", request.RelationshipType);
+            }
             string whereClause = predicates.Any() ? "WHERE " + string.Join(" AND ", predicates) : "";
             string query = $@"
     SELECT * FROM OrgRelationships r 
@@ -195,7 +199,7 @@
         public async Task<List<OrgRelationships>> GetOrgRelationshipsListAsync(string orgCode ,int role)
         {
             var dbInstance = GetDbInstance();
-            var sql = "SELECT * FROM OrgRelationships Where IsDeleted<>1 and (OrgCode = @orgCode OR RelatedOrgCode=@orgCode) and RelationshipType=@role";
+            var sql = "SELECT * FROM OrgRelationships Where IsDeleted<>1 and (OrgCode = @orgCode OR RelatedOrgCode=@orgCode) and RelationshipType<>@role";
 
             var list = dbInstance.Select<OrgRelationships>(sql, new { orgCode,role }).ToList();
             return list;
