@@ -102,7 +102,11 @@
                 predicates.Add("r.RelatedOrgCode = @relatedOrgCode");
                 parameters.Add("relatedOrgCode", request.RelatedOrgCode);
             }
-
+            if (request.RelationshipType?.Any() == true)
+            {
+                predicates.Add("r.RelationshipType In @relationshipType");
+                parameters.Add("relationshipType", request.RelationshipType);
+            }
             string whereClause = predicates.Any() ? "WHERE " + string.Join(" AND ", predicates) : "";
             string query = $@"
     SELECT * FROM OrgRelationships r 
