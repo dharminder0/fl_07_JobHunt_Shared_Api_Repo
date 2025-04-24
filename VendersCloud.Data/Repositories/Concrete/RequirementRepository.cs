@@ -15,16 +15,28 @@ namespace VendersCloud.Data.Repositories.Concrete
             {
                 var dbInstance = GetDbInstance();
                 var tableName = new Table<Requirement>().TableName;
-                var sql = "SELECT * FROM Requirement WHERE Title = @Title AND OrgCode = @OrgCode";
 
-                // Trim and validate input
-                var cleanedTitle = request.Title.Trim();
-                var cleanedOrgCode = request.OrgCode.Trim();
+                // Clean and validate input
+                var cleanedTitle = request.Title?.Trim();
+                var cleanedOrgCode = request.OrgCode?.Trim();
 
-                var response = await dbInstance.SelectAsync<Requirement>(sql, new { Title = cleanedTitle, OrgCode = cleanedOrgCode });
-                var result= new Requirement();
-                if (response.Any())
+                if (string.IsNullOrWhiteSpace(cleanedTitle) || string.IsNullOrWhiteSpace(cleanedOrgCode))
                 {
+                    throw new ArgumentException("Title and OrgCode are required.");
+                }
+
+                var selectByIdSql = "SELECT * FROM Requirement WHERE Id = @Id AND OrgCode = @OrgCode";
+                var existingRequirement = await dbInstance.SelectAsync<Requirement>(selectByIdSql, new
+                {
+                    Id = request.Id,
+                    OrgCode = cleanedOrgCode
+                });
+
+                Requirement result;
+
+                if (existingRequirement.Any())
+                {
+                    // Update existing record
                     var updateQuery = new Query(tableName).AsUpdate(new
                     {
                         Title = cleanedTitle,
@@ -35,23 +47,31 @@ namespace VendersCloud.Data.Repositories.Concrete
                         request.Positions,
                         request.LocationType,
                         request.Location,
-                        request.Duration,
                         request.ClientCode,
+                        request.Duration,
                         request.Remarks,
                         request.Status,
                         UpdatedOn = DateTime.UtcNow,
                         UpdatedBy = Convert.ToInt32(request.UserId),
-                        Embedding="",
+                        Embedding = "",
                         IsDeleted = false
-                    }).Where("Title", cleanedTitle).Where("OrgCode", cleanedOrgCode);
+                    })
+                    .Where("Id", request.Id)
+                    .Where("OrgCode", cleanedOrgCode);
 
                     await dbInstance.ExecuteAsync(updateQuery);
 
-                    var idResponse = await dbInstance.SelectAsync<Requirement>(sql, new { Title = cleanedTitle, OrgCode = cleanedOrgCode });
-                    result= idResponse.FirstOrDefault();
+                    var updatedResult = await dbInstance.SelectAsync<Requirement>(selectByIdSql, new
+                    {
+                        Id = request.Id,
+                        OrgCode = cleanedOrgCode
+                    });
+
+                    result = updatedResult.FirstOrDefault();
                 }
                 else
                 {
+                    // Insert new record
                     var insertQuery = new Query(tableName).AsInsert(new
                     {
                         Title = cleanedTitle,
@@ -74,17 +94,25 @@ namespace VendersCloud.Data.Repositories.Concrete
 
                     await dbInstance.ExecuteAsync(insertQuery);
 
-                    var idResponse = await dbInstance.SelectAsync<Requirement>(sql, new { Title = cleanedTitle, OrgCode = cleanedOrgCode });
-                    result= result = idResponse.FirstOrDefault(); 
+                    var selectByUniqueIdSql = "SELECT * FROM Requirement WHERE UniqueId = @UniqueId AND OrgCode = @OrgCode";
+                    var insertedResult = await dbInstance.SelectAsync<Requirement>(selectByUniqueIdSql, new
+                    {
+                        UniqueId = uniqueId,
+                        OrgCode = cleanedOrgCode
+                    });
+
+                    result = insertedResult.FirstOrDefault();
                 }
 
                 return result;
             }
             catch (Exception ex)
             {
+                // Optional: Log the exception here
                 throw new ApplicationException("An unexpected error occurred while processing the requirement.", ex);
             }
         }
+
 
 
 
