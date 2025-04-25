@@ -171,49 +171,59 @@ namespace VendersCloud.Business.Service.Concrete
                 }
 
                 RequirementResponse res = new RequirementResponse();
-
-
+                var skillMappingData = new List<SkillRequirementMapping>();
+                List<int> Ids = new List<int>();
                 var response = await _requirementRepository.GetRequirementListByIdAsync(requirementId);
-
-                if (response != null)
-                {
-                    foreach (var item in response)
+               
+                    if (response != null)
                     {
-                        var orgData = await _clientsRepository.GetClientsByClientCodeAsync(item.ClientCode);
-                        if (orgData != null)
+                        foreach (var item in response)
                         {
-                            res.ClientName = orgData.ClientName;
-                            res.ClientFavicon = orgData.FaviconURL;
-                        }
+                            var orgData = await _clientsRepository.GetClientsByClientCodeAsync(item.ClientCode);
+                            if (orgData != null)
+                            {
+                                res.ClientName = orgData.ClientName;
+                                res.ClientFavicon = orgData.FaviconURL;
+                            }
+                        skillMappingData = await _skillRequirementMappingRepository.GetSkillRequirementMappingAsync(item.Id);
+                        if (skillMappingData != null)
+                        {
+                            foreach (var skill in skillMappingData)
+                            {
+                                Ids.Add(skill.SkillId);
 
-                        res.Id = item.Id;
-                        res.Title = item.Title;
-                        res.OrgCode = item.OrgCode;
-                        res.Description = item.Description;
-                        res.Experience = item.Experience;
-                        res.Budget = item.Budget;
-                        res.Positions = item.Positions;
-                        res.Duration = item.Duration;
-                        res.LocationType = item.LocationType;
-                        res.LocationTypeName = Enum.GetName(typeof(LocationType), item.LocationType);
-                        res.Location = item.Location;
-                        res.ClientCode = item.ClientCode;
-                        res.Remarks = item.Remarks;
-                        res.Visibility = item.Visibility;
-                        res.VisibilityName = Enum.GetName(typeof(Visibility), item.Visibility);
-                        res.Hot = item.Hot;
-                        res.Status = item.Status;
-                        res.StatusName = Enum.GetName(typeof(RequirementsStatus), item.Status);
-                        res.CreatedOn = item.CreatedOn;
-                        res.UpdatedOn = item.UpdatedOn;
-                        res.CreatedBy = item.CreatedBy;
-                        res.UpdatedBy = item.UpdatedBy;
-                        res.IsDeleted = item.IsDeleted;
-                        res.UniqueId = item.UniqueId;
+                            }
+                            var skillName = await _skillRepository.GetAllSkillNamesAsync(Ids);
+                            res.Id = item.Id;
+                            res.Title = item.Title;
+                            res.OrgCode = item.OrgCode;
+                            res.Description = item.Description;
+                            res.Experience = item.Experience;
+                            res.Budget = item.Budget;
+                            res.Positions = item.Positions;
+                            res.Duration = item.Duration;
+                            res.LocationType = item.LocationType;
+                            res.LocationTypeName = Enum.GetName(typeof(LocationType), item.LocationType);
+                            res.Location = item.Location;
+                            res.ClientCode = item.ClientCode;
+                            res.Remarks = item.Remarks;
+                            res.Visibility = item.Visibility;
+                            res.VisibilityName = Enum.GetName(typeof(Visibility), item.Visibility);
+                            res.Hot = item.Hot;
+                            res.Status = item.Status;
+                            res.StatusName = Enum.GetName(typeof(RequirementsStatus), item.Status);
+                            res.CreatedOn = item.CreatedOn;
+                            res.UpdatedOn = item.UpdatedOn;
+                            res.CreatedBy = item.CreatedBy;
+                            res.UpdatedBy = item.UpdatedBy;
+                            res.IsDeleted = item.IsDeleted;
+                            res.UniqueId = item.UniqueId;
+                            res.Skills = skillName;
+                        }
                     }
                 }
-
                 return res;
+               
             }
             catch (Exception ex)
             {
@@ -251,6 +261,8 @@ namespace VendersCloud.Business.Service.Concrete
                     return new List<RequirementResponse>();
                 }
 
+                List<int> Ids = new List<int>();
+                var skillMappingData = new List<SkillRequirementMapping>();
                 var res = new List<RequirementResponse>();
                 var response = await _requirementRepository.GetRequirementByOrgCodeAsync(orgCode);
 
@@ -258,42 +270,54 @@ namespace VendersCloud.Business.Service.Concrete
                 {
                     foreach (var item in response)
                     {
-                        var requirementResponse = new RequirementResponse
+                        skillMappingData = await _skillRequirementMappingRepository.GetSkillRequirementMappingAsync(item.Id);
+                        if (skillMappingData != null)
                         {
-                            Id = item.Id,
-                            Title = item.Title,
-                            OrgCode = item.OrgCode,
-                            Description = item.Description,
-                            Experience = item.Experience,
-                            Budget = item.Budget,
-                            Positions = item.Positions,
-                            Duration = item.Duration,
-                            LocationType = item.LocationType,
-                            LocationTypeName = Enum.GetName(typeof(LocationType), item.LocationType),
-                            Location = item.Location,
-                            ClientCode = item.ClientCode,
-                            Remarks = item.Remarks,
-                            Visibility = item.Visibility,
-                            VisibilityName = Enum.GetName(typeof(Visibility), item.Visibility),
-                            Hot = item.Hot,
-                            Status = item.Status,
-                            StatusName = Enum.GetName(typeof(RequirementsStatus), item.Status),
-                            CreatedOn = item.CreatedOn,
-                            UpdatedOn = item.UpdatedOn,
-                            CreatedBy = item.CreatedBy,
-                            UpdatedBy = item.UpdatedBy,
-                            IsDeleted = item.IsDeleted,
-                            UniqueId = item.UniqueId
-                        };
+                            foreach (var skill in skillMappingData)
+                            {
+                                Ids.Add(skill.SkillId);
 
-                        var orgData = await _clientsRepository.GetClientsByClientCodeAsync(item.ClientCode);
-                        if (orgData != null)
-                        {
-                            requirementResponse.ClientName = orgData.ClientName;
-                            requirementResponse.ClientFavicon = orgData.FaviconURL;
+                            }
+                            var skillName = await _skillRepository.GetAllSkillNamesAsync(Ids);
+
+                            var requirementResponse = new RequirementResponse
+                            {
+                                Id = item.Id,
+                                Title = item.Title,
+                                OrgCode = item.OrgCode,
+                                Description = item.Description,
+                                Experience = item.Experience,
+                                Budget = item.Budget,
+                                Positions = item.Positions,
+                                Duration = item.Duration,
+                                LocationType = item.LocationType,
+                                LocationTypeName = Enum.GetName(typeof(LocationType), item.LocationType),
+                                Location = item.Location,
+                                ClientCode = item.ClientCode,
+                                Remarks = item.Remarks,
+                                Visibility = item.Visibility,
+                                VisibilityName = Enum.GetName(typeof(Visibility), item.Visibility),
+                                Hot = item.Hot,
+                                Status = item.Status,
+                                StatusName = Enum.GetName(typeof(RequirementsStatus), item.Status),
+                                CreatedOn = item.CreatedOn,
+                                UpdatedOn = item.UpdatedOn,
+                                CreatedBy = item.CreatedBy,
+                                UpdatedBy = item.UpdatedBy,
+                                IsDeleted = item.IsDeleted,
+                                UniqueId = item.UniqueId,
+                                Skills = skillName,
+                            };
+
+                            var orgData = await _clientsRepository.GetClientsByClientCodeAsync(item.ClientCode);
+                            if (orgData != null)
+                            {
+                                requirementResponse.ClientName = orgData.ClientName;
+                                requirementResponse.ClientFavicon = orgData.FaviconURL;
+                            }
+
+                            res.Add(requirementResponse);
                         }
-
-                        res.Add(requirementResponse);
                     }
                 }
 
