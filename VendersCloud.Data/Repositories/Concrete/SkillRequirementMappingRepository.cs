@@ -19,7 +19,13 @@
             var existingOrgCode = await dbInstance.ExecuteScalarAsync<int>(query);
             if (existingOrgCode>0)
             {
-                return existingOrgCode;
+                var updateQuery = new Query(tableName.TableName).AsInsert(new
+                {
+                    SkillId = skillId,
+                    RequirementId = requirementId
+                }).Where("Id", existingOrgCode);
+                var updateOrgCode = await dbInstance.ExecuteScalarAsync<int>(updateQuery);
+                return updateOrgCode;
             }
             var insertQuery = new Query(tableName.TableName).AsInsert(new
             {
