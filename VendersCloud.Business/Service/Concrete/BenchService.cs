@@ -1,12 +1,7 @@
 ﻿using Azure.Core;
-using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Dynamic;
 using VendersCloud.Business.CommonMethods;
-using VendersCloud.Business.Entities.DataModels;
-using VendersCloud.Business.Entities.ResponseModels;
-using VendersCloud.Business.Service.Abstract;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace VendersCloud.Business.Service.Concrete
 {
@@ -364,7 +359,7 @@ namespace VendersCloud.Business.Service.Concrete
                         if (clientData != null)
                         {
                             orgActivePositionsResponse.ClientName = clientData.ClientName;
-                            orgActivePositionsResponse.ClientLogo = clientData.LogoURL;
+                            orgActivePositionsResponse.ClientFavicon = clientData.FaviconURL;
                         }
                         else
                         {
@@ -488,7 +483,7 @@ namespace VendersCloud.Business.Service.Concrete
                         if (clientData != null)
                         {
                             orgActivePositionsResponse.ClientName = clientData.ClientName;
-                            orgActivePositionsResponse.ClientLogo = clientData.LogoURL;
+                            orgActivePositionsResponse.ClientFavicon = clientData.FaviconURL;
                         }
                         else
                         {

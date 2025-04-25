@@ -146,7 +146,7 @@ namespace VendersCloud.Business.Service.Concrete
                         if (orgData != null)
                         {
                             requirementResponse.ClientName = orgData.ClientName;
-                            requirementResponse.ClientLogo = orgData.LogoURL;
+                            requirementResponse.ClientFavicon = orgData.FaviconURL;
                         }
 
                         res.Add(requirementResponse);
@@ -183,7 +183,7 @@ namespace VendersCloud.Business.Service.Concrete
                         if (orgData != null)
                         {
                             res.ClientName = orgData.ClientName;
-                            res.ClientLogo = orgData.LogoURL;
+                            res.ClientFavicon = orgData.FaviconURL;
                         }
 
                         res.Id = item.Id;
@@ -290,7 +290,7 @@ namespace VendersCloud.Business.Service.Concrete
                         if (orgData != null)
                         {
                             requirementResponse.ClientName = orgData.ClientName;
-                            requirementResponse.ClientLogo = orgData.LogoURL;
+                            requirementResponse.ClientFavicon = orgData.FaviconURL;
                         }
 
                         res.Add(requirementResponse);
@@ -417,7 +417,7 @@ namespace VendersCloud.Business.Service.Concrete
                     if (orgData != null)
                     {
                         requirementResponse.ClientName = orgData.ClientName;
-                        requirementResponse.ClientLogo = orgData.FaviconURL;
+                        requirementResponse.ClientFavicon = orgData.FaviconURL;
                     }
                     else
                     {
@@ -425,7 +425,7 @@ namespace VendersCloud.Business.Service.Concrete
                         if (clientData != null)
                         {
                             requirementResponse.ClientName = clientData.OrgName;
-                            requirementResponse.ClientLogo = clientData.Logo;
+                            requirementResponse.ClientFavicon = clientData.Logo;
                         }
                     }
 

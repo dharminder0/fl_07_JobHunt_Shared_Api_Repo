@@ -15,7 +15,7 @@
         public string Location { get; set; }
         public string ClientCode { get; set; }
         public string ClientName { get; set; }
-        public string ClientLogo { get; set; }
+        public string ClientFavicon { get; set; }
         public string Remarks { get; set; }
         public int Visibility { get; set; }
         public string VisibilityName { get; set; }
