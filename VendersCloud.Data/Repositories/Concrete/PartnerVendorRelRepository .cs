@@ -24,7 +24,27 @@
                 return null;
             }
         }
-
+        public async Task<PartnerVendorRel> ManagePartnerStatusAsync(string partnerCode,string vendorCode)
+        {
+            try
+            {
+                return await GetByAsync(new PredicateGroup
+                {
+                    Operator = GroupOperator.And,
+                    Predicates = new List<IPredicate>
+                    {
+                        Predicates.Field<PartnerVendorRel>(f => f.PartnerCode, Operator.Eq, partnerCode),
+                        Predicates.Field<PartnerVendorRel>(f => f.IsDeleted, Operator.Eq, false),
+                            Predicates.Field<PartnerVendorRel>(f => f.VendorCode, Operator.Eq, vendorCode),
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception: {ex.Message}");
+                return null;
+            }
+        }
         public async Task<List<PartnerVendorRel>> GetAllAsync()
         {
             try
@@ -133,6 +153,15 @@
 
             var insertedOrgCode = await dbInstance.ExecuteScalarAsync<string>(updateQuery);
             return true;
+        }
+        public async Task<List<PartnerVendorRel>> GetOrgRelationshipsListAsync(string orgCode)
+        {
+           
+            var dbInstance = GetDbInstance();
+            var sql = "SELECT * FROM PartnerVendorRel Where IsDeleted<>1 and (PartnerCode = @orgCode OR vendorCode=@orgCode) ";
+
+            var list = dbInstance.Select<PartnerVendorRel>(sql, new { orgCode }).ToList();
+            return list;
         }
     }
 }

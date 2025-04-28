@@ -295,12 +295,12 @@ namespace VendersCloud.Business.Service.Concrete
                         });
                     }
 
-                    var orgRelationshipData = await _organizationRelationshipsRepository.GetStatusAsync(request.OrgCode, request.RelatedOrgCode);
-                    var orgRelationdata= orgRelationshipData.FirstOrDefault();
+                    var orgRelationshipData = await _partnerVendorRelRepository.ManagePartnerStatusAsync(request.OrgCode, request.RelatedOrgCode);
+                    var orgRelationdata= orgRelationshipData;
                     if (orgRelationdata != null)
                     {
-                        profileResponse.Status = orgRelationdata.Status; 
-                        profileResponse.StatusName = CommonFunctions.GetEnumDescription((InviteStatus)orgRelationdata.Status);
+                        profileResponse.Status = orgRelationdata.StatusId; 
+                        profileResponse.StatusName = CommonFunctions.GetEnumDescription((InviteStatus)orgRelationdata.StatusId);
                     }
                     else
                     {
