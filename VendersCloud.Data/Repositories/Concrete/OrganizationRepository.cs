@@ -187,7 +187,7 @@
                         Predicates.Field<Organization>(f=>f.IsDeleted,Operator.Eq,false),
                     }
             });
-
+            
         }
 
     }
