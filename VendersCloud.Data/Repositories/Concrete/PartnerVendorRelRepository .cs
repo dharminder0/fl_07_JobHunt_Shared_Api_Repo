@@ -118,6 +118,21 @@
             }
         }
 
-      
+        public async Task<bool> ManagePartnerStatusAsync(ManageRelationshipStatusRequest manageRelationship)
+        {
+            var dbInstance = GetDbInstance();
+            var tableName = new Table<PartnerVendorRel>();
+            var updateQuery = new Query(tableName.TableName).AsUpdate(new
+            {
+                StatusId = manageRelationship.StatusId,
+                CreatedOn = DateTime.UtcNow,
+                UpdatedOn = DateTime.UtcNow,
+                IsDeleted = false,
+                UpdatedBy = manageRelationship.UpdatedBy
+            }).Where("Id", manageRelationship.PartnerVendorRelId);
+
+            var insertedOrgCode = await dbInstance.ExecuteScalarAsync<string>(updateQuery);
+            return true;
+        }
     }
 }

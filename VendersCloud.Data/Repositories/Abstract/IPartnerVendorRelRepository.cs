@@ -14,6 +14,7 @@ namespace VendersCloud.Data.Repositories.Abstract
         Task<bool> UpdatePartnerVendorRelByIdAsync(int id, PartnerVendorRel updatedEntity);
         Task<int> AddPartnerVendorRelAsync(PartnerVendorRel entity);
         Task<List<PartnerVendorRel>> GetByPartnerIdAsync(string partnerCode, string vendorCode);
+        Task<bool> ManagePartnerStatusAsync(ManageRelationshipStatusRequest manageRelationship);
 
 
     }
