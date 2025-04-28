@@ -10,4 +10,11 @@
         public int Page { get; set; }
         public int PageSize { get; set; }
     }
+    public class ManageRelationshipStatusRequest
+    {
+        public int PartnerVendorRelId { get; set; }
+        public int StatusId { get; set; }
+        public int UpdatedBy { get; set; }
+    }
+
 }

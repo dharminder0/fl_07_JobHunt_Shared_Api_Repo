@@ -136,11 +136,11 @@
         [ServiceFilter(typeof(RequireAuthorizationFilter))]
         [HttpPost]
         [Route("api/V1/Organization/manageInvitation")]
-        public async Task<IActionResult> ManageRelationshipStatusAsync(int id, int status)
+        public async Task<IActionResult> ManageRelationshipStatusAsync(ManageRelationshipStatusRequest manageRelationship)
         {
             try
             {
-                var result= await _organizationService.ManageRelationshipStatusAsync(id, status);
+                var result= await _organizationService.ManageRelationshipStatusAsync(manageRelationship);
                 return Json(result);
             }
             catch (Exception ex)

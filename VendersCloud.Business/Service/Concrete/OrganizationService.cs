@@ -334,7 +334,7 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
-        public async Task<bool> DispatchedOrganizationInvitationAsync(DispatchedInvitationRequest request)
+        public async Task<ActionMessageResponse> DispatchedOrganizationInvitationAsync(DispatchedInvitationRequest request)
         {
             try
             {
@@ -361,7 +361,7 @@ namespace VendersCloud.Business.Service.Concrete
 
                     var insertResult = await _partnerVendorRelRepository.AddPartnerVendorRelAsync(newRelation);
 
-                    return insertResult > 0;
+                return new ActionMessageResponse { Content = insertResult, Message = "Dispatched Invitation  Sucessfully", Success = true };
                 
             }
             catch
@@ -372,16 +372,16 @@ namespace VendersCloud.Business.Service.Concrete
 
 
 
-        public async Task<bool> ManageRelationshipStatusAsync(int orgRelationshipId, int status)
+        public async Task<bool> ManageRelationshipStatusAsync(ManageRelationshipStatusRequest request)
         {
             try
             {
-                if(orgRelationshipId<=0||status<=0)
+                if(request .PartnerVendorRelId<= 0|| request .StatusId<= 0)
                 {
                     throw new ArgumentException("Provide Valid Input!!");
                 }
 
-                var result= await _organizationRelationshipsRepository.ManageRelationshipStatusAsync(orgRelationshipId, status);
+                var result= await _partnerVendorRelRepository.ManagePartnerStatusAsync(request);
                 if (result)
                 {
                     return true;
