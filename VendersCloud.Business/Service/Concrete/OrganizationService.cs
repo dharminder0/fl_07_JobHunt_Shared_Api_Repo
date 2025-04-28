@@ -295,7 +295,7 @@ namespace VendersCloud.Business.Service.Concrete
                         });
                     }
 
-                    var orgRelationshipData = await _partnerVendorRelRepository.ManagePartnerStatusAsync(request.OrgCode, request.RelatedOrgCode);
+                    var orgRelationshipData = await _partnerVendorRelRepository.ManagePartnerStatusAsync(request.RelatedOrgCode, request.OrgCode);
                     var orgRelationdata= orgRelationshipData;
                     if (orgRelationdata != null)
                     {
