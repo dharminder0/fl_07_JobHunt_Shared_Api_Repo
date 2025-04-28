@@ -219,6 +219,22 @@ SELECT COUNT(*) FROM PartnerVendorRel r {whereClause};
 
             using var multi = await connection.QueryMultipleAsync(query, parameters);
             var relationships = (await multi.ReadAsync<PartnerVendorRel>()).ToList();
+            if (!string.IsNullOrWhiteSpace(request.RelatedOrgCode))
+            {
+                relationships = relationships
+                    .Where(v => v.PartnerCode != request.RelatedOrgCode)
+                    .ToList();
+
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.OrgCode))
+            {
+                relationships = relationships
+                    .Where(v => v.VendorCode != request.OrgCode)
+                    .ToList();
+
+            }
+
             int totalRecords = await multi.ReadFirstOrDefaultAsync<int>();
 
             var responseList = new List<OrgRelationshipSearchResponse>();
