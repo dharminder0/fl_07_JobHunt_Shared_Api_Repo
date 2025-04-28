@@ -1,8 +1,16 @@
-﻿namespace VendersCloud.Data.Repositories.Concrete
+﻿using VendersCloud.Data.Repositories.Abstract;
+
+namespace VendersCloud.Data.Repositories.Concrete
 {
     public class PartnerVendorRelRepository : StaticBaseRepository<PartnerVendorRel>, IPartnerVendorRelRepository
     {
-        public PartnerVendorRelRepository(IConfiguration configuration) : base(configuration) { }
+        private readonly IOrgLocationRepository _organizationLocationRepository;
+        private readonly IOrganizationRepository _organizationRepository;
+        public PartnerVendorRelRepository(IConfiguration configuration, IOrgLocationRepository organizationLocationRepository, IOrganizationRepository organizationRepository) : base(configuration) {
+
+            _organizationLocationRepository = organizationLocationRepository;
+            _organizationRepository = organizationRepository;
+        }
 
         public async Task<PartnerVendorRel> GetByIdAsync(int id)
         {
@@ -163,5 +171,118 @@
             var list = dbInstance.Select<PartnerVendorRel>(sql, new { orgCode }).ToList();
             return list;
         }
+        public async Task<PaginationDto<OrgRelationshipSearchResponse>> GetListRelationshipAsync(OrgRelationshipSearchRequest request)
+        {
+            using var connection = GetConnection();
+            var predicates = new List<string>();
+            var parameters = new DynamicParameters();
+
+            if (!string.IsNullOrWhiteSpace(request.searchText))
+            {
+                predicates.Add("(r.PartnerCode LIKE @SearchText OR r.VendorCode LIKE @SearchText)");
+                parameters.Add("SearchText", $"%{request.searchText}%");
+            }
+
+            if (request.Status != null)
+            {
+                predicates.Add("r.StatusId = @statuses");
+                parameters.Add("statuses", request.Status);
+            }
+
+            predicates.Add("r.IsDeleted = 0");
+
+            if (!string.IsNullOrWhiteSpace(request.OrgCode))
+            {
+                predicates.Add("(r.PartnerCode = @orgCode OR r.VendorCode = @orgCode)");
+                parameters.Add("orgCode", request.OrgCode);
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.RelatedOrgCode))
+            {
+                predicates.Add("(r.VendorCode = @relatedOrgCode OR r.PartnerCode = @relatedOrgCode)");
+                parameters.Add("relatedOrgCode", request.RelatedOrgCode);
+            }
+
+
+            string whereClause = predicates.Any() ? "WHERE " + string.Join(" AND ", predicates) : "";
+            string query = $@"
+SELECT * FROM PartnerVendorRel r 
+{whereClause} 
+ORDER BY r.CreatedOn DESC 
+OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY;
+
+SELECT COUNT(*) FROM PartnerVendorRel r {whereClause};
+";
+
+            parameters.Add("offset", (request.Page - 1) * request.PageSize);
+            parameters.Add("pageSize", request.PageSize);
+
+            using var multi = await connection.QueryMultipleAsync(query, parameters);
+            var relationships = (await multi.ReadAsync<PartnerVendorRel>()).ToList();
+            int totalRecords = await multi.ReadFirstOrDefaultAsync<int>();
+
+            var responseList = new List<OrgRelationshipSearchResponse>();
+
+            foreach (var relationship in relationships)
+            {
+                List<Organization> selectedOrgDataList = new();
+                List<OrgLocation> selectedOrgLocationData = new();
+
+                if (!string.IsNullOrWhiteSpace(request.OrgCode))
+                {
+                    var orgDataResult = await _organizationRepository.GetOrganizationData(relationship.VendorCode);
+                    if (orgDataResult is IEnumerable<Organization> orgList)
+                        selectedOrgDataList = orgList.ToList();
+                    else if (orgDataResult != null)
+                        selectedOrgDataList.Add(orgDataResult);
+
+                    var locationResult = await _organizationLocationRepository.GetOrgLocation(relationship.VendorCode);
+                    selectedOrgLocationData = locationResult?.ToList() ?? new List<OrgLocation>();
+                }
+                else if (!string.IsNullOrWhiteSpace(request.RelatedOrgCode))
+                {
+                    var orgDataResult = await _organizationRepository.GetOrganizationData(relationship.PartnerCode);
+                    if (orgDataResult is IEnumerable<Organization> orgList)
+                        selectedOrgDataList = orgList.ToList();
+                    else if (orgDataResult != null)
+                        selectedOrgDataList.Add(orgDataResult);
+
+                    var locationResult = await _organizationLocationRepository.GetOrgLocation(relationship.PartnerCode);
+                    selectedOrgLocationData = locationResult?.ToList() ?? new List<OrgLocation>();
+                }
+
+                foreach (var orgData in selectedOrgDataList)
+                {
+                    responseList.Add(new OrgRelationshipSearchResponse
+                    {
+                        Id = relationship.Id,
+                        OrgCode = relationship.PartnerCode,
+                        RelatedOrgCode = relationship.VendorCode,
+                        RelationshipType = relationship.StatusId.ToString(),  // Assuming StatusId is mapped to relationshipType
+                        StatusName = System.Enum.GetName(typeof(InviteStatus), relationship.StatusId),
+                        Status = relationship.StatusId,
+                        Description = orgData.Description,
+                        OrgName = orgData.OrgName,
+                        EmpCount = orgData.EmpCount,
+                        Logo = orgData.Logo,
+                        Location = selectedOrgLocationData.Select(loc => loc.City).Distinct().ToList(),
+                        CreatedBy = relationship.CreatedBy,
+                        UpdatedBy = relationship.UpdatedBy,
+                        CreatedOn = relationship.CreatedOn,
+                        UpdatedOn = relationship.UpdatedOn,
+                        IsDeleted = relationship.IsDeleted
+                    });
+                }
+            }
+
+            return new PaginationDto<OrgRelationshipSearchResponse>
+            {
+                Count = totalRecords,
+                Page = request.Page,
+                TotalPages = (int)Math.Ceiling(totalRecords / (double)request.PageSize),
+                List = responseList
+            };
+        }
+
     }
 }
