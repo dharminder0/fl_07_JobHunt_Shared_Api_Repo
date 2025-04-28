@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Data;
+﻿using System.Data;
 using VendersCloud.Business.CommonMethods;
 
 namespace VendersCloud.Business.Service.Concrete
@@ -13,11 +12,14 @@ namespace VendersCloud.Business.Service.Concrete
         private readonly IOrgSocialRepository _organizationSocialRepository;
         private readonly IListValuesRepository _listValuesRepository;
         private readonly IUsersRepository _usersRepository;
+        private readonly IPartnerVendorRelRepository _partnerVendorRelRepository;   
         private readonly IOrgRelationshipsRepository _organizationRelationshipsRepository;
         private readonly CommunicationService _communicationService;
         private readonly IBlobStorageService _blobStorageService;
         private IConfiguration _configuration;
-        public OrganizationService(IConfiguration configuration,IOrganizationRepository organizationRepository, IUserProfilesRepository userProfilesRepository, IOrgProfilesRepository _orgProfilesRepository, IOrgLocationRepository organizationLocationRepository, IOrgSocialRepository organizationSocialRepository, IListValuesRepository listValuesRepository,IUsersRepository usersRepository, IOrgRelationshipsRepository organizationRelationshipsRepository,IBlobStorageService blobStorageService)
+        public OrganizationService(IConfiguration configuration,IOrganizationRepository organizationRepository, IUserProfilesRepository userProfilesRepository, IOrgProfilesRepository _orgProfilesRepository, IOrgLocationRepository organizationLocationRepository, IOrgSocialRepository organizationSocialRepository, 
+            IListValuesRepository listValuesRepository,IUsersRepository usersRepository, IOrgRelationshipsRepository organizationRelationshipsRepository,
+            IBlobStorageService blobStorageService, IPartnerVendorRelRepository partnerVendorRelRepository)
         {
             _organizationRepository = organizationRepository;
             _userProfilesRepository = userProfilesRepository;
@@ -27,6 +29,7 @@ namespace VendersCloud.Business.Service.Concrete
             _listValuesRepository = listValuesRepository;
             _usersRepository = usersRepository;
             _configuration = configuration;
+            _partnerVendorRelRepository = partnerVendorRelRepository;   
             _organizationRelationshipsRepository =organizationRelationshipsRepository;
             _communicationService = new CommunicationService(configuration);
             _blobStorageService = blobStorageService;
@@ -335,46 +338,39 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-                if(string.IsNullOrEmpty(request.Sender.Email)|| string.IsNullOrEmpty(request.Sender.OrgCode)|| string.IsNullOrEmpty(request.Receiver.Email)|| string.IsNullOrEmpty(request.Receiver.OrgCode)|| string.IsNullOrEmpty(request.Message))
+                if (string.IsNullOrEmpty(request.PartnerCode) ||
+                    string.IsNullOrEmpty(request.VendorCode) ||
+                    request.CreatedBy <= 0 )
                 {
-                    throw new ArgumentException("Enter Valid Inputs!!!");
+                    throw new ArgumentException("Invalid request payload!");
                 }
-                int status = 0;
-                var dbuser = await _usersRepository.GetUserByEmailAndOrgCodeAsync(request.Sender.Email, request.Sender.OrgCode);
-                var relationshipType = Enum.GetName(typeof(RoleType), request.Sender.RoleType);
-                var roleMapping = new Dictionary<string, string>
-                    {
-                        { "Vendor", "1" },
-                        { "Client", "2" }
-                    };
-                if (roleMapping.ContainsKey(relationshipType))
-                {
-                    relationshipType = roleMapping[relationshipType];
-                }
-                //Checking OrgCode is Vendor/Client
-                var orgProfiles = await _orgProfilesService.GetOrgProfilesByOrgCodeAsync(request.Receiver.OrgCode);
-                var userProfiles = await _userProfilesRepository.GetProfileRole(dbuser.Id);
-                var selectedOrgProfile = orgProfiles.Where(x => x.ProfileId != request.Sender.RoleType).ToList();
-                if (selectedOrgProfile == null)
-                {
-                    throw new ArgumentException("Organization as per your request is not found !!");
-                }
-                var selectedUserProfile= userProfiles.Where(x=>x.ProfileId==(request.Sender.RoleType)).ToList();
-                var dbOrgReciver = await _organizationRepository.GetOrganizationData(request.Receiver.OrgCode);
-                var dbOrgSender = await _organizationRepository.GetOrganizationData(request.Sender.OrgCode);
-                if (await _communicationService.DispatchedInvitationMailAsync(dbOrgReciver.OrgName, dbOrgSender.OrgName,request.Sender.Email, request.Receiver.Email,request.Message))
-                {
-                    status = 1;
-                }
-                    var res = await _organizationRelationshipsRepository.AddOrgRelationshipDataAsync(request.Sender.OrgCode, request.Receiver.OrgCode, relationshipType, status, dbuser.Id);
-                return true;
 
+          
+                  
+                    var newRelation = new PartnerVendorRel
+                    {
+                        PartnerCode = request.PartnerCode,
+                        VendorCode = request.VendorCode,
+                        StatusId = request.StatusId,
+                        CreatedBy = request.CreatedBy,
+                        UpdatedBy = request.UpdatedBy,
+                        CreatedOn = DateTime.UtcNow,
+                        UpdatedOn = DateTime.UtcNow,
+                        IsDeleted = false
+                    };
+
+                    var insertResult = await _partnerVendorRelRepository.AddPartnerVendorRelAsync(newRelation);
+
+                    return insertResult > 0;
+                
             }
-            catch(Exception ex)
+            catch
             {
-                throw ex;
+                throw;
             }
         }
+
+
 
         public async Task<bool> ManageRelationshipStatusAsync(int orgRelationshipId, int status)
         {
