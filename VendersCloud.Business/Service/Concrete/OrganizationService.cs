@@ -400,7 +400,7 @@ namespace VendersCloud.Business.Service.Concrete
             {
                 var response = new List<OrgRelationshipSearchResponse>();
                 OrgRelationshipSearchResponse searchResponse = new OrgRelationshipSearchResponse();
-                return await _organizationRelationshipsRepository.GetListRelationshipAsync(request);
+                return await _partnerVendorRelRepository.GetListRelationshipAsync(request);
 
             }
             catch (Exception ex)
