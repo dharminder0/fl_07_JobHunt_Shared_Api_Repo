@@ -69,17 +69,17 @@
                 }
             }
 
-            if (request.Role != null && request.Role.Any())
-            {
-                var rolePlaceholders = string.Join(", ", request.Role.Select((role, index) => $"@Role{index}"));
-                predicates.Add($"EXISTS (SELECT 1 FROM OrgProfiles op WHERE op.OrgCode = o.OrgCode AND op.ProfileId IN ({rolePlaceholders}))");
+            //if (request.Role != null && request.Role.Any())
+            //{
+            //    var rolePlaceholders = string.Join(", ", request.Role.Select((role, index) => $"@Role{index}"));
+            //    predicates.Add($"EXISTS (SELECT 1 FROM OrgProfiles op WHERE op.OrgCode = o.OrgCode AND op.ProfileId IN ({rolePlaceholders}))");
 
-                for (int i = 0; i < request.Role.Count; i++)
-                {
-                    parameters.Add($"Role{i}", request.Role[i]);
-                }
-                parameters.Add("IsDeleted", false);
-            }
+            //    for (int i = 0; i < request.Role.Count; i++)
+            //    {
+            //        parameters.Add($"Role{i}", request.Role[i]);
+            //    }
+            //    parameters.Add("IsDeleted", false);
+            //}
 
             if (request.Resource != null && request.Resource.Any())
             {

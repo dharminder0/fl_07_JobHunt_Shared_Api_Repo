@@ -1,4 +1,5 @@
-﻿using VendersCloud.Business.CommonMethods;
+﻿using System.Data;
+using VendersCloud.Business.CommonMethods;
 
 namespace VendersCloud.Business.Service.Concrete
 {
@@ -8,12 +9,15 @@ namespace VendersCloud.Business.Service.Concrete
         private readonly IOrgLocationRepository _orgLocationRepository;
         private readonly IListValuesRepository _listValuesRepository;
         private readonly IOrgRelationshipsRepository _orgRelationshipRepository;
-        public OrgProfilesService(IOrgProfilesRepository orgProfilesRepository, IOrgLocationRepository orgLocationRepository, IListValuesRepository listValuesRepository, IOrgRelationshipsRepository orgRelationshipRepository)
+        private readonly IPartnerVendorRelRepository _vendorRelRepository;
+
+        public OrgProfilesService(IOrgProfilesRepository orgProfilesRepository, IOrgLocationRepository orgLocationRepository, IListValuesRepository listValuesRepository,
+            IOrgRelationshipsRepository orgRelationshipRepository, IPartnerVendorRelRepository vendorRelRepository)
         {
             _orgProfilesRepository = orgProfilesRepository;
             _orgLocationRepository = orgLocationRepository;
             _listValuesRepository = listValuesRepository;
-            _orgRelationshipRepository = orgRelationshipRepository;
+            _vendorRelRepository = vendorRelRepository;
         }
         public async Task<bool> AddOrganizationProfileAsync(string orgCode, int profileId)
         {
@@ -37,12 +41,12 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-                List<OrgRelationships> orgRelationshipData = new List<OrgRelationships>();
+                List<PartnerVendorRel> orgRelationshipData = new List<PartnerVendorRel>();
                 var data = await _orgProfilesRepository.SearchOrganizationsDetails(request);
                 if (data?.List == null || !data.List.Any())
                     return null;
 
-                // Fetch all OrgCodes from list
+                // Fetch all OrgCodes from list  
                 var orgCodes = data.List.Select(x => x.OrgCode).Distinct().ToList();
 
                 if (!orgCodes.Any())
@@ -54,8 +58,9 @@ namespace VendersCloud.Business.Service.Concrete
                         List = new List<OrganizationDto>()
                     };
 
-                // Fetch locations in a single query
+                // Fetch locations in a single query  
                 var orgLocationData = new List<OrgLocation>();
+                var orgStatusMap = new Dictionary<string, int>(); // Declare orgStatusMap here  
 
                 foreach (var orgCode in orgCodes)
                 {
@@ -64,13 +69,28 @@ namespace VendersCloud.Business.Service.Concrete
                     {
                         orgLocationData.AddRange(locations);
                     }
+
+                    // Await GetOrgRelationshipsListAsync outside the inner loop
+                    var orgRelationshipDatas = await _vendorRelRepository.GetOrgRelationshipsListAsync(request.OrgCode);
+                    orgRelationshipData.AddRange(orgRelationshipDatas);
+
+              
+                    foreach (var rel in orgRelationshipData)
+                    {
+                        if (!orgStatusMap.ContainsKey(rel.PartnerCode))
+                            orgStatusMap[rel.PartnerCode] = rel.StatusId;
+
+                        if (!orgStatusMap.ContainsKey(rel.VendorCode))
+                            orgStatusMap[rel.VendorCode] = rel.StatusId;
+                    }
                 }
 
-                // Fetch all ListValues once for quick lookup
+
+                // Fetch all ListValues once for quick lookup  
                 var listValues = (await _listValuesRepository.GetListValuesAsync())
                     .ToDictionary(x => x.Id, x => x.Value);
 
-                // Map locations by OrgCode
+                // Map locations by OrgCode  
                 var orgLocationMap = orgLocationData
                     .GroupBy(x => x.OrgCode)
                     .ToDictionary(
@@ -82,26 +102,8 @@ namespace VendersCloud.Business.Service.Concrete
                             StateName = listValues.TryGetValue(loc.State, out var stateName) ? stateName : "Unknown"
                         }).ToList()
                     );
-                // Fetch OrgRelationships once and build a map of OrgCode -> Status
-                foreach (var item in request.Role)
-                {
-                   int role = Convert.ToInt32(item);
-                   var orgRelationshipDatas = await _orgRelationshipRepository.GetOrgRelationshipsListAsync(request.OrgCode, role);
-                    orgRelationshipData.AddRange(orgRelationshipDatas);
-                }
-                // Build a map of OrgCode -> Status considering both OrgCode and RelatedOrgCode
-                var orgStatusMap = new Dictionary<string, int>();
 
-                foreach (var rel in orgRelationshipData)
-                {
-                    if (!orgStatusMap.ContainsKey(rel.OrgCode))
-                        orgStatusMap[rel.OrgCode] = rel.Status;
-
-                    if (!orgStatusMap.ContainsKey(rel.RelatedOrgCode))
-                        orgStatusMap[rel.RelatedOrgCode] = rel.Status;
-                }
-
-                // Convert Organization to OrganizationDto
+                // Convert Organization to OrganizationDto  
                 var organizationDtos = data.List.Select(org => new OrganizationDto
                 {
                     Id = org.Id,
@@ -120,7 +122,7 @@ namespace VendersCloud.Business.Service.Concrete
                     Location = orgLocationMap.TryGetValue(org.OrgCode, out var locations) ? locations.Select(l => l.City).ToList() : new List<string>(),
                     State = orgLocationMap.TryGetValue(org.OrgCode, out var location) ? location.Select(l => l.StateName).ToList() : new List<string>(),
                     Status = orgStatusMap.TryGetValue(org.OrgCode, out var status) ? status : 0,
-                    StatusName= CommonFunctions.GetEnumDescription((InviteStatus) status) 
+                    StatusName = CommonFunctions.GetEnumDescription((InviteStatus)status)
                 }).ToList();
 
                 organizationDtos = organizationDtos
