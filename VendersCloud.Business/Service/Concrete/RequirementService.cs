@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Dynamic;
 using VendersCloud.Business.CommonMethods;
 using VendersCloud.Business.Entities.DataModels;
+using VendersCloud.Data.Repositories.Concrete;
 
 namespace VendersCloud.Business.Service.Concrete
 {
@@ -24,7 +25,12 @@ namespace VendersCloud.Business.Service.Concrete
         private readonly IRequirementVendorsRepository _requirementVendorsRepository;
         private readonly IOrgLocationRepository _organizationLocationRepository;
         private readonly IListValuesRepository _listValuesRepository;
-        public RequirementService(IRequirementRepository requirementRepository, IClientsRepository clientsRepository, IResourcesRepository resourcesRepository, IBenchRepository benchRepository, IUsersRepository usersRepository, IOrganizationRepository organizationRepository, ISkillRepository skillRepository, ISkillRequirementMappingRepository skillRequirementMappingRepository, IMatchRecordRepository matchRecordRepository, IOrgRelationshipsRepository orgRelationshipsRepository, IRequirementVendorsRepository requirementVendorsRepository, IOrgLocationRepository organizationLocationRepository, IListValuesRepository listValuesRepository)
+        private readonly IPartnerVendorRelRepository _partnerVendorRelRepository;
+        public RequirementService(IRequirementRepository requirementRepository, IClientsRepository clientsRepository, IResourcesRepository resourcesRepository,
+            IBenchRepository benchRepository, IUsersRepository usersRepository, IOrganizationRepository organizationRepository,
+            ISkillRepository skillRepository, ISkillRequirementMappingRepository skillRequirementMappingRepository, IMatchRecordRepository matchRecordRepository,
+            IOrgRelationshipsRepository orgRelationshipsRepository, IRequirementVendorsRepository requirementVendorsRepository,
+            IOrgLocationRepository organizationLocationRepository, IListValuesRepository listValuesRepository, IPartnerVendorRelRepository partnerVendorRelRepository)
         {
             _requirementRepository = requirementRepository;
             _clientsRepository = clientsRepository;
@@ -39,6 +45,7 @@ namespace VendersCloud.Business.Service.Concrete
             _requirementVendorsRepository = requirementVendorsRepository;
             _organizationLocationRepository = organizationLocationRepository;
             _listValuesRepository = listValuesRepository;
+            _partnerVendorRelRepository = partnerVendorRelRepository;
         }
 
         public async Task<ActionMessageResponse> RequirmentUpsertAsync(RequirementRequest request)
@@ -346,19 +353,19 @@ namespace VendersCloud.Business.Service.Concrete
                 int place, Applicants = 0;
                 var requirements = await _requirementRepository.GetRequirementsListAsync(request);
                 var emplanedRequirements = await _requirementRepository.GetRequirementListAsync();
-                var orgRelationshipdata = await _orgRelationshipsRepository.GetBenchResponseListByIdAsync(request.OrgCode);
+                var orgRelationshipdata = await _partnerVendorRelRepository.GetBenchResponseListByIdAsync(request.OrgCode);
                 RequirementVendorsId = await _requirementVendorsRepository.GetRequirementShareJobsAsync(request.OrgCode);
                 var sharedrequirement = await _requirementRepository.GetRequirementByIdAsync(RequirementVendorsId);
                 foreach (var rel in orgRelationshipdata)
                 {
-                    if (rel.OrgCode == request.OrgCode)
+                    if (rel.PartnerCode == request.OrgCode)
                     {
-                        var reqdata = emplanedRequirements.Where(x => x.OrgCode == rel.RelatedOrgCode && x.Visibility == 2);
+                        var reqdata = emplanedRequirements.Where(x => x.OrgCode == rel.VendorCode && x.Visibility == 2);
                         filteredEmplanelRequirement.AddRange(reqdata);
                     }
                     else
                     {
-                        var reqdata = emplanedRequirements.Where(x => (x.OrgCode == rel.OrgCode && x.Visibility == 2));
+                        var reqdata = emplanedRequirements.Where(x => (x.OrgCode == rel.PartnerCode && x.Visibility == 2));
                         filteredEmplanelRequirement.AddRange(reqdata);
                     }
                 }
