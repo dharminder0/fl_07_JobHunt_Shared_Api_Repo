@@ -459,7 +459,7 @@ ORDER BY r.CreatedOn DESC;";
  
 
             string query = $@"
-SELECT (
+SELECT (SELECT SUM(Positions) FROM Requirement WHERE Status = 1 ) AS OpenPositions,
                             (SELECT COUNT(*) FROM Requirement WHERE Hot = 1 AND Status = 1 ) AS HotRequirements,
                             (SELECT COUNT(*) FROM Applications WHERE Status IN (5, 6) And CreatedBy=@userId) AS InterviewScheduled,
                             (SELECT COUNT(*) FROM Applications WHERE Status IN (2) And CreatedBy=@userId) AS CandidatesToReview,
