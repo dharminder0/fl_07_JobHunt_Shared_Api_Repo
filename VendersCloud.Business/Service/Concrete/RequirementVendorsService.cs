@@ -1,4 +1,6 @@
-﻿namespace VendersCloud.Business.Service.Concrete
+﻿using Elasticsearch.Net;
+
+namespace VendersCloud.Business.Service.Concrete
 {
     public class RequirementVendorsService :IRequirementVendorsService
     {
@@ -44,7 +46,8 @@
                 var res= await _requirementRepository.RequirementUpsertV2Async(dto, uniqueId);
                 if (res)
                 {
-                    if (request.Visibility.Equals(Visibility.Empaneled))
+                    if (request.Visibility == (int)Visibility.Empaneled)
+
                     {
                         request.OrgCode = await _partnerVendorRelRepository.GetAllVendorCodeAsync(request.OrgCode.FirstOrDefault());
                     }

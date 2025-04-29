@@ -300,6 +300,13 @@ SELECT COUNT(*) FROM PartnerVendorRel r {whereClause};
                 List = responseList
             };
         }
+        public async Task<IEnumerable<PartnerVendorRel>> GetBenchResponseListByIdAsync(string orgCode)
+        {
+            var dbInstance = GetDbInstance();
+            var sql = "SELECT * FROM PartnerVendorRel Where IsDeleted<>1 and (PartnerCode = @orgCode OR vendorCode=@orgCode) And Status=2";
 
+            var list = dbInstance.Select<PartnerVendorRel>(sql, new { orgCode }).ToList();
+            return list;
+        }
     }
 }
