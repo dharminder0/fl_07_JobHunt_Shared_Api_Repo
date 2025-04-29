@@ -53,13 +53,13 @@ namespace VendersCloud.Data.Repositories.Concrete
                 return null;
             }
         }
-        public async Task<List<PartnerVendorRel>> GetAllAsync()
+        public async Task<List<string>> GetAllVendorCodeAsync(string partnerCode)
         {
             try
             {
                 var dbInstance = GetDbInstance();
-                var sql = "SELECT * FROM PartnerVendorRel WHERE IsDeleted = 0";
-                var result = await dbInstance.SelectAsync<PartnerVendorRel>(sql);
+                var sql = "SELECT vendorCode FROM PartnerVendorRel WHERE IsDeleted = 0 and partnerCode= @partnerCode";
+                var result = await dbInstance.SelectAsync<string>(sql, new { partnerCode });
                 return result.ToList();
             }
             catch (Exception ex)
@@ -68,6 +68,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                 return null;
             }
         }
+
 
         public async Task<bool> UpdatePartnerVendorRelByIdAsync(int id, PartnerVendorRel updatedEntity)
         {

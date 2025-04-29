@@ -10,7 +10,7 @@ namespace VendersCloud.Data.Repositories.Abstract
     public  interface IPartnerVendorRelRepository : IBaseRepository<PartnerVendorRel>
     {
         Task<PartnerVendorRel> GetByIdAsync(int id);
-        Task<List<PartnerVendorRel>> GetAllAsync();
+     
         Task<bool> UpdatePartnerVendorRelByIdAsync(int id, PartnerVendorRel updatedEntity);
         Task<int> AddPartnerVendorRelAsync(PartnerVendorRel entity);
         Task<List<PartnerVendorRel>> GetByPartnerIdAsync(string partnerCode, string vendorCode);
@@ -18,6 +18,7 @@ namespace VendersCloud.Data.Repositories.Abstract
         Task<PartnerVendorRel> ManagePartnerStatusAsync(string partnerCode, string vendorCode);
         Task<List<PartnerVendorRel>> GetOrgRelationshipsListAsync(string orgCode);
         Task<PaginationDto<OrgRelationshipSearchResponse>> GetListRelationshipAsync(OrgRelationshipSearchRequest request);
+        Task<List<string>> GetAllVendorCodeAsync(string partnerCode);
 
 
     }
