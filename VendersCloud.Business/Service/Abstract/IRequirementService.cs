@@ -13,7 +13,7 @@
         Task<PaginationDto<ApplicationListResponse>> GetApplicantsListByRequirementIdAsync(GetApplicantsByRequirementRequest request);
         Task<PaginationDto<CompanyRequirementResponse>> GetRequirementListByOrgCode(CompanyRequirementSearchRequest request);
         Task<CompanyDashboardCountResponse> GetCountsAsync(string orgCode);
-        Task<CompanyDashboardCountResponse> GetVendorsCountsAsync(string orgCode, string userId);
+        Task<CompanyDashboardCountResponse> GetVendorsCountsAsync(string orgCode, string userId,int roleType);
         Task<List<CompanyGraphResponse>> GetDayWeekCountsAsync(CompanyGraphRequest request);
         Task<dynamic> GetRequirementCountsAsync(CompanyGraphRequest request);
         Task<dynamic> GetVendorRequirementCountsAsync(VendorGraphRequest request);

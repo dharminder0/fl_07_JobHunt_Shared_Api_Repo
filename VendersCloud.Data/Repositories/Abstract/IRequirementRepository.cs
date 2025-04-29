@@ -14,7 +14,7 @@
         Task<IEnumerable<Requirement>> GetRequirementByIdAsync(List<int> requirementId);
         Task<List<Requirement>> GetRequirementByUserIdAsync(List<int> UserId);
         Task<CompanyDashboardCountResponse> GetCountsAsync(string orgCode);
-        Task<CompanyDashboardCountResponse> GetVendorsCountsAsync(string orgCode, string userId);
+        Task<CompanyDashboardCountResponse> GetVendorsCountsAsync(string orgCode, string userId,int roleId);
         Task<List<dynamic>> GetActivePositionsByOrgCodeAsync(string orgCode, string userId);
         Task<List<dynamic>> GetOrgTotalPlacementAndRequirementIdAsync(CompanyGraphRequest request);
         Task<dynamic> GetRequirementCountAsync(CompanyGraphRequest request);
@@ -23,5 +23,6 @@
         Task<bool> UpdateHotByIdAsync(string requirementUniqueId, int hot);
         Task<dynamic> GetCountTechStackByOrgCodeAsync(string orgCode);
         Task<Requirement> GetRequirementByRequirementIdAsync(int requirementId);
+        Task<int> GetRequirementCountByOrgCodeAsync(string orgCode);
     }
 }

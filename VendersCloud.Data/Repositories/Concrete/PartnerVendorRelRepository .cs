@@ -58,7 +58,7 @@ namespace VendersCloud.Data.Repositories.Concrete
             try
             {
                 var dbInstance = GetDbInstance();
-                var sql = "SELECT vendorCode FROM PartnerVendorRel WHERE IsDeleted = 0 and partnerCode= @partnerCode";
+                var sql = "SELECT vendorCode FROM PartnerVendorRel WHERE IsDeleted = 0 and partnerCode= @partnerCode and statusId=2 ";
                 var result = await dbInstance.SelectAsync<string>(sql, new { partnerCode });
                 return result.ToList();
             }
