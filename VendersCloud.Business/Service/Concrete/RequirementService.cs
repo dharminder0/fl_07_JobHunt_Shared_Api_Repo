@@ -721,11 +721,26 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
-        public async Task<CompanyDashboardCountResponse> GetVendorsCountsAsync(string orgCode, string userId)
+        public async Task<CompanyDashboardCountResponse> GetVendorsCountsAsync(string orgCode, string userId, int roletype)
         {
             try
             {
-                return await _requirementRepository.GetVendorsCountsAsync(orgCode, userId);
+                var response= await _requirementRepository.GetVendorsCountsAsync(orgCode, userId,roletype);
+
+                if (roletype == 2)
+                {
+                  List<int>    RequirementVendorsId = await _requirementVendorsRepository.GetRequirementShareJobsAsync(orgCode);
+                    var sharedrequirement = await _requirementRepository.GetRequirementByIdAsync(RequirementVendorsId);
+                    int numberOfPositions = sharedrequirement.Sum(v => v.Positions);
+                    response.OpenPositions = numberOfPositions;
+                }
+                else
+                {
+                   int count=await   _requirementRepository.GetRequirementCountByOrgCodeAsync(orgCode);
+                    response.OpenPositions = count;
+
+                }
+                return response;
             }
             catch (Exception ex)
             {

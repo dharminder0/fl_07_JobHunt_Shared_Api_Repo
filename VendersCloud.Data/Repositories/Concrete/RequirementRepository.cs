@@ -291,6 +291,14 @@ namespace VendersCloud.Data.Repositories.Concrete
             return list;
 
         }
+        public async Task<int> GetRequirementCountByOrgCodeAsync(string orgCode)
+        {
+            var dbInstance = GetDbInstance();
+            var sql = " SELECT sum(Positions) FROM Requirement   Where IsDeleted<>1 and OrgCode=@orgCode";
+            return ExecuteScalar<int>(sql, new { orgCode });
+;
+
+        }
 
         public async Task<List<Requirement>> GetRequirementsListByVisibilityAsync(SearchRequirementRequest request)
         {
@@ -442,18 +450,21 @@ ORDER BY r.CreatedOn DESC;";
                    ?? new CompanyDashboardCountResponse();
         }
 
-        public async Task<CompanyDashboardCountResponse> GetVendorsCountsAsync(string orgCode ,string userId)
+        public async Task<CompanyDashboardCountResponse> GetVendorsCountsAsync(string orgCode ,string userId,int roleType)
         {
             using var connection = GetConnection();
             var parameters = new DynamicParameters();
             parameters.Add("orgCode", orgCode);
             parameters.Add("userId", userId);
+ 
 
-            string query = @"SELECT (SELECT SUM(Positions) FROM Requirement WHERE Status = 1 ) AS OpenPositions,
+            string query = $@"
+SELECT (
                             (SELECT COUNT(*) FROM Requirement WHERE Hot = 1 AND Status = 1 ) AS HotRequirements,
                             (SELECT COUNT(*) FROM Applications WHERE Status IN (5, 6) And CreatedBy=@userId) AS InterviewScheduled,
                             (SELECT COUNT(*) FROM Applications WHERE Status IN (2) And CreatedBy=@userId) AS CandidatesToReview,
                             (SELECT COUNT(*) FROM Applications WHERE  CreatedBy=@userId)  AS TotalApplicants";
+          
 
             return await connection.QueryFirstOrDefaultAsync<CompanyDashboardCountResponse>(query, parameters)
                    ?? new CompanyDashboardCountResponse();

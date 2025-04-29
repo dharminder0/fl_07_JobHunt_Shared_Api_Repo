@@ -196,11 +196,11 @@
         [ServiceFilter(typeof(RequireAuthorizationFilter))]
         [HttpGet]
         [Route("api/V1/Requirement/Vendor-dashboard/{userId}/{orgCode}")]
-        public async Task<IActionResult> GetVendorsCountsAsync(string orgCode, string userId)
+        public async Task<IActionResult> GetVendorsCountsAsync(string orgCode, string userId, int roleType)
         {
             try
             {
-                var result = await _requirementService.GetVendorsCountsAsync(orgCode, userId);
+                var result = await _requirementService.GetVendorsCountsAsync(orgCode, userId, roleType);
                 return Json(result);
             }
             catch (Exception ex)
