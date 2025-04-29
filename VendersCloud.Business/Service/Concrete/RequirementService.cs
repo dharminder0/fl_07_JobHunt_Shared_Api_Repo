@@ -740,6 +740,9 @@ namespace VendersCloud.Business.Service.Concrete
                     response.OpenPositions = count;
 
                 }
+                List<int> RequirementVendorsIds = await _requirementVendorsRepository.GetRequirementShareJobsAsync(orgCode);
+                var sharedrequirements = await _requirementRepository.GetRequirementByIdAsync(RequirementVendorsIds);
+                response.HotRequirements = sharedrequirements.Count(v => v.Hot);
                 return response;
             }
             catch (Exception ex)
