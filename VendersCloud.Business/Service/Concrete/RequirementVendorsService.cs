@@ -4,10 +4,12 @@
     {
         private readonly IRequirementVendorsRepository _requirementVendorsRepository;
         private readonly IRequirementRepository _requirementRepository;
-        public RequirementVendorsService(IRequirementVendorsRepository requirementVendorsRepository,IRequirementRepository requirementRepository)
+        private readonly IPartnerVendorRelRepository _partnerVendorRelRepository;
+        public RequirementVendorsService(IRequirementVendorsRepository requirementVendorsRepository,IRequirementRepository requirementRepository, IPartnerVendorRelRepository partnerVendorRelRepository)
         {
             _requirementVendorsRepository = requirementVendorsRepository;
             _requirementRepository = requirementRepository;
+            _partnerVendorRelRepository = partnerVendorRelRepository;
         }
 
 
@@ -42,6 +44,10 @@
                 var res= await _requirementRepository.RequirementUpsertV2Async(dto, uniqueId);
                 if (res)
                 {
+                    if (request.Visibility.Equals(Visibility.Empaneled))
+                    {
+                        request.OrgCode = await _partnerVendorRelRepository.GetAllVendorCodeAsync(request.OrgCode.FirstOrDefault());
+                    }
                     foreach (var orgcode in request.OrgCode)
                     {
                         var response = await _requirementVendorsRepository.AddRequirementVendorsDataAsync(id, orgcode);
