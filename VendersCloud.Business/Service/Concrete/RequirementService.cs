@@ -727,7 +727,7 @@ namespace VendersCloud.Business.Service.Concrete
             {
                 var response= await _requirementRepository.GetVendorsCountsAsync(orgCode, userId,roletype);
 
-                if (roletype == 2)
+                if (roletype == 1)
                 {
                   List<int>    RequirementVendorsId = await _requirementVendorsRepository.GetRequirementShareJobsAsync(orgCode);
                     var sharedrequirement = await _requirementRepository.GetRequirementByIdAsync(RequirementVendorsId);
