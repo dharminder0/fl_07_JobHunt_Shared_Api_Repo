@@ -379,7 +379,8 @@ namespace VendersCloud.Business.Service.Concrete
                 }
                 else
                 {
-                    var allRequirements = requirements.Concat(filteredEmplanelRequirement).Concat(sharedrequirement).Distinct().ToList();
+                    var allRequirements = await _requirementRepository.GetRequirementByOrgCodeAsync(request.OrgCode);
+                    //var allRequirements = requirements.Concat(filteredEmplanelRequirement).Concat(sharedrequirement).Distinct().ToList();
                     totalRecords = allRequirements.Count;
                     paginatedRequirements = allRequirements.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToList();
                 }
