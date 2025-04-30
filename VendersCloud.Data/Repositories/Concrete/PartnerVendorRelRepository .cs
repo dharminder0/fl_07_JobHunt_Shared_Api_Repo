@@ -100,28 +100,57 @@ namespace VendersCloud.Data.Repositories.Concrete
                 return false;
             }
         }
-
-        public async Task<int> AddPartnerVendorRelAsync(PartnerVendorRel entity)
+        public async Task<int> UpsertPartnerVendorRelAsync(PartnerVendorRel entity)
         {
             try
             {
                 var dbInstance = GetDbInstance();
                 var tableName = new Table<PartnerVendorRel>();
 
-                var insertQuery = new Query(tableName.TableName).AsInsert(new
-                {
-                    PartnerCode = entity.PartnerCode,
-                    VendorCode = entity.VendorCode,
-                    UpdatedOn = DateTime.UtcNow,
-                    IsDeleted = false,
-                    CreatedBy = entity.CreatedBy,
-                    UpdatedBy = entity.UpdatedBy,
-                    StatusId = entity.StatusId,
-                    CreatedOn = entity.CreatedOn,
-                });
+                // Convert the checkQuery to a SQLKata Query
+                var query = new Query(tableName.TableName)
+                    .Select("Id")
+                    .Where("PartnerCode", entity.PartnerCode)
+                    .Where("VendorCode", entity.VendorCode)
+                    .Where("IsDeleted", false)
+                    .Limit(1);
 
-                int insertedId = await dbInstance.ExecuteScalarAsync<int>(insertQuery);
-                return insertedId;
+                // Use ExecuteScalarAsync to check if the record exists
+                var existingId = await dbInstance.ExecuteScalarAsync<int?>(query);
+
+                if (existingId.HasValue)
+                {
+                    // Record exists, update it
+                    var updateQuery = new Query(tableName.TableName)
+                        .AsUpdate(new
+                        {
+                            UpdatedOn = DateTime.UtcNow,
+                            UpdatedBy = entity.UpdatedBy,
+                            StatusId = entity.StatusId
+                        })
+                        .Where("Id", existingId.Value);
+
+                    await dbInstance.ExecuteAsync(updateQuery);
+                    return existingId.Value;
+                }
+                else
+                {
+                    // Insert new record
+                    var insertQuery = new Query(tableName.TableName).AsInsert(new
+                    {
+                        entity.PartnerCode,
+                        entity.VendorCode,
+                        CreatedOn = entity.CreatedOn,
+                        CreatedBy = entity.CreatedBy,
+                        UpdatedBy = entity.UpdatedBy,
+                        UpdatedOn = DateTime.UtcNow,
+                        IsDeleted = false,
+                        entity.StatusId
+                    });
+
+                    int insertedId = await dbInstance.ExecuteScalarAsync<int>(insertQuery);
+                    return insertedId;
+                }
             }
             catch (Exception ex)
             {
@@ -129,6 +158,8 @@ namespace VendersCloud.Data.Repositories.Concrete
                 return 0;
             }
         }
+
+
 
         public async Task<List<PartnerVendorRel>> GetByPartnerIdAsync(string partnerCode, string vendorCode)
         {

@@ -359,7 +359,7 @@ namespace VendersCloud.Business.Service.Concrete
                         IsDeleted = false
                     };
 
-                    var insertResult = await _partnerVendorRelRepository.AddPartnerVendorRelAsync(newRelation);
+                    var insertResult = await _partnerVendorRelRepository.UpsertPartnerVendorRelAsync(newRelation);
 
                 return new ActionMessageResponse { Content = insertResult, Message = "Dispatched Invitation  Sucessfully", Success = true };
                 
