@@ -490,13 +490,17 @@ namespace VendersCloud.Business.Service.Concrete
                     }
                     else
                     {
+                        var sharedIds = sharedrequirement?.Select(s => s.Id).ToHashSet();
+
                         var reqdata = emplanedRequirements
-                        .Where(x =>
-                            x.OrgCode == rel.PartnerCode &&
-                            x.Visibility == 2 &&
-                            sharedrequirement != null && sharedrequirement.Any()
-                        )
-                        .ToList();
+                            .Where(x =>
+                                x.OrgCode == rel.PartnerCode &&
+                                x.Visibility == 2 &&
+                                sharedIds != null &&
+                                sharedIds.Contains(x.Id)
+                            )
+                            .ToList();
+
 
                         filteredEmplanelRequirement.AddRange(reqdata);
                     }
