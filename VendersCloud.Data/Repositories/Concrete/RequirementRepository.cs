@@ -377,18 +377,24 @@ ORDER BY r.CreatedOn DESC;";
                 parameters.Add("locationTypes", request.LocationType);
             }
 
-            if (!string.IsNullOrEmpty(request.UserId) && request.RoleType.Any() && request.RoleType != null)
+            if (!string.IsNullOrEmpty(request.UserId) && request.RoleType != null && request.RoleType.Any())
             {
-                var rolePlaceholders = string.Join(", ", request.RoleType.Select((role, index) => $"@Role{index}"));
-                predicates.Add($"EXISTS (SELECT 1 FROM UserProfiles op WHERE op.UserId = @UserId AND op.ProfileId IN ({rolePlaceholders}))");
+                var rolePlaceholders = string.Join(", ", request.RoleType.Select((_, i) => $"@Role{i}"));
+                predicates.Add($@"
+EXISTS (
+    SELECT 1 FROM UserProfiles op
+    WHERE op.UserId = @UserId
+    AND op.ProfileId IN ({rolePlaceholders})
+)");
 
                 for (int i = 0; i < request.RoleType.Count; i++)
                 {
                     parameters.Add($"Role{i}", request.RoleType[i]);
                 }
-                parameters.Add("IsDeleted", false);
+
                 parameters.Add("UserId", Convert.ToInt32(request.UserId));
             }
+
             if (request.Status != null && request.Status.Any())
             {
                 predicates.Add("r.Status IN @statuses");
@@ -402,20 +408,22 @@ ORDER BY r.CreatedOn DESC;";
             }
 
             predicates.Add("r.IsDeleted = 0");
-            predicates.Add("r.OrgCode = @orgCode");
             parameters.Add("orgCode", request.OrgCode);
+            predicates.Add("r.OrgCode = @orgCode");
 
-            string whereClause = predicates.Any() ? "WHERE " + string.Join(" AND ", predicates) : "";
+            var whereClause = predicates.Any()
+                ? "WHERE " + string.Join(" AND ", predicates)
+                : "";
 
-            string query = $@"
+            var query = $@"
 SELECT * FROM Requirement r
 {whereClause}
 ORDER BY r.CreatedOn DESC;";
 
-            using var multi = await connection.QueryMultipleAsync(query, parameters);
-            var requirements = (await multi.ReadAsync<Requirement>()).ToList();
-            return requirements;
+            var result = await connection.QueryAsync<Requirement>(query, parameters);
+            return result.ToList();
         }
+
 
         public async Task<CompanyDashboardCountResponse> GetCountsAsync(string orgCode)
         {
