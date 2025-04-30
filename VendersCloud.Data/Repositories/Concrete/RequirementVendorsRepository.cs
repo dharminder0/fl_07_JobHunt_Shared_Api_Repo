@@ -40,5 +40,6 @@
             var profile = dbInstance.Select<int>(sql, new { orgCode }).ToList();
             return profile;
         }
+        
     }
 }

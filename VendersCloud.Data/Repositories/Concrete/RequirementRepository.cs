@@ -586,6 +586,13 @@ SELECT (SELECT SUM(Positions) FROM Requirement WHERE Status = 1 ) AS OpenPositio
                 ResourceCount DESC;";
             return dbInstance.Select<dynamic>(query, new { orgCode }).ToList();
         }
+        public async Task<List<Requirement>> GetPublicRequirementAsync(List<string> orgCode, int visibility)
+        {
+            var dbInstance = GetDbInstance();
+            var sql = "select * from Requirement where orgcode in @orgCode and visibility=@visibility";
 
+            var profile = dbInstance.Select<Requirement>(sql, new { orgCode,visibility }).ToList();
+            return profile;
+        }
     }
 }

@@ -481,6 +481,7 @@ namespace VendersCloud.Business.Service.Concrete
                 var orgRelationshipdata = await _partnerVendorRelRepository.GetBenchResponseListByIdAsync(request.OrgCode);
                 RequirementVendorsId = await _requirementVendorsRepository.GetRequirementShareJobsAsync(request.OrgCode);
                 var sharedrequirement = await _requirementRepository.GetRequirementByIdAsync(RequirementVendorsId);
+                var publicReq = await _requirementRepository.GetPublicRequirementAsync(orgRelationshipdata.Select(v => v.PartnerCode).ToList(), 3);
                 foreach (var rel in orgRelationshipdata)
                 {
                     if (rel.PartnerCode == request.OrgCode)
@@ -506,11 +507,12 @@ namespace VendersCloud.Business.Service.Concrete
                     }
                 }
 
+
                 if (request.RoleType.Contains("1"))
                 {
                     //var visibleRequirements = await _requirementRepository.GetRequirementsListByVisibilityAsync(request);
                     //var allRequirements = requirements.Concat(filteredEmplanelRequirement)./*Concat(sharedrequirement).Distinct()ToList();
-                    var allRequirements = requirements.Concat(sharedrequirement).ToList();
+                    var allRequirements = requirements.Concat(sharedrequirement).Concat(publicReq).ToList();
                     totalRecords = allRequirements.Count;
                     paginatedRequirements = allRequirements.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToList();
                 }
