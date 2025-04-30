@@ -1022,6 +1022,7 @@ namespace VendersCloud.Business.Service.Concrete
                         obj.ClientName = client.ClientName;
                         obj.LogoURL = client.LogoURL;
                         obj.ClientCode = client.ClientCode;
+                        obj.FavIconURL = client.FaviconURL;
                         clientData[client.ClientCode] = obj;
                     }
                     else
@@ -1056,6 +1057,7 @@ namespace VendersCloud.Business.Service.Concrete
                         obj.LocationTypeName = Enum.GetName(typeof(LocationType), req.LocationType);
                         obj.RequirementUniqueId = req.UniqueId;
                         obj.Hot = req.Hot;
+                        obj.FavIconURL = client.FavIconURL;
                         result.Add(obj);
                     }
                     else
