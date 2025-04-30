@@ -19,7 +19,12 @@ namespace VendersCloud.Business.Service.Concrete
         private readonly IBlobStorageService _blobStorageService;
         private readonly IMatchRecordRepository _matchRecordRepository;
         private readonly IRequirementRepository _requirementRepository;
-        public BenchService(IBenchRepository benchRepository, IResourcesRepository resourcesRepository, IRequirementRepository requirementsRepository, IOrganizationRepository organizationRepository, IClientsRepository clientsRepository, IOrgRelationshipsRepository orgRelationshipsRepository, IUsersRepository _usersRepository, ISkillRepository skillRepository, ISkillResourcesMappingRepository skillRequirementMappingRepository, IBlobStorageService blobStorageService, IMatchRecordRepository matchRecordRepository, IRequirementRepository requirementRepository)
+        private readonly IPartnerVendorRelRepository _partnerVendorRelRepository;
+        public BenchService(IBenchRepository benchRepository, IResourcesRepository resourcesRepository, IRequirementRepository requirementsRepository,
+            IOrganizationRepository organizationRepository, 
+            IClientsRepository clientsRepository, IOrgRelationshipsRepository orgRelationshipsRepository, IUsersRepository _usersRepository,
+            ISkillRepository skillRepository, ISkillResourcesMappingRepository skillRequirementMappingRepository, IBlobStorageService blobStorageService,
+            IMatchRecordRepository matchRecordRepository, IRequirementRepository requirementRepository, IPartnerVendorRelRepository partnerVendorRelRepository)
         {
             _benchRepository = benchRepository;
             _resourcesRepository = resourcesRepository;
@@ -33,6 +38,7 @@ namespace VendersCloud.Business.Service.Concrete
             _blobStorageService = blobStorageService;
             _matchRecordRepository = matchRecordRepository;
              _requirementRepository = requirementRepository;
+            _partnerVendorRelRepository = partnerVendorRelRepository;
         }
 
         public async Task<ActionMessageResponse> UpsertBenchAsync(BenchRequest benchRequest)
@@ -393,12 +399,12 @@ namespace VendersCloud.Business.Service.Concrete
             try
             {
                 List<dynamic> data = new List<dynamic>();
-                var orgrelationshipdata = await _orgRelationshipsRepository.GetBenchResponseListByIdAsync(request.OrgCode);
+                var orgrelationshipdata = await _partnerVendorRelRepository.GetBenchResponseListByIdAsync(request.OrgCode);
 
                 // Get related organization codes
                 var relatedOrgCodes = orgrelationshipdata
-                    .Where(x => x.OrgCode == request.OrgCode)
-                    .Select(x => x.RelatedOrgCode)
+                    .Where(x => x.PartnerCode == request.OrgCode)
+                    .Select(x => x.VendorCode)
                     .ToList();
 
                 if (relatedOrgCodes.Any())
@@ -411,8 +417,8 @@ namespace VendersCloud.Business.Service.Concrete
                 else
                 {
                     var orgCodes = orgrelationshipdata
-                        .Where(x => x.RelatedOrgCode == request.OrgCode)
-                        .Select(x => x.OrgCode)
+                        .Where(x => x.PartnerCode == request.OrgCode)
+                        .Select(x => x.VendorCode)
                         .ToList();
 
                     foreach (var orgCode in orgCodes)
