@@ -335,6 +335,131 @@ namespace VendersCloud.Business.Service.Concrete
                 throw new Exception(ex.Message);
             }
         }
+        public async Task<PaginationDto<RequirementResponse>> SearchRequirementAsyncV2(SearchRequirementRequest request)
+        {
+            if (string.IsNullOrEmpty(request.OrgCode) || string.IsNullOrEmpty(request.UserId))
+                throw new Exception("OrgCode is Mandatory!!");
+
+            int totalRecords;
+            var skillData = new List<string>();
+            var requirementsResponseList = new List<RequirementResponse>();
+
+            // Parallel DB calls
+            var requirementsTask = _requirementRepository.GetRequirementsListAsync(request);
+            var allReqTask = _requirementRepository.GetRequirementListAsync();
+            var orgRelationsTask = _partnerVendorRelRepository.GetBenchResponseListByIdAsync(request.OrgCode);
+            var sharedIdsTask = _requirementVendorsRepository.GetRequirementShareJobsAsync(request.OrgCode);
+
+            await Task.WhenAll(requirementsTask, allReqTask, orgRelationsTask, sharedIdsTask);
+
+            var requirements = requirementsTask.Result;
+            var allReq = allReqTask.Result;
+            var orgRelations = orgRelationsTask.Result;
+            var sharedRequirementIds = sharedIdsTask.Result;
+
+            var sharedRequirements = (await _requirementRepository.GetRequirementByIdAsync(sharedRequirementIds)).ToList();
+
+            // Filter emplaned requirements
+            var filteredEmplanelRequirement = orgRelations.SelectMany(rel =>
+                allReq.Where(r =>
+                    r.Visibility == 2 &&
+                    ((rel.PartnerCode == request.OrgCode && r.OrgCode == rel.VendorCode) ||
+                     (rel.PartnerCode != request.OrgCode && r.OrgCode == rel.PartnerCode)))
+            ).ToList();
+
+            List<Requirement> finalRequirements;
+            if (request.RoleType.Contains("1"))
+            {
+                var visibleReqs = await _requirementRepository.GetRequirementsListByVisibilityAsync(request);
+                finalRequirements = requirements.Concat(visibleReqs).Concat(sharedRequirements)
+                                                .DistinctBy(r => r.Id).ToList();
+            }
+            else
+            {
+                finalRequirements = await _requirementRepository.GetRequirementByOrgCodeAsync(request.OrgCode);
+            }
+
+            totalRecords = finalRequirements.Count;
+            var paginatedRequirements = finalRequirements
+                .Skip((request.Page - 1) * request.PageSize)
+                .Take(request.PageSize)
+                .ToList();
+
+            foreach (var r in paginatedRequirements)
+            {
+                var skillMapTask = _skillRequirementMappingRepository.GetSkillRequirementMappingAsync(r.Id);
+                var applicantsTask = _resourcesRepository.GetTotalApplicationsPerRequirementIdAsync(r.Id);
+                var matchTask = _matchRecordRepository.GetMatchingCountByRequirementId(r.Id);
+                var placedTask = GetTotalApplicantsAsync(new TotalApplicantsRequest { RequirementUniqueId = r.UniqueId, Status = 8 });
+
+                await Task.WhenAll(skillMapTask, applicantsTask, matchTask, placedTask);
+
+                var skillMapping = skillMapTask.Result;
+                var applicants = applicantsTask.Result;
+                var matchCountIds = matchTask.Result;
+                var placed = placedTask.Result;
+
+                var benchData = await _benchRepository.GetBenchResponseListByIdAsync(matchCountIds);
+                var matchingCount = benchData.Count(x => x.OrgCode == request.OrgCode);
+
+                if (skillMapping?.Count > 0)
+                {
+                    var skillIds = skillMapping.Select(s => s.SkillId).ToList();
+                    skillData = await _skillRepository.GetAllSkillNamesAsync(skillIds);
+                }
+
+                var clientsData = await _clientsRepository.GetClientsByClientCodeAsync(r.ClientCode);
+                var organizationData = clientsData == null
+                    ? await _organizationRepository.GetOrganizationData(r.ClientCode)
+                    : null;
+
+                var clientName = clientsData?.ClientName ?? organizationData?.OrgName;
+                var clientLogo = clientsData?.FaviconURL ?? organizationData?.Logo;
+
+
+                requirementsResponseList.Add(new RequirementResponse
+                {
+                    Id = r.Id,
+                    Title = r.Title,
+                    OrgCode = r.OrgCode,
+                    Description = r.Description,
+                    Experience = r.Experience,
+                    Budget = r.Budget,
+                    Positions = r.Positions,
+                    Duration = r.Duration,
+                    LocationType = r.LocationType,
+                    LocationTypeName = Enum.GetName(typeof(LocationType), r.LocationType),
+                    Location = r.Location,
+                    ClientCode = r.ClientCode,
+                    Remarks = r.Remarks,
+                    Visibility = r.Visibility,
+                    VisibilityName = Enum.GetName(typeof(Visibility), r.Visibility),
+                    Hot = r.Hot,
+                    Status = r.Status,
+                    Placed = placed,
+                    Applicants = applicants,
+                    StatusName = Enum.GetName(typeof(RequirementsStatus), r.Status),
+                    CreatedOn = r.CreatedOn,
+                    UpdatedOn = r.UpdatedOn,
+                    CreatedBy = r.CreatedBy,
+                    UpdatedBy = r.UpdatedBy,
+                    IsDeleted = r.IsDeleted,
+                    MatchingCandidates = matchingCount,
+                    UniqueId = r.UniqueId,
+                    Skills = skillData,
+                    ClientName = clientsData?.OrgCode ?? clientsData?.ClientName,
+                    ClientFavicon = clientsData?.LogoURL ?? clientsData?.FaviconURL
+                });
+            }
+
+            return new PaginationDto<RequirementResponse>
+            {
+                Count = totalRecords,
+                Page = request.Page,
+                TotalPages = (int)Math.Ceiling(totalRecords / (double)request.PageSize),
+                List = requirementsResponseList
+            };
+        }
 
         public async Task<PaginationDto<RequirementResponse>> SearchRequirementAsync(SearchRequirementRequest request)
         {
@@ -365,7 +490,14 @@ namespace VendersCloud.Business.Service.Concrete
                     }
                     else
                     {
-                        var reqdata = emplanedRequirements.Where(x => (x.OrgCode == rel.PartnerCode && x.Visibility == 2));
+                        var reqdata = emplanedRequirements
+                        .Where(x =>
+                            x.OrgCode == rel.PartnerCode &&
+                            x.Visibility == 2 &&
+                            sharedrequirement != null && sharedrequirement.Any()
+                        )
+                        .ToList();
+
                         filteredEmplanelRequirement.AddRange(reqdata);
                     }
                 }
