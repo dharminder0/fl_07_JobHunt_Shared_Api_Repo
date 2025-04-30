@@ -870,6 +870,8 @@ namespace VendersCloud.Business.Service.Concrete
                 {
                   List<int>    RequirementVendorsId = await _requirementVendorsRepository.GetRequirementShareJobsAsync(orgCode);
                     var sharedrequirement = await _requirementRepository.GetRequirementByIdAsync(RequirementVendorsId);
+                    var publicReq = await _requirementRepository.GetPublicRequirementAsync(null, 3);
+                    sharedrequirement = sharedrequirement.Concat(publicReq);
                     int numberOfPositions = sharedrequirement.Sum(v => v.Positions);
                     response.OpenPositions = numberOfPositions;
                 }
