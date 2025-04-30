@@ -24,5 +24,6 @@
         Task<dynamic> GetCountTechStackByOrgCodeAsync(string orgCode);
         Task<Requirement> GetRequirementByRequirementIdAsync(int requirementId);
         Task<int> GetRequirementCountByOrgCodeAsync(string orgCode);
+        Task<List<Requirement>> GetPublicRequirementAsync(List<string> orgCode, int visibility);
     }
 }
