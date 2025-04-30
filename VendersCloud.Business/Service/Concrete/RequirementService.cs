@@ -508,8 +508,9 @@ namespace VendersCloud.Business.Service.Concrete
 
                 if (request.RoleType.Contains("1"))
                 {
-                    var visibleRequirements = await _requirementRepository.GetRequirementsListByVisibilityAsync(request);
-                    var allRequirements = requirements.Concat(visibleRequirements).Concat(filteredEmplanelRequirement).Concat(sharedrequirement).Distinct().ToList();
+                    //var visibleRequirements = await _requirementRepository.GetRequirementsListByVisibilityAsync(request);
+                    //var allRequirements = requirements.Concat(filteredEmplanelRequirement)./*Concat(sharedrequirement).Distinct()ToList();
+                    var allRequirements = requirements.Concat(sharedrequirement).ToList();
                     totalRecords = allRequirements.Count;
                     paginatedRequirements = allRequirements.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToList();
                 }
