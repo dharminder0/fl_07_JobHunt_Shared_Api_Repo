@@ -1199,10 +1199,10 @@ namespace VendersCloud.Business.Service.Concrete
 
                 var matchingdata = await _matchRecordRepository.GetMatchingResultByRequirementId(request.RequirementId);
 
-                var empaneledOrgs = await _orgRelationshipsRepository.GetBenchResponseListByIdAsync(request.OrgCode);
+                var empaneledOrgs = await _partnerVendorRelRepository.GetBenchResponseListByIdAsync(request.OrgCode);
                 var empOrgCodes = empaneledOrgs
-                    .Where(x => x.OrgCode == request.OrgCode || x.RelatedOrgCode == request.OrgCode)
-                    .Select(x => x.OrgCode == request.OrgCode ? x.RelatedOrgCode : x.OrgCode)
+                    .Where(x => x.PartnerCode == request.OrgCode || x.VendorCode == request.OrgCode)
+                    .Select(x => x.PartnerCode == request.OrgCode ? x.VendorCode : x.PartnerCode)
                     .Distinct()
                     .ToList();
 
