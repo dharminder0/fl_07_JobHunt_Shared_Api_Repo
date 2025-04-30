@@ -47,6 +47,7 @@ namespace VendersCloud.Business.Service.Concrete
                     return null;
 
                 // Fetch all OrgCodes from list  
+              
                 var orgCodes = data.List.Select(x => x.OrgCode).Distinct().ToList();
 
                 if (!orgCodes.Any())

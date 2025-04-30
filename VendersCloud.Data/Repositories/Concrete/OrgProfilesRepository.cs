@@ -68,18 +68,18 @@
                     parameters.Add($"Tech{i}", request.Technology[i]);
                 }
             }
+            if (request.Role != 0)
+            {
+                predicates.Add($@"
+        EXISTS (
+            SELECT 1 
+            FROM OrgProfiles op 
+            WHERE op.OrgCode = o.OrgCode 
+            AND op.ProfileId = @RoleId
+        )");
+                parameters.Add("RoleId", request.Role);
+            }
 
-            //if (request.Role != null && request.Role.Any())
-            //{
-            //    var rolePlaceholders = string.Join(", ", request.Role.Select((role, index) => $"@Role{index}"));
-            //    predicates.Add($"EXISTS (SELECT 1 FROM OrgProfiles op WHERE op.OrgCode = o.OrgCode AND op.ProfileId IN ({rolePlaceholders}))");
-
-            //    for (int i = 0; i < request.Role.Count; i++)
-            //    {
-            //        parameters.Add($"Role{i}", request.Role[i]);
-            //    }
-            //    parameters.Add("IsDeleted", false);
-            //}
 
             if (request.Resource != null && request.Resource.Any())
             {
@@ -134,6 +134,8 @@
 
             using var multi = await connection.QueryMultipleAsync(query, parameters);
             var organizations = (await multi.ReadAsync<Organization>()).ToList();
+           
+         
             int totalRecords = await multi.ReadFirstOrDefaultAsync<int>();
 
             return new PaginationDto<Organization>
