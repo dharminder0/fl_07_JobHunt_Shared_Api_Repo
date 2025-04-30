@@ -350,6 +350,7 @@ namespace VendersCloud.Business.Service.Concrete
                         orgActivePositionsResponse.ClientCode = item.ClientCode;
                         if (string.IsNullOrEmpty(orgActivePositionsResponse.ClientCode))
                         {
+                            continue;
                             orgActivePositionsResponse.ClientCode = "";
                             return new PaginationDto<OrgActivePositionsResponse>
                             {
