@@ -477,54 +477,62 @@ namespace VendersCloud.Business.Service.Concrete
                 }
                 int place, Applicants = 0;
                 var requirements = await _requirementRepository.GetRequirementsListAsync(request);
-                var emplanedRequirements = await _requirementRepository.GetRequirementListAsync();
-                var orgRelationshipdata = await _partnerVendorRelRepository.GetBenchResponseListByIdAsync(request.OrgCode);
-                RequirementVendorsId = await _requirementVendorsRepository.GetRequirementShareJobsAsync(request.OrgCode);
-                var sharedrequirement = await _requirementRepository.GetRequirementByIdAsync(RequirementVendorsId);
-                var publicReq = await _requirementRepository.GetPublicRequirementAsync(orgRelationshipdata.Select(v => v.PartnerCode).ToList(), 3);
-                foreach (var rel in orgRelationshipdata)
+                if (!string.IsNullOrEmpty(request.SearchText) || request.LocationType != null && request.LocationType.Any() || request.Status != null && request.Status.Any()
+                    || request.ClientCode != null && request.ClientCode.Any())
                 {
-                    if (rel.PartnerCode == request.OrgCode)
-                    {
-                        var reqdata = emplanedRequirements.Where(x => x.OrgCode == rel.VendorCode && x.Visibility == 2);
-                        filteredEmplanelRequirement.AddRange(reqdata);
-                    }
-                    else
-                    {
-                        var sharedIds = sharedrequirement?.Select(s => s.Id).ToHashSet();
-
-                        var reqdata = emplanedRequirements
-                            .Where(x =>
-                                x.OrgCode == rel.PartnerCode &&
-                                x.Visibility == 2 &&
-                                sharedIds != null &&
-                                sharedIds.Contains(x.Id)
-                            )
-                            .ToList();
-
-
-                        filteredEmplanelRequirement.AddRange(reqdata);
-                    }
-                }
-
-
-                if (request.RoleType.Contains("1"))
-                {
-                    //var visibleRequirements = await _requirementRepository.GetRequirementsListByVisibilityAsync(request);
-                    //var allRequirements = requirements.Concat(filteredEmplanelRequirement)./*Concat(sharedrequirement).Distinct()ToList();
-                    var allRequirements = requirements.Concat(sharedrequirement).Concat(publicReq).ToList();
-                    totalRecords = allRequirements.Count;
-                    paginatedRequirements = allRequirements.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToList();
+                    totalRecords = requirements.Count;
+                    paginatedRequirements = requirements.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToList();
                 }
                 else
                 {
-                    var allRequirements = await _requirementRepository.GetRequirementByOrgCodeAsync(request.OrgCode);
-                    //var allRequirements = requirements.Concat(filteredEmplanelRequirement).Concat(sharedrequirement).Distinct().ToList();
-                    totalRecords = allRequirements.Count;
-                    paginatedRequirements = allRequirements.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToList();
+                    var emplanedRequirements = await _requirementRepository.GetRequirementListAsync();
+                    var orgRelationshipdata = await _partnerVendorRelRepository.GetBenchResponseListByIdAsync(request.OrgCode);
+                    RequirementVendorsId = await _requirementVendorsRepository.GetRequirementShareJobsAsync(request.OrgCode);
+                    var sharedrequirement = await _requirementRepository.GetRequirementByIdAsync(RequirementVendorsId);
+                    var publicReq = await _requirementRepository.GetPublicRequirementAsync(orgRelationshipdata.Select(v => v.PartnerCode).ToList(), 3);
+                    foreach (var rel in orgRelationshipdata)
+                    {
+                        if (rel.PartnerCode == request.OrgCode)
+                        {
+                            var reqdata = emplanedRequirements.Where(x => x.OrgCode == rel.VendorCode && x.Visibility == 2);
+                            filteredEmplanelRequirement.AddRange(reqdata);
+                        }
+                        else
+                        {
+                            var sharedIds = sharedrequirement?.Select(s => s.Id).ToHashSet();
+
+                            var reqdata = emplanedRequirements
+                                .Where(x =>
+                                    x.OrgCode == rel.PartnerCode &&
+                                    x.Visibility == 2 &&
+                                    sharedIds != null &&
+                                    sharedIds.Contains(x.Id)
+                                )
+                                .ToList();
+
+
+                            filteredEmplanelRequirement.AddRange(reqdata);
+                        }
+                    }
+
+
+                    if (request.RoleType.Contains("1"))
+                    {
+                        //var visibleRequirements = await _requirementRepository.GetRequirementsListByVisibilityAsync(request);
+                        //var allRequirements = requirements.Concat(filteredEmplanelRequirement)./*Concat(sharedrequirement).Distinct()ToList();
+                        var allRequirements = requirements.Concat(sharedrequirement).Concat(publicReq).ToList();
+                        totalRecords = allRequirements.Count;
+                        paginatedRequirements = allRequirements.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToList();
+                    }
+                    else
+                    {
+                        var allRequirements = await _requirementRepository.GetRequirementByOrgCodeAsync(request.OrgCode);
+                        //var allRequirements = requirements.Concat(filteredEmplanelRequirement).Concat(sharedrequirement).Distinct().ToList();
+                        totalRecords = allRequirements.Count;
+                        paginatedRequirements = allRequirements.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToList();
+                    }
+
                 }
-
-
                 TotalApplicantsRequest ApplicantSearch = new TotalApplicantsRequest();
 
                 var requirementsResponseList = new List<RequirementResponse>();
