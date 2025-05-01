@@ -41,6 +41,7 @@ namespace VendersCloud.Business.Service.Concrete
                     dto.Status = item.Status;
                     id = item.Id;
                     dto.UserId = item.CreatedBy;
+                    dto.Duration = item.Duration;
                 }
                 var uniqueId = Guid.NewGuid().ToString().Substring(0, 12);
                 var res= await _requirementRepository.RequirementUpsertV2Async(dto, uniqueId);

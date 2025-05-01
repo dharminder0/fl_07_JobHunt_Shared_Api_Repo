@@ -31,6 +31,10 @@
         public bool IsDeleted { get; set; }
         public string UniqueId { get; set; }
         public List<string> Skills { get; set; }
-        public int MatchingCandidates { get; set; }
+        public int  MatchingCandidates { get; set; }
+        public string  PartnerCode { get; set; }
+        public string  PartnerName { get; set; }
+        public string  PartnerFavicon { get; set; }
+
     }
 }

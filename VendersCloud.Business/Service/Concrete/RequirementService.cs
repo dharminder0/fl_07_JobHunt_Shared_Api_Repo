@@ -416,6 +416,9 @@ namespace VendersCloud.Business.Service.Concrete
                 var clientName = clientsData?.ClientName ?? organizationData?.OrgName;
                 var clientLogo = clientsData?.FaviconURL ?? organizationData?.Logo;
 
+             
+
+
 
                 requirementsResponseList.Add(new RequirementResponse
                 {
@@ -607,6 +610,25 @@ namespace VendersCloud.Business.Service.Concrete
                             requirementResponse.ClientFavicon = clientData.Logo;
                         }
                     }
+
+                    var patnerData = await _clientsRepository.GetClientsByClientCodeAsync(r.OrgCode);
+                    if (patnerData != null)
+                    {
+                        requirementResponse.PartnerName = patnerData.ClientName;
+                        requirementResponse.PartnerFavicon = patnerData.FaviconURL;
+                        requirementResponse.PartnerCode = r.OrgCode;
+                    }
+                    else
+                    {
+                        var patnerData1 = await _organizationRepository.GetOrganizationData(r.OrgCode);
+                        if (patnerData1 != null)
+                        {
+                            requirementResponse.PartnerName = patnerData1.OrgName;
+                            requirementResponse.ClientFavicon = patnerData1.Logo;
+                            requirementResponse.PartnerCode = r.OrgCode;
+                        }
+                    }
+
 
                     requirementsResponseList.Add(requirementResponse);
                 }
