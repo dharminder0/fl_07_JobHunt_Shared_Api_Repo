@@ -367,7 +367,7 @@ ORDER BY r.CreatedOn DESC;";
 
             if (!string.IsNullOrWhiteSpace(request.SearchText))
             {
-                predicates.Add("(r.Title LIKE @searchText OR r.Description LIKE @searchText OR r.ClientCode LIKE @searchText)");
+                predicates.Add("(r.Title LIKE @searchText  OR r.ClientCode LIKE @searchText)");
                 parameters.Add("searchText", $"%{request.SearchText}%");
             }
 
