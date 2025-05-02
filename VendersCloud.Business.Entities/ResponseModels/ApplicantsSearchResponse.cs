@@ -17,4 +17,23 @@
         public string Comment { get; set; }
         public int MatchScore { get; set; }
     }
+    public class VendorContractResponse
+    {
+        public string UserId { get; set; }
+        public int TotalRecords { get; set; }
+        public List<VendorDetailDto> Records { get; set; }
+    }
+    public class VendorDetailDto
+    {
+        public string RequirementTitle { get; set; }
+        public DateTime RequirmentPostedDate { get; set; }
+        public string ResourceName { get; set; }
+        public string ClientLogoUrl { get; set; }
+        public string ClientName { get; set; }
+        public int NumberOfApplicants { get; set; }
+        public int NumberOfPosition { get; set; }
+        public string  ContractPeriod  { get; set; }
+        public string  Visibility { get; set; }
+    }
+
 }

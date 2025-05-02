@@ -152,6 +152,15 @@
                 return BadRequest(ex.Message);
             }
         }
+        [HttpPost("api/V1/Resources/contracts")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ServiceFilter(typeof(RequireAuthorizationFilter))]
+        public async Task<IActionResult> GetVendorContracts([FromBody] VendorContractRequest request)
+        {
+            var result = await _benchService.GetVendorContractsAsync(request);
+            return Ok(result);
+        }
     }
 
 }

@@ -273,7 +273,7 @@ namespace VendersCloud.Business.Service.Concrete
                     var searchResponse = new ApplicantsSearchResponse
                     {
                         Status = data.Status,
-                        StatusName = CommonFunctions.GetEnumDescription((ApplyStatus)data.Status),
+                        StatusName = CommonFunctions.GetEnumDescription((RecruitmentStatus)data.Status),
                         Comment = data.Comment,
                         ApplicationDate = data.CreatedOn
                     };
@@ -519,7 +519,36 @@ namespace VendersCloud.Business.Service.Concrete
                 throw ex;
             }
         }
+        public async Task<ActionMessageResponse> GetVendorContractsAsync(VendorContractRequest request)
+        {
+            try
+            {
 
+
+                var records = await _resourcesRepository.GetContractsByTypeAsync(request);
+
+                return new ActionMessageResponse
+                {
+                    Success = true,
+                    Message = "Contracts fetched successfully.",
+                    Content = new VendorContractResponse
+                    {
+                   
+                        Records = records.Skip((request.PageNumber - 1) * request.PageSize).Take(request.PageSize).ToList(),
+                        TotalRecords = records.Count
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ActionMessageResponse
+                {
+                    Success = false,
+                    Message = ex.Message,
+                    Content = ""
+                };
+            }
+        }
         public async Task<dynamic> GetCountTechStackByOrgCodeAsync(string orgCode)
         {
             try
