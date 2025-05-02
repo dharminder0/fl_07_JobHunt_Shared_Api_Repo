@@ -9,4 +9,17 @@
         public int Page { get; set; }
         public int PageSize { get; set; }
     }
+    public class VendorContractRequest
+    {
+   
+        public int PageNumber { get; set; }
+        public int PageSize { get; set; }
+        public bool IsActiveContracts { get; set; }
+        public bool IsPastContracts { get; set; }
+        public bool IsOpenPosition { get; set; }
+        public bool IsBenchStrength { get; set; }
+        public string PartnerCode { get; set; }
+        public string  VendorCode { get; set; }
+    }
+
 }

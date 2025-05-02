@@ -723,7 +723,7 @@ namespace VendersCloud.Business.Service.Concrete
                             Title = requirementItem.Title,
                             RequirementId = requirementItem.Id,
                             Status = applicationItem.Status,
-                            StatusName = System.Enum.GetName(typeof(ApplyStatus), applicationItem.Status),
+                            StatusName = System.Enum.GetName(typeof(RecruitmentStatus), applicationItem.Status),
                             ApplicationDate = applicationItem.CreatedOn,
                             FirstName = benchMember.FirstName,
                             LastName = benchMember.LastName,
@@ -811,7 +811,7 @@ namespace VendersCloud.Business.Service.Concrete
                                 OrgName = orgData.OrgName,
                                 OrgLogo = orgData.Logo,
                                 Status = app.Status,
-                                StatusName = CommonFunctions.GetEnumDescription((ApplyStatus)app.Status)
+                                StatusName = CommonFunctions.GetEnumDescription((RecruitmentStatus)app.Status)
                             };
 
                             var vendorDetails = await _usersRepository.GetUserByIdAsync(app.CreatedBy);

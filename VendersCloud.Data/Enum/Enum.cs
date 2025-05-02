@@ -89,32 +89,47 @@ namespace VendersCloud.Data.Enum
             [Description("Negotiable")]
             Negotiable = 6
         }
-
-        public enum ApplyStatus
+        public enum RecruitmentStatus
         {
-            [Description("New")]
-             New =1,
+            [Description("New Application")]
+            New = 1,
 
-            [Description("In Review")]
-             InReview=2,
+            [Description("Under Review")]
+            UnderReview = 2,
 
             [Description("Shortlisted")]
-             Shortlisted =3,
+            Shortlisted = 3,
 
             [Description("Technical Assessment")]
-            TechnicalAssessment=4,
+            TechnicalAssessment = 4,
 
-            [Description("Interview Round I")]
-            InterviewRoundI=5,
+            [Description("Interview Round 1")]
+            InterviewRound1 = 5,
 
-            [Description("Interview Round II")]
-            InterviewRoundII=6,
+            [Description("Interview Round 2")]
+            InterviewRound2 = 6,
+
+            [Description("Interview Round 3")]
+            InterviewRound3 = 7,
+
+            [Description("Selected")]
+            Selected = 8,
+
+            [Description("Onboarded")]
+            Onboarded = 9,
+
+            [Description("Contract Closed")]
+            ContractClosed = 10,
 
             [Description("Rejected")]
-            Rejected =7,
+            Rejected = 11,
 
-            [Description("Placed")]
-            Placed =8,
+            [Description("On Hold")]
+            OnHold = 12,
+
+            [Description("Withdrawn")]
+            Withdrawn = 13
         }
+      
     }
 }
