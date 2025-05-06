@@ -1219,7 +1219,12 @@ namespace VendersCloud.Business.Service.Concrete
                     int id = await _matchRecordRepository.GetMatchApplicant(request.RequirementId, item.Id);
                     if (id > 0)
                     {
-                        continue;
+                        obj.IsApplied = true;
+                    }
+                    else
+                    {
+                        obj.IsApplied = false;
+
                     }
                     obj.MatchScore = matchScoreResult.MatchScore;
 
