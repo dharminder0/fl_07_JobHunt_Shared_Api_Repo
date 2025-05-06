@@ -284,9 +284,9 @@ namespace VendersCloud.Business.Service.Concrete
                     {
                         searchResponse.Title = requirement.Title;
                         searchResponse.Id = data.Id;
-                        searchResponse.CV = benchDataList.ToDictionary(v => v.Id.ToString(), v => (object)v.CV);
-                        searchResponse.Avatar = benchDataList
-    .FirstOrDefault(v => v.Id == data.ResourceId)?.Avtar;
+                        searchResponse.CV = await GetCvByIdAsync(data.ResourceId);
+    //                    searchResponse.Avatar = benchDataList
+    //.FirstOrDefault(v => v.Id == data.ResourceId)?.Avtar;
 
 
 
