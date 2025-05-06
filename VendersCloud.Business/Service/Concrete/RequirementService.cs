@@ -8,6 +8,7 @@ using VendersCloud.Business.CommonMethods;
 using VendersCloud.Business.Entities.DataModels;
 using VendersCloud.Common.Extensions;
 using VendersCloud.Data.Repositories.Concrete;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace VendersCloud.Business.Service.Concrete
 {
@@ -882,13 +883,17 @@ namespace VendersCloud.Business.Service.Concrete
                             requirementResponse.VendorOrgCode = vendorOrgData.OrgCode;
                             requirementResponse.ResourceId = app.ResourceId;
                             var benchData = await _benchRepository.GetBenchResponseByIdAsync(app.ResourceId);
+                            var matchResult = await _matchRecordRepository.GetMatchScoreAsync(app.RequirementId, app.ResourceId);
+                            requirementResponse.MatchingScore =matchResult.MatchScore;
+                          
+                                
                             var candidateDetails = benchData?.FirstOrDefault();
 
                             if (candidateDetails != null)
                             {
                                 requirementResponse.FirstName = candidateDetails.FirstName;
                                 requirementResponse.LastName = candidateDetails.LastName;
-                                requirementResponse.CV = candidateDetails.CV;
+                                requirementResponse.CV = await GetCvByIdAsync(candidateDetails.Id); 
                             }
 
                             requirementResponse.Applicants = await _resourcesRepository.GetTotalApplicationsPerRequirementIdAsync(requirementResponse.RequirementId);
@@ -1246,27 +1251,26 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
-        public async Task<dynamic> GetCvByIdAsync(int id)
+        public async Task<string> GetCvByIdAsync(int id)
         {
-            try
+            var data = await _benchRepository.GetBenchResponseByIdAsync(id);
+            var cv = data.FirstOrDefault();
+
+            if (cv == null)
+                return null;
+
+            var avatar = await GetAvtarByIdAsync(id);
+            var cvJson = JsonConvert.DeserializeObject<Dictionary<string, object>>(cv.CV.ToString());
+
+            if (!string.IsNullOrWhiteSpace(avatar))
             {
-                var data = await _benchRepository.GetBenchResponseByIdAsync(id);
-                var cv = data.FirstOrDefault();
-
-                if (cv == null)
-                    return null;
-
-                var avatar = await GetAvtarByIdAsync(id);
-                var cvJson = JsonConvert.DeserializeObject<Dictionary<string, object>>(cv.CV.ToString());
                 cvJson["avatar"] = avatar;
+            }
 
-                return cvJson;
-            }
-            catch (Exception ex)
-            {
-                throw;
-            }
+            return JsonConvert.SerializeObject(cvJson); // ✅ convert dictionary to string
         }
+
+
         public async Task<string> GetAvtarByIdAsync(int benchId)
         {
             try

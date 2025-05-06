@@ -24,5 +24,7 @@
         public string VendorOrgName { get; set; }
         public string VendorLogo { get; set; }
         public string Comment { get; set; }
+        public int MatchingScore { get; set; }
+
     }
 }
