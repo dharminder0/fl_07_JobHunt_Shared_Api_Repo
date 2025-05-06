@@ -12,6 +12,7 @@
         public DateTime ApplicationDate {  get; set; }
         public Dictionary<string, object> CV { get; set; }
         public string ClientOrgLogo {  get; set; }
+        public string  Avatar { get; set; }
         public string ClientOrgName { get; set; }
         public string ClientCode { get; set; }
         public string Comment { get; set; }
