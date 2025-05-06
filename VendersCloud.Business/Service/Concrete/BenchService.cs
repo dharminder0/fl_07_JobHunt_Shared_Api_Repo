@@ -1,5 +1,7 @@
 ﻿using Azure.Core;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+using SqlKata;
 using System.Dynamic;
 using VendersCloud.Business.CommonMethods;
 
@@ -282,10 +284,18 @@ namespace VendersCloud.Business.Service.Concrete
                     {
                         searchResponse.Title = requirement.Title;
                         searchResponse.Id = data.Id;
-                        searchResponse.CV = await GetCvByIdAsync(data.Id);
+                        searchResponse.CV = benchDataList.ToDictionary(v => v.Id.ToString(), v => (object)v.CV);
+                        searchResponse.Avatar = benchDataList
+    .FirstOrDefault(v => v.Id == data.ResourceId)?.Avtar;
+
+
+
+
+
                         searchResponse.UniqueId = requirement.UniqueId;
                         var matchScoreResult = await _matchRecordRepository.GetMatchScoreAsync(data.RequirementId, data.ResourceId);
                         searchResponse.MatchScore = matchScoreResult.MatchScore;
+                      
                         if (clientCodes.Count != 0)
                         {
                             if (!string.IsNullOrEmpty(requirement.ClientCode))
@@ -302,7 +312,7 @@ namespace VendersCloud.Business.Service.Concrete
                             }
                         }
                     }
-
+                
 
                     if (benchData.TryGetValue(data.ResourceId, out var resourceList))
                     {
@@ -313,7 +323,7 @@ namespace VendersCloud.Business.Service.Concrete
                             searchResponse.LastName = resource.LastName;
                         }
                     }
-
+                    
                     listSearchResponse.Add(searchResponse);
                 }
 
