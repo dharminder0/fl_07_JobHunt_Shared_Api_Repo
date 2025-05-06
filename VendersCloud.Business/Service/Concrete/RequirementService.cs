@@ -527,6 +527,12 @@ namespace VendersCloud.Business.Service.Concrete
                             .Where(r => request.LocationType.Contains(r.LocationType))
                             .ToList();
                     }
+                    if (request.IsHotEnable)
+                    {
+                        allRequirements = allRequirements
+                            .Where(r => r.Hot == request.IsHotEnable)
+                            .ToList();
+                    }
 
                     if (request.Status != null && request.Status.Any())
                     {
@@ -569,11 +575,18 @@ namespace VendersCloud.Business.Service.Concrete
                             .Where(r => request.Status.Contains(r.Status))
                             .ToList();
                     }
-
-                    if (!string.IsNullOrEmpty(request.SearchText))
+                    if (request.IsHotEnable)
                     {
                         allRequirements = allRequirements
-                            .Where(r => r.Title != null && r.Title.EqualsCI(request.SearchText))
+                            .Where(r => r.Hot == request.IsHotEnable)
+                            .ToList();
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(request.SearchText))
+                    {
+                        allRequirements = allRequirements
+                            .Where(r => !string.IsNullOrEmpty(r.Title) &&
+                                        r.Title.IndexOf(request.SearchText, StringComparison.OrdinalIgnoreCase) >= 0)
                             .ToList();
                     }
 
