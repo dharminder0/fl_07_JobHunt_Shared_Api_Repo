@@ -653,8 +653,19 @@ namespace VendersCloud.Business.Service.Concrete
                 {
                     var requirement = await _requirementRepository.GetRequirementByRequirementIdAsync(item.RequirementId);
                     if (requirement == null) continue;
-
+                    int id = await _matchRecordRepository.GetMatchApplicant(item.RequirementId, item.ResourceId);
+                   
                     dynamic obj = new ExpandoObject();
+                    if (id > 0)
+                    {
+                        obj.IsApplied = true;
+                    }
+                    else
+                    {
+                        obj.IsApplied = false;
+
+                    }
+
                     obj.RequirementId = item.RequirementId;
                     obj.MatchingScore = item.MatchScore;
                     obj.Title = requirement.Title;
