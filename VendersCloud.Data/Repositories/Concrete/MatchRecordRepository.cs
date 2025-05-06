@@ -69,5 +69,14 @@
             var namedatas = namedata.ToList();
             return namedatas;
         }
+
+        public async Task<int> GetMatchApplicant(int requirementId, int resourceId)
+        {
+            var dbInstance = GetDbInstance();
+            var sql = "Select id From [Applications] Where RequirementId= @requirementId And ResourceId= @resourceId";
+            var namedata = await dbInstance.SelectAsync<int>(sql, new { requirementId, resourceId });
+            var namedatas = namedata.FirstOrDefault();
+            return namedatas;
+        }
     }
 }
