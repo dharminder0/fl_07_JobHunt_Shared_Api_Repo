@@ -1209,12 +1209,18 @@ namespace VendersCloud.Business.Service.Concrete
                 List<dynamic> result = new List<dynamic>();
                 List<int> matchingCandidate = await _matchRecordRepository.GetMatchingCountByRequirementId(request.RequirementId);
                 var benchData = await _benchRepository.GetBenchResponseListByIdAsync(matchingCandidate);
+            
 
                 foreach (var item in benchData)
                 {
                     dynamic obj = new ExpandoObject();
 
                     var matchScoreResult = await _matchRecordRepository.GetMatchScoreAsync(request.RequirementId, item.Id);
+                    int id = await _matchRecordRepository.GetMatchApplicant(request.RequirementId, item.Id);
+                    if (id > 0)
+                    {
+                        continue;
+                    }
                     obj.MatchScore = matchScoreResult.MatchScore;
 
                     obj.FirstName = item.FirstName;
