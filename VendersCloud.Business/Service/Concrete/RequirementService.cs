@@ -963,10 +963,13 @@ namespace VendersCloud.Business.Service.Concrete
 
                 if (roletype == 1)
                 {
-                  List<int>    RequirementVendorsId = await _requirementVendorsRepository.GetRequirementShareJobsAsync(orgCode);
+               
+                    List<int>    RequirementVendorsId = await _requirementVendorsRepository.GetRequirementShareJobsAsync(orgCode);
                     var sharedrequirement = await _requirementRepository.GetRequirementByIdAsync(RequirementVendorsId);
-                    var publicReq = await _requirementRepository.GetPublicRequirementAsync(null, 3);
-                    sharedrequirement = sharedrequirement.Concat(publicReq);
+                    var publicReq = await _requirementRepository.GetPublicRequirementAsync(null, 3);             
+                    sharedrequirement = sharedrequirement.Concat(publicReq).Where(v => v.Status == (int)RequirementsStatus.Open);
+                  
+                    
                     int numberOfPositions = sharedrequirement.Sum(v => v.Positions);
                     response.OpenPositions = numberOfPositions;
                 }
