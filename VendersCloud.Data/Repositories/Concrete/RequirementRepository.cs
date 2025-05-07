@@ -542,18 +542,30 @@ SELECT (SELECT SUM(Positions) FROM Requirement WHERE Status = 1 ) AS OpenPositio
             return dbInstance.Select<dynamic>(requirementQuery, new { request.OrgCode, request.StartDate, request.EndDate,request.UserId }).ToList();
         }
 
-        public async Task<dynamic> GetRequirementCountAsync(CompanyGraphRequest request)
+        public async Task<VendorRequirementCount> GetRequirementCountAsync(CompanyGraphRequest request)
         {
             var dbInstance = GetDbInstance();
-            var tableName = new Table<Requirement>();
-            string requirementQuery = @" SELECT 
-                COUNT(CASE WHEN status = 1 THEN 1 END) AS [open],
-                COUNT(CASE WHEN status = 2 THEN 1 END) AS [onhold],
-                COUNT(CASE WHEN status = 3 THEN 1 END) AS [closed]
-            FROM Requirement  WHERE OrgCode = @orgCode 
-                   AND CreatedOn BETWEEN  @StartDate AND (SELECT DATEADD(day, 1, @EndDate))  AND ISDeleted<>1;";
-            return dbInstance.Select<dynamic>(requirementQuery, new { request.OrgCode, request.StartDate, request.EndDate }).ToList();
+
+            string requirementQuery = @"
+        SELECT 
+            COUNT(CASE WHEN status = 1 THEN 1 END) AS [Open],
+            COUNT(CASE WHEN status = 2 THEN 1 END) AS [Onhold],
+            COUNT(CASE WHEN status = 3 THEN 1 END) AS [Closed]
+        FROM Requirement  
+        WHERE OrgCode = @OrgCode 
+          AND CreatedOn BETWEEN @StartDate AND DATEADD(day, 1, @EndDate)  
+          AND IsDeleted <> 1;";
+
+            var result = dbInstance.Select<VendorRequirementCount>(requirementQuery, new
+            {
+                request.OrgCode,
+                request.StartDate,
+                request.EndDate
+            }).FirstOrDefault(); // return a single object
+
+            return result ?? new VendorRequirementCount(); // handle null case
         }
+
         public async Task<VendorRequirementCount> GetVendorRequirementCountAsync(VendorGraphRequest request)
         {
             var dbInstance = GetDbInstance();

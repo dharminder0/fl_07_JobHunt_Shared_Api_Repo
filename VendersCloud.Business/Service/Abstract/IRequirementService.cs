@@ -1,4 +1,6 @@
-﻿namespace VendersCloud.Business.Service.Abstract
+﻿using System.Threading.Tasks;
+
+namespace VendersCloud.Business.Service.Abstract
 {
     public interface IRequirementService
     {
@@ -15,7 +17,7 @@
         Task<CompanyDashboardCountResponse> GetCountsAsync(string orgCode);
         Task<CompanyDashboardCountResponse> GetVendorsCountsAsync(string orgCode, string userId,int roleType);
         Task<List<CompanyGraphResponse>> GetDayWeekCountsAsync(CompanyGraphRequest request);
-        Task<dynamic> GetRequirementCountsAsync(CompanyGraphRequest request);
+        Task<VendorRequirementCount> GetRequirementCountsAsync(CompanyGraphRequest request);
         Task<VendorRequirementCount> GetVendorRequirementCountsAsync(VendorGraphRequest request);
         Task<List<VendorGraphResponse>> GetVendorDayWeekCountsAsync(VendorGraphRequest request);
         Task<ActionMessageResponse> HotRequirementUpsertAsync(HotRequirementRequest request);

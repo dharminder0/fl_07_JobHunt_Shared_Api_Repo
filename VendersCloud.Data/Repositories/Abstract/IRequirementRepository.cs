@@ -17,7 +17,7 @@
         Task<CompanyDashboardCountResponse> GetVendorsCountsAsync(string orgCode, string userId,int roleId);
         Task<List<dynamic>> GetActivePositionsByOrgCodeAsync(string orgCode, string userId);
         Task<List<dynamic>> GetOrgTotalPlacementAndRequirementIdAsync(CompanyGraphRequest request);
-        Task<dynamic> GetRequirementCountAsync(CompanyGraphRequest request);
+        Task<VendorRequirementCount> GetRequirementCountAsync(CompanyGraphRequest request);
         Task<VendorRequirementCount> GetVendorRequirementCountAsync(VendorGraphRequest request);
         Task<List<dynamic>> GetVendorTotalPlacementAndRequirementIdAsync(VendorGraphRequest request);
         Task<bool> UpdateHotByIdAsync(string requirementUniqueId, int hot);

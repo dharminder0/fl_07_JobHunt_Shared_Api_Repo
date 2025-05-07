@@ -50,7 +50,7 @@ namespace VendersCloud.Business.Service.Concrete
                     if (request.Visibility == (int)Visibility.Empaneled)
 
                     {
-                        request.OrgCode = await _partnerVendorRelRepository.GetAllVendorCodeAsync(request.OrgCode.FirstOrDefault());
+                        request.OrgCode = await _partnerVendorRelRepository.GetAllVendorCodeAsync(data.Select(v=>v.OrgCode).FirstOrDefault());
                     }
                     foreach (var orgcode in request.OrgCode)
                     {
