@@ -2,7 +2,7 @@
 {
     public class VendorActiveClientResponse
     {
-        public string UserId { get; set; }
+        public string VendorCode { get; set; }
         public int PageNumber { get; set; }
         public int PageSize { get; set; }
     }
