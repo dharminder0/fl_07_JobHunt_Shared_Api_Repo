@@ -14,5 +14,13 @@
         public int Onhold { get; set; }
         public int Closed { get; set; }
     }
+    public class VendorPlacementSummary
+    {
+        public string OrgCode { get; set; }
+        public string WeekDay { get; set; }
+        public int TotalPositions { get; set; }
+        public int TotalPlacements { get; set; }
+    }
+
 
 }

@@ -10,5 +10,6 @@
         Task<int> GetTotalPlacementsAsync(List<int> requirementIds);
         Task<int> GetTotalPlacementsByUserIdsAsync(List<int> userId);
         Task<List<VendorDetailDto>> GetContractsByTypeAsync(VendorContractRequest request);
+        Task<Dictionary<int, int>> GetPlacementsGroupedByRequirementAsync(List<int> requirementIds);
     }
 }
