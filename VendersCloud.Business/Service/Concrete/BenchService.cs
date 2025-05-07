@@ -22,11 +22,14 @@ namespace VendersCloud.Business.Service.Concrete
         private readonly IMatchRecordRepository _matchRecordRepository;
         private readonly IRequirementRepository _requirementRepository;
         private readonly IPartnerVendorRelRepository _partnerVendorRelRepository;
+        private readonly IRequirementVendorsRepository _requirementVendorsRepository;
+
         public BenchService(IBenchRepository benchRepository, IResourcesRepository resourcesRepository, IRequirementRepository requirementsRepository,
             IOrganizationRepository organizationRepository, 
             IClientsRepository clientsRepository, IOrgRelationshipsRepository orgRelationshipsRepository, IUsersRepository _usersRepository,
             ISkillRepository skillRepository, ISkillResourcesMappingRepository skillRequirementMappingRepository, IBlobStorageService blobStorageService,
-            IMatchRecordRepository matchRecordRepository, IRequirementRepository requirementRepository, IPartnerVendorRelRepository partnerVendorRelRepository)
+            IMatchRecordRepository matchRecordRepository, IRequirementRepository requirementRepository, IPartnerVendorRelRepository partnerVendorRelRepository,
+            IRequirementVendorsRepository requirementVendorsRepository)
         {
             _benchRepository = benchRepository;
             _resourcesRepository = resourcesRepository;
@@ -41,6 +44,7 @@ namespace VendersCloud.Business.Service.Concrete
             _matchRecordRepository = matchRecordRepository;
              _requirementRepository = requirementRepository;
             _partnerVendorRelRepository = partnerVendorRelRepository;
+            _requirementVendorsRepository = requirementVendorsRepository;
         }
 
         public async Task<ActionMessageResponse> UpsertBenchAsync(BenchRequest benchRequest)
@@ -481,54 +485,84 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-                List<OrgActivePositionsResponse> orgActivePositionsResponseList = new List<OrgActivePositionsResponse>();
+                List<OrgActivePositionsResponse> orgActivePositionsResponseList = new();
 
-                var data = await _requirementsRepository.GetActivePositionsByOrgCodeAsync(null, request.UserId);
-                var totalCount = data.Count();
-                var totalPages = (int)Math.Ceiling((double)totalCount / request.PageSize);
-                if (data != null)
+             
+                List<int> requirementVendorsId = await _requirementVendorsRepository.GetRequirementShareJobsAsync(request.VendorCode);
+                var sharedRequirements = (await _requirementRepository.GetRequirementByIdAsync(requirementVendorsId)).ToList();
+
+                var topOrg = sharedRequirements
+         .Where(r => !string.IsNullOrEmpty(r.OrgCode))
+         .GroupBy(r => r.OrgCode)
+         .Select(g => new
+         {
+             OrgCode = g.Key,
+             Count = g.Select(x => x.Id).Distinct().Count()
+         })
+         .OrderByDescending(x => x.Count)
+         .FirstOrDefault();
+
+                if (topOrg != null)
                 {
-                    var pagedData = data.Skip((request.PageNumber - 1) * request.PageSize).Take(request.PageSize).ToList();
 
-                    foreach (var item in pagedData)
+                    var topOrgRequirements = sharedRequirements
+          .Where(r => r.OrgCode == topOrg.OrgCode)
+          .GroupBy(r => r.OrgCode) 
+          .Select(g => g.First()) 
+          .ToList();
+
+                    var totalCount = topOrgRequirements.Count;
+                    var totalPages = (int)Math.Ceiling((double)totalCount / request.PageSize);
+
+                    var pagedData = topOrgRequirements
+                        .Skip((request.PageNumber - 1) * request.PageSize)
+                        .Take(request.PageSize)
+                        .ToList();
+
+            
+                    foreach (var req in pagedData)
                     {
-                        OrgActivePositionsResponse orgActivePositionsResponse = new OrgActivePositionsResponse();
-                        orgActivePositionsResponse.ClientCode = item.ClientCode;
-                        orgActivePositionsResponse.TotalPositions = item.TotalPositions;
+                        var responseItem = new OrgActivePositionsResponse
+                        {
+                            ClientCode = req.OrgCode,
+                            TotalPositions = req.Positions
+                        };
 
-                        var clientData = await _clientsRepository.GetClientsByClientCodeAsync(item.ClientCode);
+                        var clientData = await _organizationRepository.GetOrganizationData(req.OrgCode);
                         if (clientData != null)
                         {
-                            orgActivePositionsResponse.ClientName = clientData.ClientName;
-                            orgActivePositionsResponse.ClientFavicon = clientData.FaviconURL;
-                        }
-                        else
-                        {
-                            return new PaginationDto<OrgActivePositionsResponse>
-                            {
-                                Count = totalCount,
-                                Page = request.PageNumber,
-                                TotalPages = totalPages,
-                                List = orgActivePositionsResponseList
-                            };
+                            responseItem.ClientName = clientData.OrgName;
+                            responseItem.ClientFavicon = clientData.Logo;
+                           
                         }
 
-                        orgActivePositionsResponseList.Add(orgActivePositionsResponse);
+                        orgActivePositionsResponseList.Add(responseItem);
                     }
+
+                    return new PaginationDto<OrgActivePositionsResponse>
+                    {
+                        Count = totalCount,
+                        Page = request.PageNumber,
+                        TotalPages = totalPages,
+                        List = orgActivePositionsResponseList
+                    };
                 }
+
+                // If no top org found
                 return new PaginationDto<OrgActivePositionsResponse>
                 {
-                    Count = totalCount,
+                    Count = 0,
                     Page = request.PageNumber,
-                    TotalPages = totalPages,
+                    TotalPages = 0,
                     List = orgActivePositionsResponseList
                 };
             }
             catch (Exception ex)
             {
-                throw ex;
+                throw; // Let higher layers handle the exception
             }
         }
+
         public async Task<ActionMessageResponse> GetVendorContractsAsync(VendorContractRequest request)
         {
             try
