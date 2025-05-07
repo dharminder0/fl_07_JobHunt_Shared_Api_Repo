@@ -1063,31 +1063,62 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-                var data = await _requirementRepository.GetVendorTotalPlacementAndRequirementIdAsync(request);
-                var finalResult = new List<VendorGraphResponse>();
+                var requirementIds = await _requirementVendorsRepository.GetRequirementShareJobsAsync(request.OrgCode);
 
-                foreach (var item in data)
-                {
-                    var requirementIds = item.RequirementIds != null ? ((string)item.RequirementIds).Split(',').Select(int.Parse).ToList() : new List<int>();
+                var sharedRequirements = (await _requirementRepository.GetRequirementByIdAsync(requirementIds)).ToList();
+                var publicRequirements = await _requirementRepository.GetPublicRequirementAsync(null, 3);
 
-                    int totalPlacements = await _resourcesRepository.GetTotalPlacementsAsync(requirementIds);
+                var allRequirements = sharedRequirements
+                    .Concat(publicRequirements)
+                    .Where(r => !r.IsDeleted) // Just in case
+                    .ToList();
 
-                    finalResult.Add(new VendorGraphResponse
+                var requirementIdsAll = allRequirements.Select(r => r.Id).ToList();
+
+                var totalPlacementsDict = await _resourcesRepository.GetPlacementsGroupedByRequirementAsync(requirementIdsAll);
+
+                var groupedData = allRequirements
+                    .GroupBy(r => new { r.OrgCode, WeekDay = r.CreatedOn.ToString("ddd") }) 
+                    .Select(g =>
                     {
-                        OrgCode = item.OrgCode,
-                        WeekDay = item.WeekDay,
-                        TotalPositions = item.TotalPositions,
-                        TotalPlacements = totalPlacements
-                    });
-                }
+                        var reqIds = g.Select(x => x.Id).ToList();
+                        int totalPlacements = totalPlacementsDict
+                            .Where(p => reqIds.Contains(p.Key))
+                            .Sum(p => p.Value);
 
-                return finalResult;
+                        return new VendorGraphResponse
+                        {
+                            OrgCode = g.Key.OrgCode,
+                            WeekDay = g.Key.WeekDay,
+                            TotalPositions = g.Sum(x => x.Positions),
+                            TotalPlacements = totalPlacements
+                        };
+                    })
+                    .OrderBy(x => GetWeekDayOrder(x.WeekDay))
+                    .ToList();
+
+                return groupedData;
             }
             catch (Exception ex)
             {
                 throw new Exception($"Error in GetDayWeekCountsAsync: {ex.Message}", ex);
             }
         }
+        private int GetWeekDayOrder(string weekDay)
+        {
+            return weekDay switch
+            {
+                "Mon" => 1,
+                "Tue" => 2,
+                "Wed" => 3,
+                "Thu" => 4,
+                "Fri" => 5,
+                "Sat" => 6,
+                "Sun" => 7,
+                _ => 8
+            };
+        }
+
 
         public async Task<ActionMessageResponse> HotRequirementUpsertAsync(HotRequirementRequest request)
         {

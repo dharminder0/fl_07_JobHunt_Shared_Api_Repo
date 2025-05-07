@@ -217,6 +217,21 @@ ORDER BY a.CreatedOn DESC";
         }
 
 
+        public async Task<Dictionary<int, int>> GetPlacementsGroupedByRequirementAsync(List<int> requirementIds)
+        {
+            var dbInstance = GetDbInstance();
+
+            var query = new Query("Applications")
+                .WhereIn("RequirementId", requirementIds)
+                .Where("Status", 8)
+                .GroupBy("RequirementId")
+                .Select("RequirementId")
+                .SelectRaw("COUNT(DISTINCT ResourceId) AS Total");
+
+            var result = await dbInstance.GetAsync<(int RequirementId, int Total)>(query);
+
+            return result.ToDictionary(x => x.RequirementId, x => x.Total);
+        }
 
 
     }
