@@ -16,7 +16,7 @@
         Task<CompanyDashboardCountResponse> GetVendorsCountsAsync(string orgCode, string userId,int roleType);
         Task<List<CompanyGraphResponse>> GetDayWeekCountsAsync(CompanyGraphRequest request);
         Task<dynamic> GetRequirementCountsAsync(CompanyGraphRequest request);
-        Task<dynamic> GetVendorRequirementCountsAsync(VendorGraphRequest request);
+        Task<VendorRequirementCount> GetVendorRequirementCountsAsync(VendorGraphRequest request);
         Task<List<VendorGraphResponse>> GetVendorDayWeekCountsAsync(VendorGraphRequest request);
         Task<ActionMessageResponse> HotRequirementUpsertAsync(HotRequirementRequest request);
         Task<PaginationDto<dynamic>> GetHotRequirementAsync(GetHotRequirmentRequest request);
