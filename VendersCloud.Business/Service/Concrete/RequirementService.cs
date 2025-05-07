@@ -1021,18 +1021,25 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
-        public async Task<dynamic> GetRequirementCountsAsync(CompanyGraphRequest request)
+        public async Task<VendorRequirementCount> GetRequirementCountsAsync(CompanyGraphRequest request)
         {
             try
             {
                 var data = await _requirementRepository.GetRequirementCountAsync(request);
-                return data;
+
+                return new VendorRequirementCount
+                {
+                    Open = data.Open,
+                    Onhold = data.Onhold,
+                    Closed = data.Closed
+                };
             }
             catch (Exception ex)
             {
                 throw new Exception(ex.Message);
             }
         }
+
 
         public async Task<VendorRequirementCount> GetVendorRequirementCountsAsync(VendorGraphRequest request)
         {
