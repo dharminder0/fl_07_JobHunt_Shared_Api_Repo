@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.Security.Cryptography.X509Certificates;
 using VendersCloud.Business.CommonMethods;
 using VendersCloud.Business.Entities.DataModels;
 using VendersCloud.Common.Extensions;
@@ -1033,15 +1034,24 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
-        public async Task<dynamic> GetVendorRequirementCountsAsync(VendorGraphRequest request)
+        public async Task<VendorRequirementCount> GetVendorRequirementCountsAsync(VendorGraphRequest request)
         {
             try
             {
-                var res = await _partnerVendorRelRepository.GetOrgRelationshipsListAsync(request.OrgCode);
-                string vendorCode = res.Select(v => v.PartnerCode).FirstOrDefault();
-                request.OrgCode = vendorCode;
-                var data = await _requirementRepository.GetVendorRequirementCountAsync(request);
-                return data;
+
+                var obj = new VendorRequirementCount();
+                List<int> RequirementVendorsId = await _requirementVendorsRepository.GetRequirementShareJobsAsync(request.OrgCode);
+                var sharedrequirement = await _requirementRepository.GetRequirementByIdAsync(RequirementVendorsId);
+                var publicReq = await _requirementRepository.GetPublicRequirementAsync(null, 3);
+                sharedrequirement = sharedrequirement.Concat(publicReq);
+                var filteredShared = sharedrequirement
+          .Where(v => v.CreatedOn >= request.StartDate && v.CreatedOn <= request.EndDate)
+          .ToList();
+                obj.Open = filteredShared.Count(v => v.Status == (int)RequirementsStatus.Open);
+                obj.Closed = filteredShared.Count(v => v.Status==(int)RequirementsStatus.Closed);
+                obj.Onhold = filteredShared.Count(v => v.Status == (int)RequirementsStatus.OnHold);
+                return obj;
+   
             }
             catch (Exception ex)
             {
