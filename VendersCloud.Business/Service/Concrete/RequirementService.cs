@@ -1037,6 +1037,9 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
+                var res = await _partnerVendorRelRepository.GetOrgRelationshipsListAsync(request.OrgCode);
+                string vendorCode = res.Select(v => v.PartnerCode).FirstOrDefault();
+                request.OrgCode = vendorCode;
                 var data = await _requirementRepository.GetVendorRequirementCountAsync(request);
                 return data;
             }
