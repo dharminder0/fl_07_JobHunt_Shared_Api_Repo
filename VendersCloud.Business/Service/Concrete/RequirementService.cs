@@ -7,9 +7,11 @@ using System.Dynamic;
 using System.Security.Cryptography.X509Certificates;
 using VendersCloud.Business.CommonMethods;
 using VendersCloud.Business.Entities.DataModels;
+using VendersCloud.Business.Entities.RequestModels;
 using VendersCloud.Common.Extensions;
 using VendersCloud.Data.Repositories.Concrete;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using static VendersCloud.Common.Extensions.StringExtensions;
 
 namespace VendersCloud.Business.Service.Concrete
 {
@@ -779,19 +781,24 @@ namespace VendersCloud.Business.Service.Concrete
                         {
                             continue;
                         }
-
+                      
                         var applicationResponse = new ApplicationListResponse
                         {
                             Title = requirementItem.Title,
                             RequirementId = requirementItem.Id,
                             Status = applicationItem.Status,
-                            StatusName = System.Enum.GetName(typeof(RecruitmentStatus), applicationItem.Status),
+                            StatusName = EnumHelper.GetEnumDescription<RecruitmentStatus>(applicationItem.Status),
                             ApplicationDate = applicationItem.CreatedOn,
                             FirstName = benchMember.FirstName,
                             LastName = benchMember.LastName,
                             VendorOrgCode = benchMember.OrgCode
                         };
-
+                        var data = await _matchRecordRepository.GetMatchScoreAsync(requirementItem.Id, applicationItem.ResourceId);
+                        if (data != null)
+                        {
+                            applicationResponse.MatchingScore = data.MatchScore;
+                        }
+                        applicationResponse.CvData = await GetCvByIdAsync(applicationItem.ResourceId);
                         var orgdata = await _organizationRepository.GetOrganizationData(benchMember.OrgCode);
                         if (orgdata != null)
                         {
