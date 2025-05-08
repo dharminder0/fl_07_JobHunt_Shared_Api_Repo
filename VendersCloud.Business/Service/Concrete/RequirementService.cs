@@ -885,7 +885,11 @@ namespace VendersCloud.Business.Service.Concrete
                             requirementResponse.ResourceId = app.ResourceId;
                             var benchData = await _benchRepository.GetBenchResponseByIdAsync(app.ResourceId);
                             var matchResult = await _matchRecordRepository.GetMatchScoreAsync(app.RequirementId, app.ResourceId);
-                            requirementResponse.MatchingScore =matchResult.MatchScore;
+                            if (matchResult != null)
+                            {
+                                requirementResponse.MatchingScore = matchResult.MatchScore;
+                            }
+  
                           
                                 
                             var candidateDetails = benchData?.FirstOrDefault();
