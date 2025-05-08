@@ -12,6 +12,8 @@
         public string VendorOrgCode { get; set; }
         public string VendorOrgName { get; set; }
         public string vendorLogo { get; set; }
+        public string  CvData { get; set; }
+        public int MatchingScore { get; set; }
 
     }
 }

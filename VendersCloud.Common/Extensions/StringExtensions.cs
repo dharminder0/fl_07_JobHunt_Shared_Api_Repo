@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -82,5 +83,16 @@ namespace VendersCloud.Common.Extensions {
             Match match = Regex.Match(input, @"```json\s*(.+?)\s*```", RegexOptions.Singleline);
             return match.Success ? match.Groups[1].Value : input;
         }
+        public static class EnumHelper
+        {
+            public static string GetEnumDescription<TEnum>(int value) where TEnum : Enum
+            {
+                var enumType = typeof(TEnum);
+                var field = enumType.GetField(Enum.GetName(enumType, value));
+                var attribute = (DescriptionAttribute)Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute));
+                return attribute == null ? value.ToString() : attribute.Description;
+            }
+        }
+
     }
 }
