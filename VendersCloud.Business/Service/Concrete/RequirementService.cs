@@ -984,16 +984,18 @@ namespace VendersCloud.Business.Service.Concrete
                     
                     int numberOfPositions = sharedrequirement.Sum(v => v.Positions);
                     response.OpenPositions = numberOfPositions;
+                    response.HotRequirements = sharedrequirement.Count(v => v.Hot);
                 }
                 else
                 {
                    int count=await   _requirementRepository.GetRequirementCountByOrgCodeAsync(orgCode);
                     response.OpenPositions = count;
+                    List<int> RequirementVendorsIds = await _requirementVendorsRepository.GetRequirementShareJobsAsync(orgCode);
+                    var sharedrequirements = await _requirementRepository.GetRequirementByIdAsync(RequirementVendorsIds);
+                    response.HotRequirements = sharedrequirements.Count(v => v.Hot);
 
                 }
-                List<int> RequirementVendorsIds = await _requirementVendorsRepository.GetRequirementShareJobsAsync(orgCode);
-                var sharedrequirements = await _requirementRepository.GetRequirementByIdAsync(RequirementVendorsIds);
-                response.HotRequirements = sharedrequirements.Count(v => v.Hot);
+               
                 return response;
             }
             catch (Exception ex)
@@ -1062,9 +1064,13 @@ namespace VendersCloud.Business.Service.Concrete
                 var sharedrequirement = await _requirementRepository.GetRequirementByIdAsync(RequirementVendorsId);
                 var publicReq = await _requirementRepository.GetPublicRequirementAsync(null, 3);
                 sharedrequirement = sharedrequirement.Concat(publicReq);
+                DateTime startDate = request.StartDate.Date;
+                DateTime endDate = request.EndDate.Date.AddDays(1).AddTicks(-1);
+
                 var filteredShared = sharedrequirement
-          .Where(v => v.CreatedOn >= request.StartDate && v.CreatedOn <= request.EndDate)
-          .ToList();
+                    .Where(v => v.CreatedOn >= startDate && v.CreatedOn <= endDate)
+                    .ToList();
+
                 obj.Open = filteredShared.Count(v => v.Status == (int)RequirementsStatus.Open);
                 obj.Closed = filteredShared.Count(v => v.Status==(int)RequirementsStatus.Closed);
                 obj.Onhold = filteredShared.Count(v => v.Status == (int)RequirementsStatus.OnHold);
