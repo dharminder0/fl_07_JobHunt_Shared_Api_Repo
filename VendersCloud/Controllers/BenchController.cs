@@ -152,5 +152,54 @@
             }
 
         }
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ServiceFilter(typeof(RequireAuthorizationFilter))]
+        [HttpPost]
+        [Route("api/v1/applicant/upsert-status")]
+        public async Task<IActionResult> UpsertApplicantStatusHistory([FromBody] ApplicantStatusHistory model)
+        {
+            try
+            {
+                if (model == null || model.ApplicantId <= 0 || model.Status <= 0)
+                    return BadRequest("Invalid request data.");
+
+                var result = await _benchService.UpsertApplicantStatusHistory(model);
+                if (!result)
+                    return BadRequest("Failed to insert status history.");
+
+                return Ok("Status history saved successfully.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ServiceFilter(typeof(RequireAuthorizationFilter))]
+        [HttpGet]
+        [Route("api/v1/applicant/status-history")]
+        public async Task<IActionResult> GetApplicantStatusHistory(int applicantId)
+        {
+            try
+            {
+                if (applicantId <= 0)
+                    return BadRequest("Invalid applicant ID.");
+
+                var result = await _benchService.GetApplicantStatusHistory(applicantId);
+                if (result == null || result.Count == 0)
+                    return NotFound("No status history found for the applicant.");
+
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
     }
 }

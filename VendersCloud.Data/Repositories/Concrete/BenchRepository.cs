@@ -161,5 +161,45 @@ namespace VendersCloud.Data.Repositories.Concrete
             var list = dbInstance.Select<string>(sql, new { benchId });
             return list;
         }
+        public async Task<bool> InsertApplicantStatusHistory(ApplicantStatusHistory model)
+        {
+            try
+            {
+                var dbInstance = GetDbInstance();
+                var query = new Query("ApplicantStatusHistory").AsInsert(new
+                {
+                    ApplicantId = model.ApplicantId,
+                    Status = model.Status,
+                    ChangedBy = model.ChangedBy,
+                    ChangedOn = model.ChangedOn,
+                  
+                });
+
+                var rowsAffected = await dbInstance.ExecuteAsync(query);
+                return rowsAffected > 0;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+        public async Task<List<ApplicantStatusHistory>> GetStatusHistoryByApplicantId(int applicantId)
+        {
+            try
+            {
+                var dbInstance = GetDbInstance();
+                var sql = @"SELECT * FROM ApplicantStatusHistory 
+                    WHERE ApplicantId = @applicantId 
+                    ORDER BY ChangedOn ASC";
+
+                var history = dbInstance.Select<ApplicantStatusHistory>(sql, new { applicantId }).ToList();
+                return history;
+            }
+            catch (Exception ex)
+            {
+                return new List<ApplicantStatusHistory>();
+            }
+        }
+
     }
 }

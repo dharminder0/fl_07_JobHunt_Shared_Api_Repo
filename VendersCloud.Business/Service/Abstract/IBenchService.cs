@@ -17,5 +17,7 @@ namespace VendersCloud.Business.Service.Abstract
         Task<string> GetAvtarByIdAsync(int benchId);
         Task<List<dynamic>> GetBenchMatchResultAsync(BenchMatchRecord request);
         Task<ActionMessageResponse> GetVendorContractsAsync(VendorContractRequest request);
+        Task<bool> UpsertApplicantStatusHistory(ApplicantStatusHistory model);
+        Task<List<ApplicantStatusHistoryResponse>> GetApplicantStatusHistory(int applicantId);
     }
 }
