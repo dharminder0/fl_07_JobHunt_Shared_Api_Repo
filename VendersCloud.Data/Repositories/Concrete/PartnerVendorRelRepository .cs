@@ -32,20 +32,39 @@ namespace VendersCloud.Data.Repositories.Concrete
                 return null;
             }
         }
-        public async Task<PartnerVendorRel> ManagePartnerStatusAsync(string partnerCode,string vendorCode)
+        public async Task<PartnerVendorRel> ManagePartnerStatusAsync(string partnerCode, string vendorCode)
         {
             try
             {
-                return await GetByAsync(new PredicateGroup
+                var predicateGroup = new PredicateGroup
+                {
+                    Operator = GroupOperator.Or,
+                    Predicates = new List<IPredicate>
+            {
+                new PredicateGroup
                 {
                     Operator = GroupOperator.And,
                     Predicates = new List<IPredicate>
                     {
                         Predicates.Field<PartnerVendorRel>(f => f.PartnerCode, Operator.Eq, partnerCode),
+                        Predicates.Field<PartnerVendorRel>(f => f.VendorCode, Operator.Eq, vendorCode),
                         Predicates.Field<PartnerVendorRel>(f => f.IsDeleted, Operator.Eq, false),
-                            Predicates.Field<PartnerVendorRel>(f => f.VendorCode, Operator.Eq, vendorCode),
                     }
-                });
+                },
+                new PredicateGroup
+                {
+                    Operator = GroupOperator.And,
+                    Predicates = new List<IPredicate>
+                    {
+                        Predicates.Field<PartnerVendorRel>(f => f.PartnerCode, Operator.Eq, vendorCode),
+                        Predicates.Field<PartnerVendorRel>(f => f.VendorCode, Operator.Eq, partnerCode),
+                        Predicates.Field<PartnerVendorRel>(f => f.IsDeleted, Operator.Eq, false),
+                    }
+                }
+            }
+                };
+
+                return await GetByAsync(predicateGroup);
             }
             catch (Exception ex)
             {
@@ -53,6 +72,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                 return null;
             }
         }
+
         public async Task<List<string>> GetAllVendorCodeAsync(string partnerCode)
         {
             try
