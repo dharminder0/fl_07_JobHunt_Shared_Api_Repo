@@ -9,6 +9,8 @@
         Task<IEnumerable<Resources>> GetBenchResponseByIdAsync(int benchId);
         Task<bool> UpsertAvtarbyIdAsync(int id, string avtar);
         Task<IEnumerable<string>> GetAvtarByIdAsync(int benchId);
+        Task<bool> InsertApplicantStatusHistory(ApplicantStatusHistory model);
+        Task<List<ApplicantStatusHistory>> GetStatusHistoryByApplicantId(int applicantId);
 
     }
 }

@@ -4,6 +4,7 @@ using Newtonsoft.Json.Serialization;
 using SqlKata;
 using System.Dynamic;
 using VendersCloud.Business.CommonMethods;
+using static VendersCloud.Common.Extensions.StringExtensions;
 
 namespace VendersCloud.Business.Service.Concrete
 {
@@ -762,6 +763,37 @@ namespace VendersCloud.Business.Service.Concrete
             result.Records = filteredList;
 
             return new List<dynamic> { result };
+        }
+        public async Task<bool> UpsertApplicantStatusHistory(ApplicantStatusHistory model)
+        {
+            try
+            {
+                if (model == null || model.ApplicantId <= 0 || model.Status <= 0)
+                    return false;
+
+                model.ChangedOn = DateTime.UtcNow; 
+                var result = await _benchRepository.InsertApplicantStatusHistory(model);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+        public async Task<List<ApplicantStatusHistoryResponse>> GetApplicantStatusHistory(int applicantId)
+        {
+            var history = await _benchRepository.GetStatusHistoryByApplicantId(applicantId);
+
+            var result = history.Select(item => new ApplicantStatusHistoryResponse
+            {
+                Status = item.Status,
+                StatusName = EnumHelper.GetEnumDescription<RecruitmentStatus>(item.Status),
+                ChangedBy = item.ChangedBy,
+                ChangedOn = item.ChangedOn,
+              
+            }).ToList();
+
+            return result;
         }
 
     }
