@@ -393,7 +393,7 @@
         public async Task<IActionResult> GetSharedContracts([FromBody] SharedContractsRequest request)
         {
             var result = await _requirementService.GetSharedContractsAsync(request);
-            return Ok(result);
+            return Json(result);
         }
 
     }

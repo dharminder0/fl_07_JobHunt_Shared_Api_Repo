@@ -232,8 +232,7 @@ ORDER BY a.CreatedOn DESC";
 
             return result.ToDictionary(x => x.RequirementId, x => x.Total);
         }
-
-        public async Task<List<VendorDetailDto>> GetSharedContractsAsync(SharedContractsRequest request)
+        public async Task<List<VendorDetailDtoV2>> GetSharedContractsAsync(SharedContractsRequest request)
         {
             using var connection = GetConnection();
             var parameters = new DynamicParameters();
@@ -241,7 +240,7 @@ ORDER BY a.CreatedOn DESC";
 
             string contractTypeClause = "";
             if (request.ContractType == "open")
-                contractTypeClause = "AND r.IsOpen = 1";
+                contractTypeClause = "AND a.status = 1";
             else if (request.ContractType == "active")
                 contractTypeClause = "AND a.Status = 9";
             else if (request.ContractType == "past")
@@ -254,15 +253,23 @@ SELECT
     r.Positions AS NumberOfPosition,
     r.Visibility,
     r.Duration AS ContractPeriod,
-    '' AS CVLink
+    '' AS CVLink,
+    
+    c.ClientName,
+    c.ContactEmail,
+    c.ContactPhone,
+    c.Website,
+    c.LogoURL
 FROM Applications a
 INNER JOIN Requirement r ON a.RequirementId = r.Id
-WHERE r.ClientCode = @clientCode
+INNER JOIN Clients c ON c.OrgCode = r.OrgCode
+WHERE c.ClientCode = @clientCode
   {contractTypeClause}
-GROUP BY r.Id, r.Title, r.CreatedOn, r.Positions, r.Visibility, r.Duration
+GROUP BY r.Id, r.Title, r.CreatedOn, r.Positions, r.Visibility, r.Duration,
+         c.ClientName, c.ContactEmail, c.ContactPhone, c.Website, c.LogoURL
 ORDER BY r.CreatedOn DESC";
 
-            var result = await connection.QueryAsync<VendorDetailDto>(query, parameters);
+            var result = await connection.QueryAsync<VendorDetailDtoV2>(query, parameters);
             return result.ToList();
         }
 

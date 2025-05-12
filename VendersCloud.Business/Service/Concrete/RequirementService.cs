@@ -1517,7 +1517,7 @@ namespace VendersCloud.Business.Service.Concrete
                 {
                     Success = true,
                     Message = "Shared contracts fetched successfully.",
-                    Content = new VendorContractResponse
+                    Content = new VendorContractResponseV2
                     {
                         Records = records
                             .Skip((request.PageNumber - 1) * request.PageSize)
