@@ -37,4 +37,14 @@
         public string  PartnerFavicon { get; set; }
 
     }
+    public class SimilerRequirementResponse
+    {
+        public int Id { get; set; }
+        public string Title { get; set; }
+        public string OrgCode { get; set; }
+        public string Description { get; set; }
+        public int Positions { get; set; }
+        public int  MatchingCandidate { get; set; }
+
+    }
 }

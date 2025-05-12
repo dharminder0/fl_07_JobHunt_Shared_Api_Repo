@@ -1455,6 +1455,47 @@ namespace VendersCloud.Business.Service.Concrete
                 throw;
             }
         }
+        public async Task<List<SimilerRequirementResponse>> GetSimilerRequirementsAsync(SimilerRequirmentequest request)
+        {
+            var targetRequirement = await _requirementRepository
+                .GetRequirementByRequirementIdAsync(Convert.ToInt32(request.RequirmentId));
 
+            if (targetRequirement == null) return new List<SimilerRequirementResponse>();
+
+            var targetSkills = await _skillRequirementMappingRepository
+                .GetSkillRequirementMappingAsync(targetRequirement.Id);
+
+            var skillIds = targetSkills.Select(x => x.SkillId).Distinct().ToList();
+            if (!skillIds.Any()) return new List<SimilerRequirementResponse>();
+
+            var similarRequirementIds = await _skillRequirementMappingRepository
+                .GetRequirementIdsBySkillMatchAsync(skillIds, targetRequirement.Id);
+
+            if (!similarRequirementIds.Any()) return new List<SimilerRequirementResponse>();
+
+            var pagedIds = similarRequirementIds
+                .Skip((request.Page - 1) * request.PageSize)
+                .Take(request.PageSize)
+                .ToList();
+
+            var requirements = await _requirementRepository.GetRequirementByIdAsync(pagedIds);
+
+            var responseList = new List<SimilerRequirementResponse>();
+            foreach (var req in requirements)
+            {
+                var candidateCount = await _matchRecordRepository.GetMatchingCountByRequirementId(req.Id);
+                responseList.Add(new SimilerRequirementResponse
+                {
+                    Id = req.Id,
+                    Title = req.Title,
+                    OrgCode = req.OrgCode,
+                    Description = req.Description,
+                    Positions = req.Positions,
+                    MatchingCandidate = candidateCount.Count()
+                });
+            }
+
+            return responseList;
+        }
     }
 }

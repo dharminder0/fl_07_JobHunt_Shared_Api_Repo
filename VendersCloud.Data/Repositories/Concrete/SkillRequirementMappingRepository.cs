@@ -44,5 +44,15 @@
             var orgdata = dbInstance.Select<SkillRequirementMapping>(query, new {requirementId}).ToList();
             return orgdata;
         }
+        public async Task<List<int>> GetRequirementIdsBySkillMatchAsync(List<int> skillIds, int excludeId)
+        {
+            var dbInstance = GetDbInstance();
+            var sql = @"
+            SELECT DISTINCT RequirementId 
+            FROM SkillRequirementMapping 
+            WHERE SkillId IN @skillIds AND RequirementId != @excludeId";
+            var result =  dbInstance.Select<int>(sql, new { skillIds, excludeId });
+            return result.ToList();
+        }
     }
 }
