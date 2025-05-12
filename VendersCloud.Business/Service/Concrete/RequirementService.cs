@@ -1491,6 +1491,7 @@ namespace VendersCloud.Business.Service.Concrete
                     OrgCode = req.OrgCode,
                     Description = req.Description,
                     Positions = req.Positions,
+                    UniqueId=req.UniqueId,  
                     MatchingCandidate = candidateCount.Count()
                 });
             }

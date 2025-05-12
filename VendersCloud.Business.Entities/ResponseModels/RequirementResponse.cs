@@ -45,6 +45,7 @@
         public string Description { get; set; }
         public int Positions { get; set; }
         public int  MatchingCandidate { get; set; }
+        public string UniqueId { get; set; }
 
     }
 }
