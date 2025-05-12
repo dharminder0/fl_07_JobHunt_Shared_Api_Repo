@@ -1457,6 +1457,9 @@ namespace VendersCloud.Business.Service.Concrete
         }
         public async Task<List<SimilerRequirementResponse>> GetSimilerRequirementsAsync(SimilerRequirmentequest request)
         {
+            List<int> requirementVendorsId = await _requirementVendorsRepository.GetRequirementShareJobsAsync(request.OrgCode);
+            var sharedRequirements = await _requirementRepository.GetRequirementByIdAsync(requirementVendorsId);
+
             var targetRequirement = await _requirementRepository
                 .GetRequirementByRequirementIdAsync(Convert.ToInt32(request.RequirmentId));
 
@@ -1473,7 +1476,13 @@ namespace VendersCloud.Business.Service.Concrete
 
             if (!similarRequirementIds.Any()) return new List<SimilerRequirementResponse>();
 
-            var pagedIds = similarRequirementIds
+       
+            var sharedRequirementIds = sharedRequirements.Select(x => x.Id).ToList();
+            var filteredIds = similarRequirementIds.Intersect(sharedRequirementIds).ToList();
+
+            if (!filteredIds.Any()) return new List<SimilerRequirementResponse>();
+
+            var pagedIds = filteredIds
                 .Skip((request.Page - 1) * request.PageSize)
                 .Take(request.PageSize)
                 .ToList();
@@ -1491,12 +1500,13 @@ namespace VendersCloud.Business.Service.Concrete
                     OrgCode = req.OrgCode,
                     Description = req.Description,
                     Positions = req.Positions,
-                    UniqueId=req.UniqueId,  
+                    UniqueId = req.UniqueId,
                     MatchingCandidate = candidateCount.Count()
                 });
             }
 
             return responseList;
         }
+
     }
 }
