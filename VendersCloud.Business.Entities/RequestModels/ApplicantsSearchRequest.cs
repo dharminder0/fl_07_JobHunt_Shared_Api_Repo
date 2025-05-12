@@ -21,5 +21,12 @@
         public string PartnerCode { get; set; }
         public string  VendorCode { get; set; }
     }
+    public class SharedContractsRequest
+    {
+        public string ClientCode { get; set; }
+        public string ContractType { get; set; } 
+        public int PageNumber { get; set; } = 1;
+        public int PageSize { get; set; } = 10;
+    }
 
 }

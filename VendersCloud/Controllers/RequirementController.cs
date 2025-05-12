@@ -386,6 +386,15 @@
                 return BadRequest(ex);
             }
         }
+        [HttpPost("api/V1/Resources/shared-contracts")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ServiceFilter(typeof(RequireAuthorizationFilter))]
+        public async Task<IActionResult> GetSharedContracts([FromBody] SharedContractsRequest request)
+        {
+            var result = await _requirementService.GetSharedContractsAsync(request);
+            return Ok(result);
+        }
 
     }
 }

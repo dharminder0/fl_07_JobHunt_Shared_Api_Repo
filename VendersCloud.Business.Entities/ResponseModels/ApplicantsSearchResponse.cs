@@ -35,6 +35,7 @@
         public int NumberOfPosition { get; set; }
         public string  ContractPeriod  { get; set; }
         public string  Visibility { get; set; }
+        public string CVLink { get; set; }
     }
 
 }
