@@ -233,6 +233,39 @@ ORDER BY a.CreatedOn DESC";
             return result.ToDictionary(x => x.RequirementId, x => x.Total);
         }
 
+        public async Task<List<VendorDetailDto>> GetSharedContractsAsync(SharedContractsRequest request)
+        {
+            using var connection = GetConnection();
+            var parameters = new DynamicParameters();
+            parameters.Add("@clientCode", request.ClientCode);
+
+            string contractTypeClause = "";
+            if (request.ContractType == "open")
+                contractTypeClause = "AND r.IsOpen = 1";
+            else if (request.ContractType == "active")
+                contractTypeClause = "AND a.Status = 9";
+            else if (request.ContractType == "past")
+                contractTypeClause = "AND a.Status = 10";
+
+            string query = $@"
+SELECT 
+    r.Title AS RequirementTitle,
+    r.CreatedOn AS RequirmentPostedDate,
+    r.Positions AS NumberOfPosition,
+    r.Visibility,
+    r.Duration AS ContractPeriod,
+    '' AS CVLink
+FROM Applications a
+INNER JOIN Requirement r ON a.RequirementId = r.Id
+WHERE r.ClientCode = @clientCode
+  {contractTypeClause}
+GROUP BY r.Id, r.Title, r.CreatedOn, r.Positions, r.Visibility, r.Duration
+ORDER BY r.CreatedOn DESC";
+
+            var result = await connection.QueryAsync<VendorDetailDto>(query, parameters);
+            return result.ToList();
+        }
+
 
     }
 }

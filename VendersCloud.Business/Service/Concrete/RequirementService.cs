@@ -1507,6 +1507,36 @@ namespace VendersCloud.Business.Service.Concrete
 
             return responseList;
         }
+        public async Task<ActionMessageResponse> GetSharedContractsAsync(SharedContractsRequest request)
+        {
+            try
+            {
+                var records = await _resourcesRepository.GetSharedContractsAsync(request);
+
+                return new ActionMessageResponse
+                {
+                    Success = true,
+                    Message = "Shared contracts fetched successfully.",
+                    Content = new VendorContractResponse
+                    {
+                        Records = records
+                            .Skip((request.PageNumber - 1) * request.PageSize)
+                            .Take(request.PageSize)
+                            .ToList(),
+                        TotalRecords = records.Count
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ActionMessageResponse
+                {
+                    Success = false,
+                    Message = ex.Message,
+                    Content = ""
+                };
+            }
+        }
 
     }
 }

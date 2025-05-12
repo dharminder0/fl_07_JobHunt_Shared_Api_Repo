@@ -26,5 +26,6 @@ namespace VendersCloud.Business.Service.Abstract
         Task<dynamic> GetMatchingVendorsAsync(MatchingVendorRequest request);
         Task<PaginationDto<RequirementResponse>> SearchRequirementAsyncV2(SearchRequirementRequest request);
         Task<List<SimilerRequirementResponse>> GetSimilerRequirementsAsync(SimilerRequirmentequest request);
+        Task<ActionMessageResponse> GetSharedContractsAsync(SharedContractsRequest request);
     }
 }
