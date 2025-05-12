@@ -267,7 +267,8 @@ namespace VendersCloud.Business.Service.Concrete
                         RegAddress = response.RegAddress,
                         IsDeleted = response.IsDeleted,
                         SocialLinks = new List<VendersCloud.Business.Entities.ResponseModels.SocialProfiles>(), // Use fully qualified name
-                        OfficeLocation = new List<VendersCloud.Business.Entities.ResponseModels.OfficeLocations>() // Use fully qualified name
+                        OfficeLocation = new List<VendersCloud.Business.Entities.ResponseModels.OfficeLocations>(), // Use fully qualified name
+                        Id=response.Id, 
                     };
 
                     // Add social profiles to the list
