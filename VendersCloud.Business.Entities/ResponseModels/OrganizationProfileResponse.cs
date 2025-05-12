@@ -3,6 +3,7 @@ namespace VendersCloud.Business.Entities.ResponseModels
 {
     public class OrganizationProfileResponse
     {
+        public int Id { get; set; }
         public string OrgCode { get; set; }
         public string OrgName { get; set; }
         public string Phone { get; set; }
