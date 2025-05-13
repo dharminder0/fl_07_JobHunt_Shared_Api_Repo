@@ -232,47 +232,82 @@ ORDER BY a.CreatedOn DESC";
 
             return result.ToDictionary(x => x.RequirementId, x => x.Total);
         }
-        public async Task<List<VendorDetailDtoV2>> GetSharedContractsAsync(SharedContractsRequest request)
+        public async Task<List<VendorDetailDto>> GetSharedContractsAsync(SharedContractsRequest request)
         {
             using var connection = GetConnection();
             var parameters = new DynamicParameters();
             parameters.Add("@clientCode", request.ClientCode);
 
+            // Step 1: Get OrgCode of the client
+            var orgCode = await connection.QueryFirstOrDefaultAsync<string>(
+                "SELECT OrgCode FROM Clients WHERE ClientCode = @clientCode", parameters);
+
+            if (string.IsNullOrEmpty(orgCode))
+                return new List<VendorDetailDto>();
+
+            parameters.Add("@partnerCode", orgCode);
+
+            // Step 2: Get vendor codes for the client's org
+            var vendorCodes = await connection.QueryAsync<string>(
+                "SELECT VendorCode FROM PartnerVendorRel WHERE IsDeleted = 0 AND PartnerCode = @partnerCode AND StatusId = 2", parameters);
+
+            if (!vendorCodes.Any())
+                return new List<VendorDetailDto>();
+
+            // Step 3: Dynamically build vendor filter
+            var vendorCodeParams = vendorCodes.Select((vc, i) => $"@vendorCode{i}").ToList();
+            for (int i = 0; i < vendorCodes.Count(); i++)
+                parameters.Add($"@vendorCode{i}", vendorCodes.ElementAt(i));
+
+            // Step 4: ContractType filter
             string contractTypeClause = "";
-            if (request.ContractType == (int)ContractType.Open) 
-                contractTypeClause = "AND a.status = 1";
-            else if (request.ContractType == (int)ContractType.Active) 
+            if (request.ContractType == (int)ContractType.Open)
+                contractTypeClause = "AND a.Status = 1";
+            else if (request.ContractType == (int)ContractType.Active)
                 contractTypeClause = "AND a.Status = 9";
             else if (request.ContractType == (int)ContractType.Past)
                 contractTypeClause = "AND a.Status = 10";
 
+            // Step 5: Final query
             string query = $@"
 SELECT 
+    r.Id AS RequirementId,
     r.Title AS RequirementTitle,
     r.CreatedOn AS RequirmentPostedDate,
     r.Positions AS NumberOfPosition,
     r.Visibility,
     r.Duration AS ContractPeriod,
-    '' AS CVLink,
-    
-    c.ClientName,
+    r.OrgCode,
     a.Status,
-    c.ContactEmail,
-    c.ContactPhone,
-    c.Website,
-    c.LogoURL
-FROM Applications a
-INNER JOIN Requirement r ON a.RequirementId = r.Id
+    c.ClientName,
+    c.LogoURL AS ClientLogoUrl,
+    res.FirstName + ' ' + res.LastName AS ResourceName,
+    o.OrgName AS VendorName,
+    o.OrgCode AS VendorCode,
+    o.Website,
+    o.Logo AS VendorLogo,
+    r.UniqueId,
+     a.CreatedOn as ContractstartDate,
+    a.UpdatedOn as  ContractEndDate,
+    r.LocationType,
+    '' AS CVLink,
+    COUNT( a.Id) OVER(PARTITION BY r.Id) AS NumberOfApplicants
+FROM PartnerVendorRel pv
+INNER JOIN Organization o ON o.OrgCode = pv.VendorCode
+INNER JOIN Requirement r ON r.OrgCode ='{orgCode}'
 INNER JOIN Clients c ON c.OrgCode = r.OrgCode
-WHERE c.ClientCode = @clientCode
+INNER JOIN Applications a ON a.RequirementId = r.Id
+LEFT JOIN Resources res ON a.ResourceId = res.Id
+WHERE pv.VendorCode IN ({string.Join(",", vendorCodeParams)})
   {contractTypeClause}
-GROUP BY r.Id, r.Title, r.CreatedOn, r.Positions, r.Visibility, r.Duration,
-         c.ClientName, c.ContactEmail, c.ContactPhone, c.Website, c.LogoURL,  a.Status
 ORDER BY r.CreatedOn DESC";
 
-            var result = await connection.QueryAsync<VendorDetailDtoV2>(query, parameters);
-            return result.ToList();
+            var results = await connection.QueryAsync<VendorDetailDto>(query, parameters);
+            return results.ToList();
         }
+
+
+
 
         public enum ContractType
         {

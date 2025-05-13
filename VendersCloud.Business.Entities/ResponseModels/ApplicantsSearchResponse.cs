@@ -32,6 +32,8 @@
     }
     public class VendorDetailDto
     {
+        public string  OrgCode { get; set; }
+        public int RequirementId { get; set; }
         public string RequirementTitle { get; set; }
         public DateTime RequirmentPostedDate { get; set; }
         public string ResourceName { get; set; }
@@ -42,6 +44,13 @@
         public string  ContractPeriod  { get; set; }
         public string  Visibility { get; set; }
         public string CVLink { get; set; }
+        public string  VendorName { get; set; }
+        public string  VendorLogo { get; set; }
+        public string  VendorCode { get; set; }
+        public string UniqueId { get; set; }
+        public DateTime ContractStartDate { get; set; }
+        public DateTime ContractEndDate { get; set; }
+        public string  LocationType { get; set; }
     }
     public class VendorDetailDtoV2
     {
