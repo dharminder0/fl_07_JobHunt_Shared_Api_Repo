@@ -51,6 +51,7 @@
         public string Visibility { get; set; }
         public string ContractPeriod { get; set; }
         public string CVLink { get; set; }
+        public int status { get; set; }
 
 
         public string ClientName { get; set; }
