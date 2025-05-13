@@ -1512,12 +1512,12 @@ namespace VendersCloud.Business.Service.Concrete
             try
             {
                 var records = await _resourcesRepository.GetSharedContractsAsync(request);
-
+              
                 return new ActionMessageResponse
                 {
                     Success = true,
                     Message = "Shared contracts fetched successfully.",
-                    Content = new VendorContractResponseV2
+                    Content = new VendorContractResponse
                     {
                         Records = records
                             .Skip((request.PageNumber - 1) * request.PageSize)
