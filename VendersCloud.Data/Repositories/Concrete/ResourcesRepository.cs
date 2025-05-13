@@ -239,11 +239,11 @@ ORDER BY a.CreatedOn DESC";
             parameters.Add("@clientCode", request.ClientCode);
 
             string contractTypeClause = "";
-            if (request.ContractType == "open")
+            if (request.ContractType == ContractType.Open.ToString().ToLower()) 
                 contractTypeClause = "AND a.status = 1";
-            else if (request.ContractType == "active")
+            else if (request.ContractType == ContractType.Active.ToString().ToLower()) 
                 contractTypeClause = "AND a.Status = 9";
-            else if (request.ContractType == "past")
+            else if (request.ContractType == ContractType.Past.ToString().ToLower())
                 contractTypeClause = "AND a.Status = 10";
 
             string query = $@"
@@ -273,6 +273,12 @@ ORDER BY r.CreatedOn DESC";
             return result.ToList();
         }
 
+        public enum ContractType
+        {
+            Past = 1,
+            Active = 2,
+            Open = 3
+        }
 
     }
 }
