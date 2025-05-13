@@ -239,11 +239,11 @@ ORDER BY a.CreatedOn DESC";
             parameters.Add("@clientCode", request.ClientCode);
 
             string contractTypeClause = "";
-            if (request.ContractType == ContractType.Open.ToString().ToLower()) 
+            if (request.ContractType == (int)ContractType.Open) 
                 contractTypeClause = "AND a.status = 1";
-            else if (request.ContractType == ContractType.Active.ToString().ToLower()) 
+            else if (request.ContractType == (int)ContractType.Active) 
                 contractTypeClause = "AND a.Status = 9";
-            else if (request.ContractType == ContractType.Past.ToString().ToLower())
+            else if (request.ContractType == (int)ContractType.Past)
                 contractTypeClause = "AND a.Status = 10";
 
             string query = $@"
@@ -256,6 +256,7 @@ SELECT
     '' AS CVLink,
     
     c.ClientName,
+    a.Status,
     c.ContactEmail,
     c.ContactPhone,
     c.Website,
@@ -266,7 +267,7 @@ INNER JOIN Clients c ON c.OrgCode = r.OrgCode
 WHERE c.ClientCode = @clientCode
   {contractTypeClause}
 GROUP BY r.Id, r.Title, r.CreatedOn, r.Positions, r.Visibility, r.Duration,
-         c.ClientName, c.ContactEmail, c.ContactPhone, c.Website, c.LogoURL
+         c.ClientName, c.ContactEmail, c.ContactPhone, c.Website, c.LogoURL,  a.Status
 ORDER BY r.CreatedOn DESC";
 
             var result = await connection.QueryAsync<VendorDetailDtoV2>(query, parameters);

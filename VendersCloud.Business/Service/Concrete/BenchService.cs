@@ -783,15 +783,19 @@ namespace VendersCloud.Business.Service.Concrete
         public async Task<List<ApplicantStatusHistoryResponse>> GetApplicantStatusHistory(int applicantId)
         {
             var history = await _benchRepository.GetStatusHistoryByApplicantId(applicantId);
-
-            var result = history.Select(item => new ApplicantStatusHistoryResponse
+            var result= new  List<ApplicantStatusHistoryResponse>();
+            if (history != null && history.Any())
             {
-                Status = item.Status,
-                StatusName = EnumHelper.GetEnumDescription<RecruitmentStatus>(item.Status),
-                ChangedBy = item.ChangedBy,
-                ChangedOn = item.ChangedOn,
-              
-            }).ToList();
+
+                 result = history.Select(item => new ApplicantStatusHistoryResponse
+                {
+                    Status = item.Status,
+                    StatusName = EnumHelper.GetEnumDescription<RecruitmentStatus>(item.Status),
+                    ChangedBy = item.ChangedBy,
+                    ChangedOn = item.ChangedOn,
+
+                }).ToList();
+            }
 
             return result;
         }
