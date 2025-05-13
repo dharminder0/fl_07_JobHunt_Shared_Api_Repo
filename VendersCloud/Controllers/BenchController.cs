@@ -191,7 +191,7 @@
 
                 var result = await _benchService.GetApplicantStatusHistory(applicantId);
                 if (result == null || result.Count == 0)
-                    return Json("No status history found for the applicant.");
+                    return  Json(result);
 
                 return Json(result);
             }
