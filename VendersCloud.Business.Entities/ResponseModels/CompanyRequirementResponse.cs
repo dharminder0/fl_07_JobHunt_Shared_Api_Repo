@@ -5,6 +5,7 @@
         public string Role {  get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
+        public int ApplicationId { get; set; }
         public int ResourceId { get; set; }
         public int RequirementId {  get; set; }
         public string RequirementUniqueId { get; set; }
