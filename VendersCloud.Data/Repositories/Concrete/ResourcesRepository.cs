@@ -4,9 +4,10 @@ namespace VendersCloud.Data.Repositories.Concrete
 {
     public class ResourcesRepository : StaticBaseRepository<Resources>, IResourcesRepository
     {
-        public ResourcesRepository(IConfiguration configuration): base(configuration)
+        private readonly IBenchRepository benchRepository;
+        public ResourcesRepository(IConfiguration configuration, IBenchRepository _benchRepository) : base(configuration)
         {
-        
+        benchRepository = _benchRepository;
         }
 
         public async Task<bool> UpsertApplicants(ApplicationsRequest request,int Id)
@@ -64,6 +65,17 @@ namespace VendersCloud.Data.Repositories.Concrete
             var sql = "SELECT * FROM Applications";
 
             var applicationsData = dbInstance.Select<Applications>(sql).ToList();
+            foreach (var app in applicationsData)
+            {
+                var statusList = await benchRepository.GetStatusHistoryByApplicantId(app.Id);
+                if (statusList != null && statusList.Any())
+                {
+
+                    app.Status = statusList.Select(v => v.Status).First();
+                }
+
+
+            }
             return applicationsData;
         }
 
@@ -82,14 +94,27 @@ namespace VendersCloud.Data.Repositories.Concrete
         public async Task<List<Applications>> GetApplicationsPerRequirementIdAsync(int requirementId)
         {
             var dbInstance = GetDbInstance();
-            var sql = "SELECT * FROM Applications where RequirementId=@requirementId";
+            var sql = "SELECT * FROM Applications WHERE RequirementId = @requirementId";
 
-            var applicationsData = dbInstance.Select<Applications>(sql, new
+            var applicationsData = dbInstance.Select<Applications>(sql, new { requirementId }).ToList();
+
+            foreach (var app in applicationsData)
             {
-                requirementId
-            }).ToList();
+                var statusList = await benchRepository.GetStatusHistoryByApplicantId(app.Id);
+                if (statusList != null && statusList.Any())
+                {
+
+                    app.Status = statusList.Select(v => v.Status).First();
+                }
+
+              
+            }
+
             return applicationsData;
         }
+
+
+
         public async Task<int> GetTotalApplicationsPerRequirementIdAsync(int requirementId)
         {
             var dbInstance = GetDbInstance();

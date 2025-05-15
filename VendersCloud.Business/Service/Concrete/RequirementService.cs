@@ -861,7 +861,7 @@ namespace VendersCloud.Business.Service.Concrete
                             continue; // Skip if there are no applications for this requirement
                         }
 
-                        // Filter applications by Status
+
                         var filteredApplications = allApplications
                             .Where(app => request.Status == null || !request.Status.Any() || request.Status.Contains(app.Status))
                             .ToList();
