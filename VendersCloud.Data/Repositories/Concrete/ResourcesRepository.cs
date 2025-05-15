@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Linq;
+using System.Numerics;
 
 namespace VendersCloud.Data.Repositories.Concrete
 {
@@ -71,7 +72,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                 if (statusList != null && statusList.Any())
                 {
 
-                    app.Status = statusList.Select(v => v.Status).First();
+                    app.Status = statusList.Select(v => v.Status).OrderByDescending(v => v).First();
                 }
 
 
@@ -97,17 +98,14 @@ namespace VendersCloud.Data.Repositories.Concrete
             var sql = "SELECT * FROM Applications WHERE RequirementId = @requirementId";
 
             var applicationsData = dbInstance.Select<Applications>(sql, new { requirementId }).ToList();
-
-            foreach (var app in applicationsData)
-            {
-                var statusList = await benchRepository.GetStatusHistoryByApplicantId(app.Id);
-                if (statusList != null && statusList.Any())
+                foreach (var app in applicationsData)
                 {
-
-                    app.Status = statusList.Select(v => v.Status).First();
-                }
-
-              
+                    var statusList = await benchRepository.GetStatusHistoryByApplicantId(app.Id);
+                    if (statusList != null && statusList.Any())
+                    {
+                        app.Status = statusList.Select(v => v.Status).OrderByDescending(v => v).First();
+                    }
+                   
             }
 
             return applicationsData;
