@@ -13,7 +13,9 @@
         public string StatusName { get; set; }
         public string ChangedBy { get; set; }
         public DateTime ChangedOn { get; set; }
- 
+
+        public string Comment { get; set; }
+
     }
 
 }

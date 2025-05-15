@@ -172,6 +172,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                     Status = model.Status,
                     ChangedBy = model.ChangedBy,
                     ChangedOn = model.ChangedOn,
+                    Comment = model.Comment
                   
                 });
 

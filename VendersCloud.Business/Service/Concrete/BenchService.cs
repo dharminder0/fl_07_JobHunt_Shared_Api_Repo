@@ -793,8 +793,9 @@ namespace VendersCloud.Business.Service.Concrete
                     StatusName = EnumHelper.GetEnumDescription<RecruitmentStatus>(item.Status),
                     ChangedBy = item.ChangedBy,
                     ChangedOn = item.ChangedOn,
+                     Comment= item.Comment
 
-                }).ToList();
+                 }).ToList();
             }
 
             return result;
