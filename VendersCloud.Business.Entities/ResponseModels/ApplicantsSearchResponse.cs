@@ -17,6 +17,7 @@
         public string ClientCode { get; set; }
         public string Comment { get; set; }
         public int MatchScore { get; set; }
+        public int ApplicationId { get; set; }
     }
     public class VendorContractResponse
     {

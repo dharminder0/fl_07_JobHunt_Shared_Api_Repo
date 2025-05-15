@@ -871,6 +871,7 @@ namespace VendersCloud.Business.Service.Concrete
                             // Create a response object for each application
                             var requirementResponse = new CompanyRequirementResponse
                             {
+                                ApplicationId =app.Id,
                                 RequirementUniqueId = item.UniqueId,
                                 RequirementId = item.Id,
                                 Role = item.Title,

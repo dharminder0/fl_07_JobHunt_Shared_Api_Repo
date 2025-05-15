@@ -282,7 +282,9 @@ namespace VendersCloud.Business.Service.Concrete
                         Status = data.Status,
                         StatusName = CommonFunctions.GetEnumDescription((RecruitmentStatus)data.Status),
                         Comment = data.Comment,
-                        ApplicationDate = data.CreatedOn
+                        ApplicationDate = data.CreatedOn,
+                        ApplicationId=data.Id
+                        
                     };
 
                     if (requirementsData.TryGetValue(data.RequirementId, out var requirement))
