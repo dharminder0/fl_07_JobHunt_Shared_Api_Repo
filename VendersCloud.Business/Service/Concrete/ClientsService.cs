@@ -192,7 +192,7 @@ namespace VendersCloud.Business.Service.Concrete
                 foreach (var item in response.List)
                 {
                
-                    item.OpenPosition = await _requirementRepository.GetRequirementCountByOrgCodeAsync(item.OrgCode);
+                    item.OpenRequirements = await _requirementRepository.GetRequirementCountByOrgCodeAsyncV2(item.OrgCode);
 
                     var orgRelationshipData = await _partnerVendorRelRepository.GetBenchResponseListByIdAsync(item.OrgCode);
                     var partnerCodes = orgRelationshipData.Select(v => v.PartnerCode).ToList();
