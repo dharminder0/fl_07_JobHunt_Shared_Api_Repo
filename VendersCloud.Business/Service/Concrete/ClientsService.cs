@@ -1,4 +1,5 @@
-﻿using VendersCloud.Business.CommonMethods;
+﻿using Newtonsoft.Json.Serialization;
+using VendersCloud.Business.CommonMethods;
 using VendersCloud.Business.Entities.DataModels;
 
 namespace VendersCloud.Business.Service.Concrete
@@ -192,7 +193,7 @@ namespace VendersCloud.Business.Service.Concrete
                 foreach (var item in response.List)
                 {
                
-                    item.OpenRequirements = await _requirementRepository.GetRequirementCountByOrgCodeAsyncV2(item.OrgCode);
+                 
 
                     var orgRelationshipData = await _partnerVendorRelRepository.GetBenchResponseListByIdAsync(item.OrgCode);
                     var partnerCodes = orgRelationshipData.Select(v => v.PartnerCode).ToList();
@@ -208,14 +209,16 @@ namespace VendersCloud.Business.Service.Concrete
 
                     int activeContracts = 0;
                     int pastContracts = 0;
+                    int openRequirements = 0;
 
                     foreach (var req in allRequirements)
                     {
+                        openRequirements = await _requirementRepository.GetRequirementCountByOrgCodeAsyncV2(item.OrgCode);
                         var applications = await _resourcesRepository.GetApplicationsPerRequirementIdAsync(req.Id);
                         activeContracts += applications.Count(v => v.Status == (int)RecruitmentStatus.Onboarded);
                         pastContracts += applications.Count(v => v.Status == (int)RecruitmentStatus.ContractClosed);
                     }
-
+                    item.OpenRequirements = openRequirements;
                     item.ActiveContracts = activeContracts;
                     item.PastContracts = pastContracts;
                 }
