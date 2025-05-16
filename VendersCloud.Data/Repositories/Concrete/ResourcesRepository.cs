@@ -271,27 +271,31 @@ ORDER BY a.CreatedOn DESC";
             parameters.Add("@partnerCode", orgCode);
 
             // Step 2: Get vendor codes for the client's org
-            var vendorCodes = await connection.QueryAsync<string>(
-                "SELECT VendorCode FROM PartnerVendorRel WHERE IsDeleted = 0 AND PartnerCode = @partnerCode AND StatusId = 2", parameters);
+            var vendorCodes = (await connection.QueryAsync<string>(
+                "SELECT VendorCode FROM PartnerVendorRel WHERE IsDeleted = 0 AND PartnerCode = @partnerCode AND StatusId = 2", parameters)).ToList();
 
             if (!vendorCodes.Any())
                 return new List<VendorDetailDto>();
 
-            // Step 3: Dynamically build vendor filter
-            var vendorCodeParams = vendorCodes.Select((vc, i) => $"@vendorCode{i}").ToList();
-            for (int i = 0; i < vendorCodes.Count(); i++)
-                parameters.Add($"@vendorCode{i}", vendorCodes.ElementAt(i));
+            // Step 3: Dynamically add vendor codes as parameters
+            var vendorCodeParams = new List<string>();
+            for (int i = 0; i < vendorCodes.Count; i++)
+            {
+                var paramName = $"@vendorCode{i}";
+                vendorCodeParams.Add(paramName);
+                parameters.Add(paramName, vendorCodes[i]);
+            }
 
-            // Step 4: ContractType filter
-            string contractTypeClause = "";
-            if (request.ContractType == (int)ContractType.Open)
-                contractTypeClause = "AND a.Status = 1";
-            else if (request.ContractType == (int)ContractType.Active)
-                contractTypeClause = "AND a.Status = 9";
-            else if (request.ContractType == (int)ContractType.Past)
-                contractTypeClause = "AND a.Status = 10";
+            // Step 4: Contract type filter
+            string contractTypeClause = request.ContractType switch
+            {
+                (int)ContractType.Open => "AND a.Status = 1",
+                (int)ContractType.Active => "AND a.Status = 9",
+                (int)ContractType.Past => "AND a.Status = 10",
+                _ => ""
+            };
 
-            // Step 5: Final query
+            // Step 5: Final query (join vendor through Resources.OrgCode)
             string query = $@"
 SELECT 
     r.Id AS RequirementId,
@@ -310,24 +314,29 @@ SELECT
     o.Website,
     o.Logo AS VendorLogo,
     r.UniqueId,
-     a.CreatedOn as ContractstartDate,
-    a.UpdatedOn as  ContractEndDate,
+    a.CreatedOn AS ContractStartDate,
+    a.UpdatedOn AS ContractEndDate,
     r.LocationType,
     '' AS CVLink,
-    COUNT( a.Id) OVER(PARTITION BY r.Id) AS NumberOfApplicants
-FROM PartnerVendorRel pv
-INNER JOIN Organization o ON o.OrgCode = pv.VendorCode
-INNER JOIN Requirement r ON r.OrgCode ='{orgCode}'
+    1 AS NumberOfApplicants
+FROM Requirement r
 INNER JOIN Clients c ON c.OrgCode = r.OrgCode
 INNER JOIN Applications a ON a.RequirementId = r.Id
 LEFT JOIN Resources res ON a.ResourceId = res.Id
-WHERE pv.VendorCode IN ({string.Join(",", vendorCodeParams)})
+LEFT JOIN Organization o ON o.OrgCode = res.OrgCode
+WHERE r.OrgCode = @orgCode
+  AND res.OrgCode IN ({string.Join(", ", vendorCodeParams)})
   {contractTypeClause}
 ORDER BY r.CreatedOn DESC";
+
+            parameters.Add("@orgCode", orgCode);
 
             var results = await connection.QueryAsync<VendorDetailDto>(query, parameters);
             return results.ToList();
         }
+
+
+
 
 
 
