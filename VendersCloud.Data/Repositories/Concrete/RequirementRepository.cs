@@ -302,7 +302,7 @@ namespace VendersCloud.Data.Repositories.Concrete
         public async Task<int> GetRequirementCountByOrgCodeAsyncV2(string orgCode)
         {
             var dbInstance = GetDbInstance();
-            var sql = " SELECT sum(status) FROM Requirement WHERE IsDeleted <> 1  AND OrgCode = @orgCode  AND Status = 1 ";
+            var sql = " SELECT count(*) FROM Requirement WHERE IsDeleted <> 1  AND OrgCode = @orgCode  AND Status = 1 ";
             return ExecuteScalar<int>(sql, new { orgCode });
             ;
 
