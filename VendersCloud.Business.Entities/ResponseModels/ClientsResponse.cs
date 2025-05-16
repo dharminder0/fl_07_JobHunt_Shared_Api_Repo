@@ -20,7 +20,7 @@
         public int Status { get; set; }
         public string StatusName { get; set; }
         public bool IsDeleted { get; set; }
-        public int OpenPosition { get; set; }
+        public int OpenRequirements { get; set; }
         public int ActiveContracts { get; set; }
         public int PastContracts { get; set; }
     }
