@@ -1,4 +1,5 @@
 ﻿using VendersCloud.Business.CommonMethods;
+using VendersCloud.Business.Entities.DataModels;
 
 namespace VendersCloud.Business.Service.Concrete
 {
@@ -6,10 +7,19 @@ namespace VendersCloud.Business.Service.Concrete
     {
         private readonly IClientsRepository _clientsRepository;
         private readonly IBlobStorageService _blobStorageService;
-        public ClientsService(IClientsRepository clientsRepository, IBlobStorageService blobStorageService)
+        private readonly IRequirementRepository _requirementRepository;
+        private readonly IRequirementVendorsRepository _requirementVendorsRepository;
+        private readonly IResourcesRepository _resourcesRepository;
+        private readonly IPartnerVendorRelRepository _partnerVendorRelRepository;
+        public ClientsService(IClientsRepository clientsRepository, IBlobStorageService blobStorageService, IRequirementRepository requirementRepository,
+            IRequirementVendorsRepository requirementVendorsRepository, IResourcesRepository resourcesRepository, IPartnerVendorRelRepository partnerVendorRelRepository)
         {
             _clientsRepository = clientsRepository;
             _blobStorageService = blobStorageService;
+            _requirementRepository = requirementRepository;
+            _requirementVendorsRepository = requirementVendorsRepository;
+            _resourcesRepository = resourcesRepository;
+            _partnerVendorRelRepository = partnerVendorRelRepository;
         }
 
         public async Task<ActionMessageResponse> UpsertClientAsync(ClientsRequest request)
@@ -177,12 +187,47 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-              return await _clientsRepository.GetClientsListAsync(request);
+                var response = await _clientsRepository.GetClientsListAsync(request);
+
+                foreach (var item in response.List)
+                {
+               
+                    item.OpenPosition = await _requirementRepository.GetRequirementCountByOrgCodeAsync(item.OrgCode);
+
+                    var orgRelationshipData = await _partnerVendorRelRepository.GetBenchResponseListByIdAsync(item.OrgCode);
+                    var partnerCodes = orgRelationshipData.Select(v => v.PartnerCode).ToList();
+
+                    var requirementVendorIds = await _requirementVendorsRepository.GetRequirementShareJobsAsync(item.OrgCode);
+
+                
+                    var sharedRequirements = await _requirementRepository.GetRequirementByIdAsync(requirementVendorIds);
+                    var publicRequirements = await _requirementRepository.GetPublicRequirementAsync(partnerCodes, 3);
+
+              
+                    var allRequirements = sharedRequirements.Concat(publicRequirements).ToList();
+
+                    int activeContracts = 0;
+                    int pastContracts = 0;
+
+                    foreach (var req in allRequirements)
+                    {
+                        var applications = await _resourcesRepository.GetApplicationsPerRequirementIdAsync(req.Id);
+                        activeContracts += applications.Count(v => v.Status == (int)RecruitmentStatus.Onboarded);
+                        pastContracts += applications.Count(v => v.Status == (int)RecruitmentStatus.ContractClosed);
+                    }
+
+                    item.ActiveContracts = activeContracts;
+                    item.PastContracts = pastContracts;
+                }
+
+                return response;
             }
-            catch (Exception ex) {
-                throw ex;
+            catch (Exception ex)
+            {
+               
+                throw;
             }
         }
-        
+
     }
 }
