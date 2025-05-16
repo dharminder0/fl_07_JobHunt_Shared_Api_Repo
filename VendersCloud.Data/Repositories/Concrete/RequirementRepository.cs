@@ -299,11 +299,11 @@ namespace VendersCloud.Data.Repositories.Concrete
 ;
 
         }
-        public async Task<int> GetRequirementCountByOrgCodeAsyncV2(string orgCode)
+        public async Task<int> GetRequirementCountByOrgCodeAsyncV2(string orgCode,string clientCode)
         {
             var dbInstance = GetDbInstance();
-            var sql = " SELECT count(*) FROM Requirement WHERE IsDeleted <> 1  AND OrgCode = @orgCode  AND Status = 1 ";
-            return ExecuteScalar<int>(sql, new { orgCode });
+            var sql = " SELECT count(*) FROM Requirement WHERE IsDeleted <> 1  AND OrgCode = @orgCode   and clientCode=@clientCode  AND Status = 1 ";
+            return ExecuteScalar<int>(sql, new { orgCode,clientCode });
             ;
 
         }
