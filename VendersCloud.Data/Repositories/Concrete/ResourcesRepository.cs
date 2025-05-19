@@ -100,7 +100,7 @@ namespace VendersCloud.Data.Repositories.Concrete
             var applicationsData = dbInstance.Select<Applications>(sql, new { requirementId }).ToList();
                 foreach (var app in applicationsData)
                 {
-                    var statusList = await benchRepository.GetStatusHistoryByApplicantId(app.Id);
+                    var statusList = await benchRepository.GetStatusHistoryByApplicantId(app.ResourceId);
                     if (statusList != null && statusList.Any())
                     {
                         app.Status = statusList.Select(v => v.Status).OrderByDescending(v => v).First();
