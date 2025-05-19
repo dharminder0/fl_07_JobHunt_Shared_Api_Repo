@@ -296,16 +296,16 @@ ORDER BY a.CreatedOn DESC";
                 parameters.Add(paramName, vendorCodes[i]);
             }
 
-            // Step 5: Contract type filter
-            string contractTypeClause = request.ContractType switch
+            // Step 5: Contract type filter based on ApplicantStatusHistory.Status
+            string statusCondition = request.ContractType switch
             {
-                (int)ContractType.Open => "AND a.Status = 1",
-                (int)ContractType.Active => "AND a.Status = 9",
-                (int)ContractType.Past => "AND a.Status = 10",
+                (int)ContractType.Open => "AND ash.Status = 1",
+                (int)ContractType.Active => "AND ash.Status = 9",
+                (int)ContractType.Past => "AND ash.Status = 10",
                 _ => ""
             };
 
-            // Step 6: Final Query
+            // Step 6: Final Query with CROSS APPLY to get latest status per applicant
             string query = $@"
 SELECT 
     r.Id AS RequirementId,
@@ -315,7 +315,7 @@ SELECT
     r.Visibility,
     r.Duration AS ContractPeriod,
     r.OrgCode,
-    a.Status,
+    ash.Status,
     c.ClientName,
     c.LogoURL AS ClientLogoUrl,
     ISNULL(res.FirstName, '') + ' ' + ISNULL(res.LastName, '') AS ResourceName,
@@ -334,13 +334,20 @@ INNER JOIN Resources res ON a.ResourceId = res.Id
 INNER JOIN Requirement r ON a.RequirementId = r.Id
 INNER JOIN Clients c ON r.ClientCode = c.ClientCode
 LEFT JOIN Organization o ON o.OrgCode = res.OrgCode
+CROSS APPLY (
+    SELECT TOP 1 Status
+    FROM ApplicantStatusHistory
+    WHERE ApplicantId = a.Id
+    ORDER BY ChangedOn DESC
+) ash
 WHERE res.OrgCode IN ({string.Join(", ", vendorCodeParams)})
-  {contractTypeClause}
+  {statusCondition}
 ORDER BY r.CreatedOn DESC";
 
             var results = await connection.QueryAsync<VendorDetailDto>(query, parameters);
             return results.ToList();
         }
+
 
 
 
