@@ -261,23 +261,33 @@ ORDER BY a.CreatedOn DESC";
             var parameters = new DynamicParameters();
             parameters.Add("@clientCode", request.ClientCode);
 
-            // Step 1: Get OrgCode of the client
-            var orgCode = await connection.QueryFirstOrDefaultAsync<string>(
-                "SELECT OrgCode FROM Clients WHERE ClientCode = @clientCode", parameters);
+            // Step 1: Get all OrgCodes associated with the given ClientCode from Requirement table
+            var orgCodes = (await connection.QueryAsync<string>(
+                "SELECT DISTINCT OrgCode FROM Requirement WHERE ClientCode = @clientCode", parameters)).ToList();
 
-            if (string.IsNullOrEmpty(orgCode))
+            if (!orgCodes.Any())
                 return new List<VendorDetailDto>();
 
-            parameters.Add("@partnerCode", orgCode);
+            // Step 2: Prepare for IN clause and add OrgCode params
+            var orgCodeParams = new List<string>();
+            for (int i = 0; i < orgCodes.Count; i++)
+            {
+                var paramName = $"@orgCode{i}";
+                orgCodeParams.Add(paramName);
+                parameters.Add(paramName, orgCodes[i]);
+            }
 
-            // Step 2: Get vendor codes for the client's org
-            var vendorCodes = (await connection.QueryAsync<string>(
-                "SELECT VendorCode FROM PartnerVendorRel WHERE IsDeleted = 0 AND PartnerCode = @partnerCode AND StatusId = 2", parameters)).ToList();
+            // Step 3: Get VendorCodes from PartnerVendorRel using all OrgCodes as PartnerCodes
+            var vendorCodes = (await connection.QueryAsync<string>($@"
+        SELECT DISTINCT VendorCode 
+        FROM PartnerVendorRel 
+        WHERE IsDeleted = 0 AND StatusId = 2 AND PartnerCode IN ({string.Join(",", orgCodeParams)})
+    ", parameters)).ToList();
 
             if (!vendorCodes.Any())
                 return new List<VendorDetailDto>();
 
-            // Step 3: Dynamically add vendor codes as parameters
+            // Step 4: Add VendorCode params for IN clause
             var vendorCodeParams = new List<string>();
             for (int i = 0; i < vendorCodes.Count; i++)
             {
@@ -286,7 +296,7 @@ ORDER BY a.CreatedOn DESC";
                 parameters.Add(paramName, vendorCodes[i]);
             }
 
-            // Step 4: Contract type filter
+            // Step 5: Contract type filter
             string contractTypeClause = request.ContractType switch
             {
                 (int)ContractType.Open => "AND a.Status = 1",
@@ -295,7 +305,7 @@ ORDER BY a.CreatedOn DESC";
                 _ => ""
             };
 
-            // Step 5: Final query (join vendor through Resources.OrgCode)
+            // Step 6: Final Query
             string query = $@"
 SELECT 
     r.Id AS RequirementId,
@@ -308,7 +318,7 @@ SELECT
     a.Status,
     c.ClientName,
     c.LogoURL AS ClientLogoUrl,
-    res.FirstName + ' ' + res.LastName AS ResourceName,
+    ISNULL(res.FirstName, '') + ' ' + ISNULL(res.LastName, '') AS ResourceName,
     o.OrgName AS VendorName,
     o.OrgCode AS VendorCode,
     o.Website,
@@ -319,21 +329,19 @@ SELECT
     r.LocationType,
     '' AS CVLink,
     1 AS NumberOfApplicants
-FROM Requirement r
-INNER JOIN Clients c ON c.OrgCode = r.OrgCode
-INNER JOIN Applications a ON a.RequirementId = r.Id
-LEFT JOIN Resources res ON a.ResourceId = res.Id
+FROM Applications a
+INNER JOIN Resources res ON a.ResourceId = res.Id
+INNER JOIN Requirement r ON a.RequirementId = r.Id
+INNER JOIN Clients c ON r.ClientCode = c.ClientCode
 LEFT JOIN Organization o ON o.OrgCode = res.OrgCode
-WHERE r.OrgCode = @orgCode
-  AND res.OrgCode IN ({string.Join(", ", vendorCodeParams)})
+WHERE res.OrgCode IN ({string.Join(", ", vendorCodeParams)})
   {contractTypeClause}
 ORDER BY r.CreatedOn DESC";
-
-            parameters.Add("@orgCode", orgCode);
 
             var results = await connection.QueryAsync<VendorDetailDto>(query, parameters);
             return results.ToList();
         }
+
 
 
 
