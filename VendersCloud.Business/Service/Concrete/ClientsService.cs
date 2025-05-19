@@ -209,16 +209,17 @@ namespace VendersCloud.Business.Service.Concrete
 
                     int activeContracts = 0;
                     int pastContracts = 0;
-                    int openRequirements = 0;
+                   item.OpenRequirements += await _requirementRepository.GetRequirementCountByOrgCodeAsyncV2(item.OrgCode, item.ClientCode);
 
                     foreach (var req in allRequirements)
                     {
-                        openRequirements = await _requirementRepository.GetRequirementCountByOrgCodeAsyncV2(req.OrgCode,req.ClientCode);
+                       
                         var applications = await _resourcesRepository.GetApplicationsPerRequirementIdAsync(req.Id);
                         activeContracts += applications.Count(v => v.Status == (int)RecruitmentStatus.Onboarded);
                         pastContracts += applications.Count(v => v.Status == (int)RecruitmentStatus.ContractClosed);
+                    
                     }
-                    item.OpenRequirements = openRequirements;
+                
                     item.ActiveContracts = activeContracts;
                     item.PastContracts = pastContracts;
                 }
