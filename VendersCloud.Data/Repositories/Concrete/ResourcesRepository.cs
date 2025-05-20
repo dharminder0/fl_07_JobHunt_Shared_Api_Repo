@@ -99,16 +99,23 @@ namespace VendersCloud.Data.Repositories.Concrete
             var sql = "SELECT * FROM Applications WHERE RequirementId = @requirementId";
 
             var applicationsData = dbInstance.Select<Applications>(sql, new { requirementId }).ToList();
-                foreach (var app in applicationsData)
+            foreach (var app in applicationsData)
+            {
+                var statusList = await benchRepository.GetStatusHistoryByApplicantId(app.Id);
+                if (statusList != null && statusList.Any())
                 {
-                    var statusList = await benchRepository.GetStatusHistoryByApplicantId(app.Id);
-                    if (statusList != null && statusList.Any())
-                    {
-                        app.Status = statusList.Select(v => v.Status).OrderByDescending(v => v).First();
-                    app.Comment = statusList.Select(v => v.Comment).OrderByDescending(v => v).First();
-                    }
-                   
+                    app.Status = statusList
+                        .OrderByDescending(v => v.ChangedOn)
+                        .Select(v => v.Status)
+                        .FirstOrDefault();
+
+                    app.Comment = statusList
+                        .OrderByDescending(v => v.ChangedOn)
+                        .Select(v => v.Comment)
+                        .FirstOrDefault();
+                }
             }
+
 
             return applicationsData;
         }
