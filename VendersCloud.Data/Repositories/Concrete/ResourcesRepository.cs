@@ -205,18 +205,17 @@ OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY";
             }
 
             // Status filter for active/past contracts
-            string statusFilter = "";
-
+            string statusFilterCondition = "";
             if (request.IsActiveContracts)
             {
-                statusFilter = "IN (9)";
+                statusFilterCondition = "WHERE ash.Status IN (9)";
             }
             else if (request.IsPastContracts)
             {
-                statusFilter = "IN (10)";
+                statusFilterCondition = "WHERE ash.Status IN (10)";
             }
 
-            var statusQuery = $@"
+            var contractQuery = $@"
 SELECT 
     r.Title AS RequirementTitle,
     r.CreatedOn AS RequirmentPostedDate,
@@ -234,10 +233,16 @@ SELECT
 FROM Applications a
 INNER JOIN Resources res ON a.ResourceId = res.Id
 INNER JOIN Requirement r ON a.RequirementId = r.Id
-WHERE a.Status {statusFilter}
+CROSS APPLY (
+    SELECT TOP 1 Status
+    FROM ApplicantStatusHistory
+    WHERE ApplicantId = a.Id
+    ORDER BY ChangedOn DESC
+) ash
+{statusFilterCondition}
 ORDER BY a.CreatedOn DESC";
 
-            var results = await connection.QueryAsync<VendorDetailDto>(statusQuery, parameters);
+            var results = await connection.QueryAsync<VendorDetailDto>(contractQuery, parameters);
             return results.ToList();
         }
 
