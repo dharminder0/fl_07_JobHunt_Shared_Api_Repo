@@ -73,6 +73,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                 {
 
                     app.Status = statusList.Select(v => v.Status).OrderByDescending(v => v).First();
+                    app.Comment = statusList.Select(v => v.Comment).OrderByDescending(v => v).First();
                 }
 
 
@@ -104,6 +105,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                     if (statusList != null && statusList.Any())
                     {
                         app.Status = statusList.Select(v => v.Status).OrderByDescending(v => v).First();
+                    app.Comment = statusList.Select(v => v.Comment).OrderByDescending(v => v).First();
                     }
                    
             }
@@ -244,7 +246,7 @@ ORDER BY a.CreatedOn DESC";
         {
             var dbInstance = GetDbInstance();
 
-            var query = new Query("Applications")
+            var query = new Query("Applications") 
                 .WhereIn("RequirementId", requirementIds)
                 .Where("Status", 8)
                 .GroupBy("RequirementId")
