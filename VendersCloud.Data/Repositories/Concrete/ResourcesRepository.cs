@@ -299,7 +299,7 @@ ORDER BY a.CreatedOn DESC";
             // Step 5: Contract type filter based on ApplicantStatusHistory.Status
             string statusCondition = request.ContractType switch
             {
-                (int)ContractType.Open => "AND ash.Status = 1",
+                //(int)ContractType.Open => "AND ash.Status = 1",
                 (int)ContractType.Active => "AND ash.Status = 9",
                 (int)ContractType.Past => "AND ash.Status = 10",
                 _ => ""
