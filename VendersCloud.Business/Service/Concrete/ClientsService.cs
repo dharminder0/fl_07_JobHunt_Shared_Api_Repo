@@ -189,23 +189,20 @@ namespace VendersCloud.Business.Service.Concrete
             try
             {
                 var response = await _clientsRepository.GetClientsListAsync(request);
+                List<int> RequirementVendorsId;
 
                 foreach (var item in response.List)
                 {
-               
-                 
 
-                    var orgRelationshipData = await _partnerVendorRelRepository.GetBenchResponseListByIdAsync(item.OrgCode);
-                    var partnerCodes = orgRelationshipData.Select(v => v.PartnerCode).ToList();
 
-                    var requirementVendorIds = await _requirementVendorsRepository.GetRequirementShareJobsAsync(item.OrgCode);
+                    var orgRelationshipdata = await _partnerVendorRelRepository.GetBenchResponseListByIdAsync(request.OrgCode);
 
-                
-                    var sharedRequirements = await _requirementRepository.GetRequirementByIdAsync(requirementVendorIds);
-                    var publicRequirements = await _requirementRepository.GetPublicRequirementAsync(partnerCodes, 3);
+                    RequirementVendorsId = await _requirementVendorsRepository.GetRequirementShareJobsAsyncV2(orgRelationshipdata.Select(v=>v.VendorCode).ToList());
+                    var sharedrequirement = await _requirementRepository.GetRequirementByIdAsync(RequirementVendorsId);
+                    var publicReq = await _requirementRepository.GetPublicRequirementAsync(orgRelationshipdata.Select(v => v.PartnerCode).ToList(), 3);
 
-              
-                    var allRequirements = sharedRequirements.Concat(publicRequirements).ToList();
+
+                    var allRequirements = sharedrequirement.Concat(publicReq).ToList();
 
                     int activeContracts = 0;
                     int pastContracts = 0;

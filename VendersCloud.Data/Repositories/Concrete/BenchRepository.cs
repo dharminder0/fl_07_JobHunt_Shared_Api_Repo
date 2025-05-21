@@ -95,6 +95,14 @@ namespace VendersCloud.Data.Repositories.Concrete
             var list = dbInstance.Select<Resources>(sql, new { benchId }).ToList();
             return list;
         }
+        public async Task <Resources> GetBenchResponseByIdAsyncV2(int benchId)
+        {
+            var dbInstance = GetDbInstance();
+            var sql = "SELECT * FROM Resources Where IsDeleted<>1 and Id = @benchId";
+
+            var list = dbInstance.Select<Resources>(sql, new { benchId }).ToList();
+            return list.FirstOrDefault();
+        }
         public async Task<List<Resources>> GetBenchListBySearchAsync(BenchSearchRequest request)
         {
             using var connection = GetConnection();

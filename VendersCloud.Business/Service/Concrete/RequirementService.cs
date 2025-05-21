@@ -12,6 +12,7 @@ using VendersCloud.Common.Extensions;
 using VendersCloud.Data.Repositories.Concrete;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using static VendersCloud.Common.Extensions.StringExtensions;
+using static VendersCloud.Data.Repositories.Concrete.ResourcesRepository;
 
 namespace VendersCloud.Business.Service.Concrete
 {
@@ -1513,18 +1514,73 @@ namespace VendersCloud.Business.Service.Concrete
             try
             {
                 var records = await _resourcesRepository.GetSharedContractsAsync(request);
-              
+
+                // Get distinct RequirementIds
+                var requirementIds = records.Select(r => r.RequirementId).Distinct().ToList();
+                var applicationData = await _resourcesRepository.GetApplicationsPerRequirementIdAsyncV2(requirementIds);
+
+                var appsGroupedByReq = applicationData
+                    .GroupBy(a => a.RequirementId)
+                    .ToDictionary(g => g.Key, g => g.First()); // Use first app per requirement
+
+                foreach (var item in records)
+                {
+                    if (appsGroupedByReq.TryGetValue(item.RequirementId, out var app))
+                    {
+                        var orgData = await _organizationRepository.GetOrganizationDataByIdAsync(app.CreatedBy);
+                        if (orgData != null)
+                        {
+                            item.VendorCode ??= orgData.OrgCode;
+                            item.VendorLogo ??= orgData.Logo;
+                            item.VendorName ??= orgData.OrgName;
+                        }
+
+                        if (item.ContractStartDate == null)
+                            item.ContractStartDate = app.CreatedOn;
+
+                        if (item.ContractEndDate == null)
+                            item.ContractEndDate = app.UpdatedOn;
+
+                        if (string.IsNullOrEmpty(item.ResourceName))
+                        {
+                            var resource = await _benchRepository.GetBenchResponseByIdAsyncV2(app.ResourceId);
+                            if (resource != null)
+                            {
+                                item.ResourceName = $"{resource.FirstName} {resource.LastName}";
+                            }
+                        }
+
+                        if (item.Status == 0) // Assuming 0 means "unset"
+                            item.Status = app.Status;
+                    }
+                }
+
+                var filteredRecords = request.ContractType switch
+                {
+                    (int)ContractType.Active => records
+                        .Where(r => r.Status == 9)
+                        .ToList(),
+
+                    (int)ContractType.Past => records
+                        .Where(r => r.Status == 10)
+                        .ToList(),
+
+                    _ => records
+                };
+
+                var paginatedRecords = filteredRecords
+                    .Skip((request.PageNumber - 1) * request.PageSize)
+                    .Take(request.PageSize)
+                    .ToList();
+
                 return new ActionMessageResponse
                 {
                     Success = true,
                     Message = "Shared contracts fetched successfully.",
                     Content = new VendorContractResponse
                     {
-                        Records = records
-                            .Skip((request.PageNumber - 1) * request.PageSize)
-                            .Take(request.PageSize)
-                            .ToList(),
-                        TotalRecords = records.Count
+                        Records = paginatedRecords,
+                        TotalRecords = filteredRecords.Count
                     }
                 };
             }
@@ -1538,6 +1594,9 @@ namespace VendersCloud.Business.Service.Concrete
                 };
             }
         }
+
+
+
 
     }
 }

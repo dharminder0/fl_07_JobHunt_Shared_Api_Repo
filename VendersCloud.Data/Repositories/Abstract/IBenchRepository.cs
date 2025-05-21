@@ -11,6 +11,7 @@
         Task<IEnumerable<string>> GetAvtarByIdAsync(int benchId);
         Task<bool> InsertApplicantStatusHistory(ApplicantStatusHistory model);
         Task<List<ApplicantStatusHistory>> GetStatusHistoryByApplicantId(int applicantId);
+        Task<Resources> GetBenchResponseByIdAsyncV2(int benchId);
 
     }
 }

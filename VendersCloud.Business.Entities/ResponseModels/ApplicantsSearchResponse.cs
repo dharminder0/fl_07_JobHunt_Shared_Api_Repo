@@ -52,6 +52,7 @@
         public DateTime ContractStartDate { get; set; }
         public DateTime ContractEndDate { get; set; }
         public string  LocationType { get; set; }
+        public int Status { get; set; }
     }
     public class VendorDetailDtoV2
     {
