@@ -40,6 +40,13 @@
             var profile = dbInstance.Select<int>(sql, new { orgCode }).ToList();
             return profile;
         }
-        
+        public async Task<List<int>> GetRequirementShareJobsAsyncV2(List<string> orgCode)
+        {
+            var dbInstance = GetDbInstance();
+            var sql = "SELECT RequirementId FROM RequirementVendors Where OrgCode in @orgCode";
+
+            var profile = dbInstance.Select<int>(sql, new { orgCode }).ToList();
+            return profile;
+        }
     }
 }

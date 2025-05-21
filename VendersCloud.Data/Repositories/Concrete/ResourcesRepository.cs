@@ -121,6 +121,32 @@ namespace VendersCloud.Data.Repositories.Concrete
         }
 
 
+        public async Task<List<Applications>> GetApplicationsPerRequirementIdAsyncV2(List<int> requirementId)
+        {
+            var dbInstance = GetDbInstance();
+            var sql = "SELECT * FROM Applications WHERE RequirementId in @requirementId";
+
+            var applicationsData = dbInstance.Select<Applications>(sql, new { requirementId }).ToList();
+            foreach (var app in applicationsData)
+            {
+                var statusList = await benchRepository.GetStatusHistoryByApplicantId(app.Id);
+                if (statusList != null && statusList.Any())
+                {
+                    app.Status = statusList
+                        .OrderByDescending(v => v.ChangedOn)
+                        .Select(v => v.Status)
+                        .FirstOrDefault();
+
+                    app.Comment = statusList
+                        .OrderByDescending(v => v.ChangedOn)
+                        .Select(v => v.Comment)
+                        .FirstOrDefault();
+                }
+            }
+
+
+            return applicationsData;
+        }
 
         public async Task<int> GetTotalApplicationsPerRequirementIdAsync(int requirementId)
         {
@@ -275,51 +301,8 @@ ORDER BY a.CreatedOn DESC";
             var parameters = new DynamicParameters();
             parameters.Add("@clientCode", request.ClientCode);
 
-            // Step 1: Get all OrgCodes associated with the given ClientCode from Requirement table
-            var orgCodes = (await connection.QueryAsync<string>(
-                "SELECT DISTINCT OrgCode FROM Requirement WHERE ClientCode = @clientCode", parameters)).ToList();
-
-            if (!orgCodes.Any())
-                return new List<VendorDetailDto>();
-
-            // Step 2: Prepare for IN clause and add OrgCode params
-            var orgCodeParams = new List<string>();
-            for (int i = 0; i < orgCodes.Count; i++)
-            {
-                var paramName = $"@orgCode{i}";
-                orgCodeParams.Add(paramName);
-                parameters.Add(paramName, orgCodes[i]);
-            }
-
-            // Step 3: Get VendorCodes from PartnerVendorRel using all OrgCodes as PartnerCodes
-            var vendorCodes = (await connection.QueryAsync<string>($@"
-        SELECT DISTINCT VendorCode 
-        FROM PartnerVendorRel 
-        WHERE IsDeleted = 0 AND StatusId = 2 AND PartnerCode IN ({string.Join(",", orgCodeParams)})
-    ", parameters)).ToList();
-
-            if (!vendorCodes.Any())
-                return new List<VendorDetailDto>();
-
-            // Step 4: Add VendorCode params for IN clause
-            var vendorCodeParams = new List<string>();
-            for (int i = 0; i < vendorCodes.Count; i++)
-            {
-                var paramName = $"@vendorCode{i}";
-                vendorCodeParams.Add(paramName);
-                parameters.Add(paramName, vendorCodes[i]);
-            }
-
-            // Step 5: Contract type filter based on ApplicantStatusHistory.Status
-            string statusCondition = request.ContractType switch
-            {
-                //(int)ContractType.Open => "AND ash.Status = 1",
-                (int)ContractType.Active => "AND ash.Status = 9",
-                (int)ContractType.Past => "AND ash.Status = 10",
-                _ => ""
-            };
-
-            // Step 6: Final Query with CROSS APPLY to get latest status per applicant
+           
+            // Step 4: Final SQL Query
             string query = $@"
 SELECT 
     r.Id AS RequirementId,
@@ -328,39 +311,17 @@ SELECT
     r.Positions AS NumberOfPosition,
     r.Visibility,
     r.Duration AS ContractPeriod,
-    r.OrgCode,
-    ash.Status,
-    c.ClientName,
-    c.LogoURL AS ClientLogoUrl,
-    ISNULL(res.FirstName, '') + ' ' + ISNULL(res.LastName, '') AS ResourceName,
-    o.OrgName AS VendorName,
-    o.OrgCode AS VendorCode,
-    o.Website,
-    o.Logo AS VendorLogo,
-    r.UniqueId,
-    a.CreatedOn AS ContractStartDate,
-    a.UpdatedOn AS ContractEndDate,
-    r.LocationType,
-    '' AS CVLink,
-    1 AS NumberOfApplicants
-FROM Applications a
-INNER JOIN Resources res ON a.ResourceId = res.Id
-INNER JOIN Requirement r ON a.RequirementId = r.Id
-INNER JOIN Clients c ON r.ClientCode = c.ClientCode
-LEFT JOIN Organization o ON o.OrgCode = res.OrgCode
-CROSS APPLY (
-    SELECT TOP 1 Status
-    FROM ApplicantStatusHistory
-    WHERE ApplicantId = a.Id
-    ORDER BY ChangedOn DESC
-) ash
-WHERE res.OrgCode IN ({string.Join(", ", vendorCodeParams)})
-  {statusCondition}
+    r.OrgCode,   
+    r.UniqueId,   
+    r.LocationType 
+FROM  Requirement  r
+WHERE r.clientCode=@clientCode
 ORDER BY r.CreatedOn DESC";
 
             var results = await connection.QueryAsync<VendorDetailDto>(query, parameters);
             return results.ToList();
         }
+
 
 
 
