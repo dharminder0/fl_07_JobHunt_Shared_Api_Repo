@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Serialization;
+﻿using System.Security.Cryptography.X509Certificates;
+using Newtonsoft.Json.Serialization;
 using VendersCloud.Business.CommonMethods;
 using VendersCloud.Business.Entities.DataModels;
 
@@ -189,20 +190,22 @@ namespace VendersCloud.Business.Service.Concrete
             try
             {
                 var response = await _clientsRepository.GetClientsListAsync(request);
-                List<int> RequirementVendorsId;
-
+                //List<int> RequirementVendorsId;
+                 
                 foreach (var item in response.List)
                 {
 
 
-                    var orgRelationshipdata = await _partnerVendorRelRepository.GetBenchResponseListByIdAsync(request.OrgCode);
+                    //var orgRelationshipdata = await _partnerVendorRelRepository.GetBenchResponseListByIdAsync(request.OrgCode);
 
-                    RequirementVendorsId = await _requirementVendorsRepository.GetRequirementShareJobsAsyncV2(orgRelationshipdata.Select(v=>v.VendorCode).ToList());
-                    var sharedrequirement = await _requirementRepository.GetRequirementByIdAsync(RequirementVendorsId);
-                    var publicReq = await _requirementRepository.GetPublicRequirementAsync(orgRelationshipdata.Select(v => v.PartnerCode).ToList(), 3);
+                    // RequirementVendorsId = await _requirementVendorsRepository.GetRequirementShareJobsAsyncV2(orgRelationshipdata.Select(v=>v.VendorCode).ToList());
+                    //var sharedrequirement = await _requirementRepository.GetRequirementByIdAsync(RequirementVendorsId);
+                    //var publicReq = await _requirementRepository.GetPublicRequirementAsync(orgRelationshipdata.Select(v => v.PartnerCode).ToList(), 3);
 
 
-                    var allRequirements = sharedrequirement.Concat(publicReq).ToList();
+                    //var allRequirements = sharedrequirement.Concat(publicReq).ToList();
+                    var  allRequirements =await  _requirementRepository.GetRequirementByOrgCodeAsync(item.OrgCode);
+                    allRequirements = allRequirements.Where(v => v.ClientCode == item.ClientCode).ToList();
 
                     int activeContracts = 0;
                     int pastContracts = 0;
