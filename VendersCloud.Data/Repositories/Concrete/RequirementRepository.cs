@@ -617,5 +617,13 @@ SELECT (SELECT SUM(Positions) FROM Requirement WHERE Status = 1 ) AS OpenPositio
             var profile = dbInstance.Select<Requirement>(sql, new { orgCode,visibility }).ToList();
             return profile;
         }
+        public async Task<List<Requirement>> GetPublicRequirementAsyncV2(string  orgCode, int visibility)
+        {
+            var dbInstance = GetDbInstance();
+            var sql = "select * from Requirement where  visibility=@visibility and orgCode=@orgCode";
+
+            var profile = dbInstance.Select<Requirement>(sql, new { orgCode, visibility }).ToList();
+            return profile;
+        }
     }
 }

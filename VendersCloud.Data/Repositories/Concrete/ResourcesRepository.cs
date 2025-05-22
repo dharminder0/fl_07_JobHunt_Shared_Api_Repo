@@ -6,9 +6,11 @@ namespace VendersCloud.Data.Repositories.Concrete
     public class ResourcesRepository : StaticBaseRepository<Resources>, IResourcesRepository
     {
         private readonly IBenchRepository benchRepository;
-        public ResourcesRepository(IConfiguration configuration, IBenchRepository _benchRepository) : base(configuration)
+        private readonly IRequirementRepository _requirementRepository;
+        public ResourcesRepository(IConfiguration configuration, IBenchRepository _benchRepository,IRequirementRepository requirementRepository) : base(configuration)
         {
         benchRepository = _benchRepository;
+            _requirementRepository = requirementRepository;
         }
 
         public async Task<bool> UpsertApplicants(ApplicationsRequest request,int Id)
@@ -195,13 +197,16 @@ namespace VendersCloud.Data.Repositories.Concrete
             using var connection = GetConnection();
             var parameters = new DynamicParameters();
 
-            // Handle IsOpenPosition
             if (request.IsOpenPosition)
             {
-                parameters.Add("@orgcode", request.PartnerCode); 
-                var vendorCodeQuery = "SELECT VendorCode FROM PartnerVendorRel WHERE partnerCode = @orgcode";
+                parameters.Add("@orgcode", request.PartnerCode);
+
+                // Get partner's vendor code
+                var vendorCodeQuery = "SELECT VendorCode FROM PartnerVendorRel WHERE PartnerCode = @orgcode";
                 var vendorCode = await connection.QueryFirstOrDefaultAsync<string>(vendorCodeQuery, parameters);
 
+                // Fetch from RequirementVendors if vendorCode is available
+                var vendorResults = new List<VendorDetailDto>();
                 if (!string.IsNullOrEmpty(vendorCode))
                 {
                     var openPositionQuery = @"
@@ -229,12 +234,34 @@ OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY";
 
                     var openParams = new DynamicParameters();
                     openParams.Add("@vendorCode", vendorCode);
-
                     var openResults = await connection.QueryAsync<VendorDetailDto>(openPositionQuery, openParams);
-                    return openResults.ToList();
+                    vendorResults = openResults.ToList();
                 }
 
-                return new List<VendorDetailDto>(); // no vendor code found
+                // Fetch public requirements for this partner
+                var publicQuery = @"
+SELECT 
+    r.Title AS RequirementTitle,
+    r.CreatedOn AS RequirmentPostedDate,
+    NULL AS ResourceName,
+    '' AS ClientLogoUrl,
+    r.ClientCode AS ClientName,
+    (
+        SELECT COUNT(*) 
+        FROM Applications a2 
+        WHERE a2.RequirementId = r.Id
+    ) AS NumberOfApplicants,
+    r.Positions AS NumberOfPosition,
+    r.Duration AS ContractPeriod,
+    r.Visibility
+FROM Requirement r
+WHERE r.Visibility = 3 AND r.OrgCode = @orgcode
+ORDER BY r.CreatedOn DESC";
+
+                var publicResults = await connection.QueryAsync<VendorDetailDto>(publicQuery, parameters);
+
+                // Merge both results and return
+                return vendorResults.Concat(publicResults).ToList();
             }
 
             // Status filter for active/past contracts
@@ -278,6 +305,7 @@ ORDER BY a.CreatedOn DESC";
             var results = await connection.QueryAsync<VendorDetailDto>(contractQuery, parameters);
             return results.ToList();
         }
+
 
 
         public async Task<Dictionary<int, int>> GetPlacementsGroupedByRequirementAsync(List<int> requirementIds)
