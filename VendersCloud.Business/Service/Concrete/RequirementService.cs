@@ -1515,24 +1515,6 @@ namespace VendersCloud.Business.Service.Concrete
             {
                 var records = await _resourcesRepository.GetSharedContractsAsync(request);
 
-                
-
-          
-
-                foreach (var item in records)
-                { 
-        
-                    
-                        var orgData = await _organizationRepository.GetOrganizationDataByIdAsync(item.CreatedBy);
-                        if (orgData != null)
-                        {
-                            item.VendorCode ??= orgData.OrgCode;
-                            item.VendorLogo ??= orgData.Logo;
-                            item.VendorName ??= orgData.OrgName;
-                        }
-
-                      
-                }
 
            
 
