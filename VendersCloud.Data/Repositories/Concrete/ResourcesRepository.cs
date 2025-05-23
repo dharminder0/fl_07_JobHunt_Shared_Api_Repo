@@ -342,18 +342,11 @@ SELECT
     r.ClientCode AS ClientName,
     r.Positions AS NumberOfPosition,
     r.Duration AS ContractPeriod,
-    r.Visibility,
-    MIN(a.CreatedOn) AS ContractStartDate,
-    MAX(a.UpdatedOn) AS ContractEndDate,
-    STRING_AGG(CONCAT(COALESCE(res.FirstName, ''), ' ', COALESCE(res.LastName, '')), ', ') AS ResourceNames,
-    STRING_AGG(a.CreatedBy, ', ') AS CreatedByUsers
+    r.Visibility
 FROM Requirement r
-LEFT JOIN Applications a ON a.RequirementId = r.Id
-LEFT JOIN Resources res ON a.ResourceId = res.Id
+
 WHERE r.ClientCode = @clientCode
-GROUP BY 
-    r.Id, r.Title, r.CreatedOn, r.ClientCode, r.Positions, r.Duration, r.Visibility
-ORDER BY r.CreatedOn DESC;
+ORDER BY r.CreatedOn DESC; 
 ;
 ;
 ;";
@@ -366,35 +359,49 @@ ORDER BY r.CreatedOn DESC;
         int status = request.ContractType == (int)ContractType.Active ? 9 : 10;
         parameters.Add("@status", status);
 
-        const string contractQuery = @"
-SELECT 
-    r.Id AS RequirementId,
+                const string contractQuery = @"
+SELECT TOP 10 
+ ASH.status,
+RS.FirstName, 
+r.Id AS RequirementId,
     r.Title AS RequirementTitle,
     r.CreatedOn AS RequirmentPostedDate,
+	CONCAT(COALESCE(RS.FirstName, ''), ' ', COALESCE(RS.LastName, '')) AS ResourceName,
     '' AS ClientLogoUrl,
     r.ClientCode AS ClientName,
+    1 AS NumberOfApplicants, -- Since no COUNT, assuming 1 per application row
     r.Positions AS NumberOfPosition,
     r.Duration AS ContractPeriod,
-    r.Visibility,
-    MIN(a.CreatedOn) AS ContractStartDate,
-    MAX(a.UpdatedOn) AS ContractEndDate,
-    COUNT(DISTINCT a.Id) AS NumberOfApplicants,
-    STRING_AGG(CONCAT(COALESCE(res.FirstName, ''), ' ', COALESCE(res.LastName, '')), ', ') AS ResourceNames
-FROM Applications a
-INNER JOIN Resources res ON a.ResourceId = res.Id
-INNER JOIN Requirement r ON a.RequirementId = r.Id
-CROSS APPLY (
-    SELECT TOP 1 Status
-    FROM ApplicantStatusHistory
-    WHERE ApplicantId = a.Id
-    ORDER BY ChangedOn DESC
-) ash
-WHERE ash.Status = @status AND r.ClientCode = @clientCode
-GROUP BY 
-    r.Id, r.Title, r.CreatedOn, r.ClientCode, r.Positions, r.Duration, r.Visibility
-ORDER BY r.CreatedOn DESC";
+    r.Visibility AS Visibility,
+	r.UniqueId,
+    o.OrgName AS VendorName,
+    '' AS VendorLogo,
+    o.OrgCode AS VendorCode,
+    '' AS UniqueId,
+    a.CreatedOn AS ContractStartDate,
+    a.UpdatedOn AS ContractEndDate,
+    '' AS LocationType,
+    ash.status AS Status,
+    RS.CreatedBy AS CreatedBy,
+O.OrgCode AS OrgCode
+  
+FROM Requirement R
+JOIN Applications A ON R.Id = A.RequirementId 
+JOIN Resources RS ON A.ResourceId = RS.Id   
+Join Organization O on RS.CreatedBy =O.Id
+LEFT JOIN (
+    SELECT ApplicantId, status
+    FROM (
+        SELECT ApplicantId, status, 
+               ROW_NUMBER() OVER (PARTITION BY ApplicantId ORDER BY ChangedOn DESC) AS rn
+        FROM ApplicantStatusHistory
+    ) ASH
+    WHERE rn = 1
+) ASH ON ASH.ApplicantId = A.Id
+WHERE R.ClientCode = @ClientCode 
+and ASH.Status =@Status ";
 
-        var results = await connection.QueryAsync<VendorDetailDto>(contractQuery, parameters);
+                var results = await connection.QueryAsync<VendorDetailDto>(contractQuery, parameters);
         finalResults.AddRange(results);
     }
 
