@@ -159,7 +159,7 @@
         public async Task<IActionResult> GetVendorContracts([FromBody] VendorContractRequest request)
         {
             var result = await _benchService.GetVendorContractsAsync(request);
-            return Ok(result);
+            return Json(result);
         }
     }
 

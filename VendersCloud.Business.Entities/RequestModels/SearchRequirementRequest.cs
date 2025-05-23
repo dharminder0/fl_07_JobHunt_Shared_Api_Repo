@@ -12,6 +12,7 @@
         public string UserId { get; set; }
         public List<string> RoleType { get; set; }
         public bool IsHotEnable { get; set; }
+        public bool ApplicantsExist { get; set; }
 
     }
     public class SimilerRequirmentequest

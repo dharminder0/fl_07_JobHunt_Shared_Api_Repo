@@ -299,7 +299,7 @@ CROSS APPLY (
     WHERE ApplicantId = a.Id
     ORDER BY ChangedOn DESC
 ) ash
-{statusFilterCondition}
+{statusFilterCondition} AND r.OrgCode = '{request.PartnerCode}'
 ORDER BY a.CreatedOn DESC";
 
             var results = await connection.QueryAsync<VendorDetailDto>(contractQuery, parameters);
@@ -342,7 +342,8 @@ SELECT
     r.ClientCode AS ClientName,
     r.Positions AS NumberOfPosition,
     r.Duration AS ContractPeriod,
-    r.Visibility
+    r.Visibility,
+r.LocationType  as LocationType
 FROM Requirement r
 
 WHERE r.ClientCode = @clientCode
