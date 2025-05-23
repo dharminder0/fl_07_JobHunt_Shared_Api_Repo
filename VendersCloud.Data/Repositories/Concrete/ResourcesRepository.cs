@@ -323,32 +323,89 @@ ORDER BY a.CreatedOn DESC";
 
             return result.ToDictionary(x => x.RequirementId, x => x.Total);
         }
-        public async Task<List<VendorDetailDto>> GetSharedContractsAsync(SharedContractsRequest request)
-        {
-            using var connection = GetConnection();
-            var parameters = new DynamicParameters();
-            parameters.Add("@clientCode", request.ClientCode);
+      public async Task<List<VendorDetailDto>> GetSharedContractsAsync(SharedContractsRequest request)
+{
+    using var connection = GetConnection();
+    var parameters = new DynamicParameters();
+    parameters.Add("@clientCode", request.ClientCode);
 
-           
-            // Step 4: Final SQL Query
-            string query = $@"
+    var finalResults = new List<VendorDetailDto>();
+
+    if (request.ContractType == (int)ContractType.Open)
+    {
+        const string openVendorQuery = @"
 SELECT 
     r.Id AS RequirementId,
     r.Title AS RequirementTitle,
     r.CreatedOn AS RequirmentPostedDate,
+    '' AS ClientLogoUrl,
+    r.ClientCode AS ClientName,
     r.Positions AS NumberOfPosition,
-    r.Visibility,
     r.Duration AS ContractPeriod,
-    r.OrgCode,   
-    r.UniqueId,   
-    r.LocationType 
-FROM  Requirement  r
-WHERE r.clientCode=@clientCode
+    r.Visibility,
+    MIN(a.CreatedOn) AS ContractStartDate,
+    MAX(a.UpdatedOn) AS ContractEndDate,
+    STRING_AGG(CONCAT(COALESCE(res.FirstName, ''), ' ', COALESCE(res.LastName, '')), ', ') AS ResourceNames,
+    STRING_AGG(a.CreatedBy, ', ') AS CreatedByUsers
+FROM Requirement r
+LEFT JOIN Applications a ON a.RequirementId = r.Id
+LEFT JOIN Resources res ON a.ResourceId = res.Id
+WHERE r.ClientCode = @clientCode
+GROUP BY 
+    r.Id, r.Title, r.CreatedOn, r.ClientCode, r.Positions, r.Duration, r.Visibility
+ORDER BY r.CreatedOn DESC;
+;
+;
+;";
+
+        var vendorOpenResults = await connection.QueryAsync<VendorDetailDto>(openVendorQuery, parameters);
+        finalResults.AddRange(vendorOpenResults);
+    }
+    else
+    {
+        int status = request.ContractType == (int)ContractType.Active ? 9 : 10;
+        parameters.Add("@status", status);
+
+        const string contractQuery = @"
+SELECT 
+    r.Id AS RequirementId,
+    r.Title AS RequirementTitle,
+    r.CreatedOn AS RequirmentPostedDate,
+    '' AS ClientLogoUrl,
+    r.ClientCode AS ClientName,
+    r.Positions AS NumberOfPosition,
+    r.Duration AS ContractPeriod,
+    r.Visibility,
+    MIN(a.CreatedOn) AS ContractStartDate,
+    MAX(a.UpdatedOn) AS ContractEndDate,
+    COUNT(DISTINCT a.Id) AS NumberOfApplicants,
+    STRING_AGG(CONCAT(COALESCE(res.FirstName, ''), ' ', COALESCE(res.LastName, '')), ', ') AS ResourceNames
+FROM Applications a
+INNER JOIN Resources res ON a.ResourceId = res.Id
+INNER JOIN Requirement r ON a.RequirementId = r.Id
+CROSS APPLY (
+    SELECT TOP 1 Status
+    FROM ApplicantStatusHistory
+    WHERE ApplicantId = a.Id
+    ORDER BY ChangedOn DESC
+) ash
+WHERE ash.Status = @status AND r.ClientCode = @clientCode
+GROUP BY 
+    r.Id, r.Title, r.CreatedOn, r.ClientCode, r.Positions, r.Duration, r.Visibility
 ORDER BY r.CreatedOn DESC";
 
-            var results = await connection.QueryAsync<VendorDetailDto>(query, parameters);
-            return results.ToList();
-        }
+        var results = await connection.QueryAsync<VendorDetailDto>(contractQuery, parameters);
+        finalResults.AddRange(results);
+    }
+
+    return finalResults
+        .Skip((request.PageNumber - 1) * request.PageSize)
+        .Take(request.PageSize)
+        .ToList();
+}
+
+
+
 
 
 
