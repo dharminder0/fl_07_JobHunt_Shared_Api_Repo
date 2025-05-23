@@ -625,5 +625,20 @@ SELECT (SELECT SUM(Positions) FROM Requirement WHERE Status = 1 ) AS OpenPositio
             var profile = dbInstance.Select<Requirement>(sql, new { orgCode, visibility }).ToList();
             return profile;
         }
+        public async Task<List<Requirement>> GetRequirementsWithNoApplicantsAsync()
+        {
+            var dbInstance = GetDbInstance();
+            var sql = @"
+        SELECT *
+        FROM Requirement
+        WHERE Id NOT IN (
+            SELECT RequirementId 
+            FROM Applications 
+            WHERE RequirementId IS NOT NULL
+        )";
+
+            var requirements = await dbInstance.SelectAsync<Requirement>(sql, new { });
+            return requirements.ToList();
+        }
     }
 }

@@ -229,11 +229,15 @@ namespace VendersCloud.Data.Repositories.Concrete
             var predicates = new List<string>();
             var parameters = new DynamicParameters();
 
+
+
             if (!string.IsNullOrWhiteSpace(request.searchText))
             {
-                predicates.Add("(r.PartnerCode LIKE @SearchText OR r.VendorCode LIKE @SearchText)");
+                predicates.Add("(r.PartnerCode LIKE @SearchText OR r.VendorCode LIKE @SearchText OR po.OrgName LIKE @SearchText OR vo.OrgName LIKE @SearchText)");
                 parameters.Add("SearchText", $"%{request.searchText}%");
             }
+
+
 
             if (request.Status != null)
             {
@@ -241,13 +245,19 @@ namespace VendersCloud.Data.Repositories.Concrete
                 parameters.Add("statuses", request.Status);
             }
 
+
+
             predicates.Add("r.IsDeleted = 0");
+
+
 
             if (!string.IsNullOrWhiteSpace(request.OrgCode))
             {
                 predicates.Add("(r.PartnerCode = @orgCode OR r.VendorCode = @orgCode)");
                 parameters.Add("orgCode", request.OrgCode);
             }
+
+
 
             if (!string.IsNullOrWhiteSpace(request.RelatedOrgCode))
             {
@@ -256,45 +266,72 @@ namespace VendersCloud.Data.Repositories.Concrete
             }
 
 
+
             string whereClause = predicates.Any() ? "WHERE " + string.Join(" AND ", predicates) : "";
             string query = $@"
-SELECT * FROM PartnerVendorRel r 
-{whereClause} 
-ORDER BY r.CreatedOn DESC 
+SELECT r.* 
+FROM PartnerVendorRel r 
+LEFT JOIN Organization po ON r.PartnerCode = po.OrgCode
+LEFT JOIN Organization vo ON r.VendorCode = vo.OrgCode
+{whereClause} 
+ORDER BY r.CreatedOn DESC 
 OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY;
 
-SELECT COUNT(*) FROM PartnerVendorRel r {whereClause};
-";
+
+
+SELECT COUNT(*) 
+FROM PartnerVendorRel r 
+LEFT JOIN Organization po ON r.PartnerCode = po.OrgCode
+LEFT JOIN Organization vo ON r.VendorCode = vo.OrgCode
+{whereClause};";
+
+
 
             parameters.Add("offset", (request.Page - 1) * request.PageSize);
             parameters.Add("pageSize", request.PageSize);
+
+
 
             using var multi = await connection.QueryMultipleAsync(query, parameters);
             var relationships = (await multi.ReadAsync<PartnerVendorRel>()).ToList();
             if (!string.IsNullOrWhiteSpace(request.RelatedOrgCode))
             {
                 relationships = relationships
-                    .Where(v => v.PartnerCode != request.RelatedOrgCode)
-                    .ToList();
+                .Where(v => v.PartnerCode != request.RelatedOrgCode)
+                .ToList();
+
+
 
             }
+
+
 
             if (!string.IsNullOrWhiteSpace(request.OrgCode))
             {
                 relationships = relationships
-                    .Where(v => v.VendorCode != request.OrgCode)
-                    .ToList();
+                .Where(v => v.VendorCode != request.OrgCode)
+                .ToList();
+
+
 
             }
 
+
+
             int totalRecords = await multi.ReadFirstOrDefaultAsync<int>();
 
+
+
             var responseList = new List<OrgRelationshipSearchResponse>();
+
+
 
             foreach (var relationship in relationships)
             {
                 List<Organization> selectedOrgDataList = new();
                 List<OrgLocation> selectedOrgLocationData = new();
+
+
 
                 if (!string.IsNullOrWhiteSpace(request.OrgCode))
                 {
@@ -303,6 +340,8 @@ SELECT COUNT(*) FROM PartnerVendorRel r {whereClause};
                         selectedOrgDataList = orgList.ToList();
                     else if (orgDataResult != null)
                         selectedOrgDataList.Add(orgDataResult);
+
+
 
                     var locationResult = await _organizationLocationRepository.GetOrgLocation(relationship.VendorCode);
                     selectedOrgLocationData = locationResult?.ToList() ?? new List<OrgLocation>();
@@ -315,9 +354,13 @@ SELECT COUNT(*) FROM PartnerVendorRel r {whereClause};
                     else if (orgDataResult != null)
                         selectedOrgDataList.Add(orgDataResult);
 
+
+
                     var locationResult = await _organizationLocationRepository.GetOrgLocation(relationship.PartnerCode);
                     selectedOrgLocationData = locationResult?.ToList() ?? new List<OrgLocation>();
                 }
+
+
 
                 foreach (var orgData in selectedOrgDataList)
                 {
@@ -326,8 +369,8 @@ SELECT COUNT(*) FROM PartnerVendorRel r {whereClause};
                         Id = relationship.Id,
                         OrgCode = relationship.PartnerCode,
                         RelatedOrgCode = relationship.VendorCode,
-                        RelationshipType = relationship.StatusId.ToString(),  // Assuming StatusId is mapped to relationshipType
-                        StatusName = System.Enum.GetName(typeof(InviteStatus), relationship.StatusId),
+                        RelationshipType = relationship.StatusId.ToString(),  // Assuming StatusId is mapped to relationshipType
+                        StatusName = System.Enum.GetName(typeof(InviteStatus), relationship.StatusId),
                         Status = relationship.StatusId,
                         Description = orgData.Description,
                         OrgName = orgData.OrgName,
@@ -342,6 +385,8 @@ SELECT COUNT(*) FROM PartnerVendorRel r {whereClause};
                     });
                 }
             }
+
+
 
             return new PaginationDto<OrgRelationshipSearchResponse>
             {

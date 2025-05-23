@@ -491,6 +491,10 @@ namespace VendersCloud.Business.Service.Concrete
                 RequirementVendorsId = await _requirementVendorsRepository.GetRequirementShareJobsAsync(request.OrgCode);
                 var sharedrequirement = await _requirementRepository.GetRequirementByIdAsync(RequirementVendorsId);
                 var publicReq = await _requirementRepository.GetPublicRequirementAsync(orgRelationshipdata.Select(v => v.PartnerCode).ToList(), 3);
+                
+                    //var reqNoApplicants = _requirementRepository.GetRequirementsWithNoApplicantsAsync();
+                
+              
                 foreach (var rel in orgRelationshipdata)
                 {
                     if (rel.PartnerCode == request.OrgCode)
@@ -552,7 +556,18 @@ namespace VendersCloud.Business.Service.Concrete
                                         r.Title.IndexOf(request.SearchText, StringComparison.OrdinalIgnoreCase) >= 0)
                             .ToList();
                     }
-
+                    if (request.ClientCode != null && request.ClientCode.Any())
+                    {
+                        allRequirements = allRequirements
+                            .Where(r => request.ClientCode.Contains(r.ClientCode))
+                            .ToList();
+                    }
+                    if (request.ApplicantsExist)
+                    {
+                        var reqNoApplicants = await _requirementRepository.GetRequirementsWithNoApplicantsAsync();
+                        var noApplicantIds = reqNoApplicants.Select(r => r.Id).ToList();
+                        allRequirements = allRequirements.Where(r => noApplicantIds.Contains(r.Id)).ToList();
+                    }
 
 
                     totalRecords = allRequirements.Count;
@@ -594,7 +609,18 @@ namespace VendersCloud.Business.Service.Concrete
                                         r.Title.IndexOf(request.SearchText, StringComparison.OrdinalIgnoreCase) >= 0)
                             .ToList();
                     }
-
+                    if (request.ClientCode != null && request.ClientCode.Any())
+                    {
+                        allRequirements = allRequirements
+                            .Where(r => request.ClientCode.Contains(r.ClientCode))
+                            .ToList();
+                    }
+                    if (request.ApplicantsExist)
+                    {
+                        var reqNoApplicants = await _requirementRepository.GetRequirementsWithNoApplicantsAsync();
+                        var noApplicantIds = reqNoApplicants.Select(r => r.Id).ToList();
+                        allRequirements = allRequirements.Where(r => noApplicantIds.Contains(r.Id)).ToList();
+                    }
                     //var allRequirements = requirements.Concat(filteredEmplanelRequirement).Concat(sharedrequirement).Distinct().ToList();
                     totalRecords = allRequirements.Count;
                     paginatedRequirements = allRequirements.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToList();
