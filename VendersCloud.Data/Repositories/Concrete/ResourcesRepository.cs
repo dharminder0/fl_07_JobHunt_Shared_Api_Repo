@@ -194,22 +194,20 @@ namespace VendersCloud.Data.Repositories.Concrete
 
         public async Task<List<VendorDetailDto>> GetContractsByTypeAsync(VendorContractRequest request)
         {
+            if (string.IsNullOrWhiteSpace(request.PartnerCode) || string.IsNullOrWhiteSpace(request.VendorCode))
+                return new List<VendorDetailDto>();
+
             using var connection = GetConnection();
+
+            var result = new List<VendorDetailDto>();
             var parameters = new DynamicParameters();
+            parameters.Add("@orgcode", request.PartnerCode);
+            parameters.Add("@vendorCode", request.VendorCode);
 
             if (request.IsOpenPosition)
             {
-                parameters.Add("@orgcode", request.PartnerCode);
-
-                // Get partner's vendor code
-                var vendorCodeQuery = "SELECT VendorCode FROM PartnerVendorRel WHERE PartnerCode = @orgcode";
-                var vendorCode = await connection.QueryFirstOrDefaultAsync<string>(vendorCodeQuery, parameters);
-
-                // Fetch from RequirementVendors if vendorCode is available
-                var vendorResults = new List<VendorDetailDto>();
-                if (!string.IsNullOrEmpty(vendorCode))
-                {
-                    var openPositionQuery = @"
+                // 1. Vendor's own open requirements
+                var openVendorQuery = @"
 SELECT 
     r.Title AS RequirementTitle,
     r.CreatedOn AS RequirmentPostedDate,
@@ -217,9 +215,7 @@ SELECT
     '' AS ClientLogoUrl,
     r.ClientCode AS ClientName,
     (
-        SELECT COUNT(*) 
-        FROM Applications a2 
-        WHERE a2.RequirementId = r.Id
+        SELECT COUNT(*) FROM Applications a2 WHERE a2.RequirementId = r.Id
     ) AS NumberOfApplicants,
     r.Positions AS NumberOfPosition,
     r.Duration AS ContractPeriod,
@@ -228,17 +224,14 @@ FROM RequirementVendors rv
 INNER JOIN Requirement r ON rv.RequirementId = r.Id
 LEFT JOIN Applications a ON a.RequirementId = r.Id
 LEFT JOIN Resources res ON a.ResourceId = res.Id
-WHERE rv.OrgCode = @vendorCode
+WHERE rv.OrgCode = @vendorCode AND r.OrgCode = @orgcode
 ORDER BY r.CreatedOn DESC
 OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY";
 
-                    var openParams = new DynamicParameters();
-                    openParams.Add("@vendorCode", vendorCode);
-                    var openResults = await connection.QueryAsync<VendorDetailDto>(openPositionQuery, openParams);
-                    vendorResults = openResults.ToList();
-                }
+                var vendorResults = await connection.QueryAsync<VendorDetailDto>(openVendorQuery, parameters);
+                result.AddRange(vendorResults);
 
-                // Fetch public requirements for this partner
+                // 2. Public requirements from the partner
                 var publicQuery = @"
 SELECT 
     r.Title AS RequirementTitle,
@@ -247,9 +240,7 @@ SELECT
     '' AS ClientLogoUrl,
     r.ClientCode AS ClientName,
     (
-        SELECT COUNT(*) 
-        FROM Applications a2 
-        WHERE a2.RequirementId = r.Id
+        SELECT COUNT(*) FROM Applications a2 WHERE a2.RequirementId = r.Id
     ) AS NumberOfApplicants,
     r.Positions AS NumberOfPosition,
     r.Duration AS ContractPeriod,
@@ -259,23 +250,21 @@ WHERE r.Visibility = 3 AND r.OrgCode = @orgcode
 ORDER BY r.CreatedOn DESC";
 
                 var publicResults = await connection.QueryAsync<VendorDetailDto>(publicQuery, parameters);
+                result.AddRange(publicResults);
 
-                // Merge both results and return
-                return vendorResults.Concat(publicResults).ToList();
+                return result;
             }
 
-            // Status filter for active/past contracts
-            string statusFilterCondition = "";
+            // For active or past contracts
+            string statusFilter = "";
             if (request.IsActiveContracts)
-            {
-                statusFilterCondition = "WHERE ash.Status IN (9)";
-            }
+                statusFilter = "ash.Status IN (9)";
             else if (request.IsPastContracts)
-            {
-                statusFilterCondition = "WHERE ash.Status IN (10)";
-            }
+                statusFilter = "ash.Status IN (10)";
 
-            var contractQuery = $@"
+            if (!string.IsNullOrEmpty(statusFilter))
+            {
+                var contractQuery = $@"
 SELECT 
     r.Title AS RequirementTitle,
     r.CreatedOn AS RequirmentPostedDate,
@@ -283,9 +272,7 @@ SELECT
     '' AS ClientLogoUrl,
     r.ClientCode AS ClientName,
     (
-        SELECT COUNT(*) 
-        FROM Applications a2 
-        WHERE a2.RequirementId = r.Id
+        SELECT COUNT(*) FROM Applications a2 WHERE a2.RequirementId = r.Id
     ) AS NumberOfApplicants,
     r.Positions AS NumberOfPosition,
     r.Duration AS ContractPeriod,
@@ -293,18 +280,27 @@ SELECT
 FROM Applications a
 INNER JOIN Resources res ON a.ResourceId = res.Id
 INNER JOIN Requirement r ON a.RequirementId = r.Id
+INNER JOIN RequirementVendors rv ON rv.RequirementId = r.Id
 CROSS APPLY (
     SELECT TOP 1 Status
     FROM ApplicantStatusHistory
     WHERE ApplicantId = a.Id
     ORDER BY ChangedOn DESC
 ) ash
-{statusFilterCondition} AND r.OrgCode = '{request.PartnerCode}'
+WHERE {statusFilter}
+  AND r.OrgCode = @orgcode
+  AND rv.OrgCode = @vendorCode
 ORDER BY a.CreatedOn DESC";
 
-            var results = await connection.QueryAsync<VendorDetailDto>(contractQuery, parameters);
-            return results.ToList();
+
+                var statusResults = await connection.QueryAsync<VendorDetailDto>(contractQuery, parameters);
+                result.AddRange(statusResults);
+            }
+
+            return result;
         }
+
+
 
 
 
