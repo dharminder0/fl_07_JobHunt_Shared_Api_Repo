@@ -1131,8 +1131,9 @@ namespace VendersCloud.Business.Service.Concrete
 
                 var totalPlacementsDict = await _resourcesRepository.GetPlacementsGroupedByRequirementAsync(requirementIdsAll);
 
+
                 var groupedData = allRequirements
-                    .GroupBy(r => new { r.OrgCode, WeekDay = r.CreatedOn.ToString("ddd") }) 
+                    .GroupBy(r => r.CreatedOn.ToString("ddd")) // Group only by WeekDay
                     .Select(g =>
                     {
                         var reqIds = g.Select(x => x.Id).ToList();
@@ -1142,8 +1143,8 @@ namespace VendersCloud.Business.Service.Concrete
 
                         return new VendorGraphResponse
                         {
-                            OrgCode = g.Key.OrgCode,
-                            WeekDay = g.Key.WeekDay,
+                            OrgCode = request.OrgCode, // Not applicable when grouping by day
+                            WeekDay = g.Key,
                             TotalPositions = g.Sum(x => x.Positions),
                             TotalPlacements = totalPlacements
                         };
