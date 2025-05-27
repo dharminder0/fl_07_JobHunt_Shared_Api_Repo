@@ -818,7 +818,9 @@ namespace VendersCloud.Business.Service.Concrete
                             ApplicationDate = applicationItem.CreatedOn,
                             FirstName = benchMember.FirstName,
                             LastName = benchMember.LastName,
-                            VendorOrgCode = benchMember.OrgCode
+                            VendorOrgCode = benchMember.OrgCode,
+                            ApplicationId=applicationItem.Id
+                            
                         };
                         var data = await _matchRecordRepository.GetMatchScoreAsync(requirementItem.Id, applicationItem.ResourceId);
                         if (data != null)

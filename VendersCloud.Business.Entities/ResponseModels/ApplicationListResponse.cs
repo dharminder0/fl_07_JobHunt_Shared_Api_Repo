@@ -14,6 +14,7 @@
         public string vendorLogo { get; set; }
         public string  CvData { get; set; }
         public int MatchingScore { get; set; }
+        public int ApplicationId { get; set; }
 
     }
 }
