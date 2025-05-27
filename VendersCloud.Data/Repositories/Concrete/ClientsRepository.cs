@@ -138,9 +138,9 @@
                 parameters.Add("searchText", $"%{request.searchText}%");
             }
 
-            if (!string.IsNullOrWhiteSpace(request.Status))
+            if (request.Status !=null && request.Status.Any())
             {
-                predicates.Add("(c.Status = @status)");
+                predicates.Add("(c.Status in  @status)");
                 parameters.Add("status", request.Status);
             }
 
