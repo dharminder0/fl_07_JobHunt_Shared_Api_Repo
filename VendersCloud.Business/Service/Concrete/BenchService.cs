@@ -690,18 +690,11 @@ namespace VendersCloud.Business.Service.Concrete
                 {
                     var requirement = await _requirementRepository.GetRequirementByRequirementIdAsync(item.RequirementId);
                     if (requirement == null) continue;
-                    int id = await _matchRecordRepository.GetMatchApplicant(item.RequirementId, item.ResourceId);
-                   
-                    dynamic obj = new ExpandoObject();
-                    if (id > 0)
-                    {
-                        obj.IsApplied = true;
-                    }
-                    else
-                    {
-                        obj.IsApplied = false;
 
-                    }
+                    int id = await _matchRecordRepository.GetMatchApplicant(item.RequirementId, item.ResourceId);
+
+                    dynamic obj = new ExpandoObject();
+                    obj.IsApplied = id > 0;
 
                     obj.RequirementId = item.RequirementId;
                     obj.MatchingScore = item.MatchScore;
@@ -722,6 +715,8 @@ namespace VendersCloud.Business.Service.Concrete
                     obj.UpdatedOn = requirement.UpdatedOn;
                     obj.ClientCode = requirement.ClientCode;
                     obj.CreatedOn = requirement.CreatedOn;
+                    obj.LocationType = requirement.LocationType;
+
                     var orgData = await _clientsRepository.GetClientsByClientCodeAsync(requirement.ClientCode);
                     if (orgData != null)
                     {
@@ -737,6 +732,7 @@ namespace VendersCloud.Business.Service.Concrete
                             obj.ClientLogo = clientData.Logo;
                         }
                     }
+
                     if (int.TryParse(Convert.ToString(requirement.Location), out int locationValue))
                     {
                         obj.LocationTypeName = Enum.GetName(typeof(LocationType), locationValue);
@@ -756,8 +752,18 @@ namespace VendersCloud.Business.Service.Concrete
                 }
             }
 
+           
             var filteredList = resultList
                 .Where(x => x.Visibility == 3 || x.RequirementOrgCode == request.OrgCode)
+                .Where(x =>
+                    string.IsNullOrEmpty(request.SearchText) || (
+                        (x.Title != null && x.Title.ToString().IndexOf(request.SearchText, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                        (x.Description != null && x.Description.ToString().IndexOf(request.SearchText, StringComparison.OrdinalIgnoreCase) >= 0)
+                    ))
+                .Where(x =>
+                    request.Status == null || request.Status.Count == 0 || request.Status.Contains((int)x.Status))
+                .Where(x =>
+                    request.LocationType == null || request.LocationType.Count == 0 || request.LocationType.Contains(x.LocationType))
                 .ToList();
 
             dynamic result = new ExpandoObject();
@@ -766,6 +772,8 @@ namespace VendersCloud.Business.Service.Concrete
 
             return new List<dynamic> { result };
         }
+
+
         public async Task<bool> UpsertApplicantStatusHistory(ApplicantStatusHistory model)
         {
             try
