@@ -21,7 +21,7 @@
         Task<VendorRequirementCount> GetVendorRequirementCountAsync(VendorGraphRequest request);
         Task<List<dynamic>> GetVendorTotalPlacementAndRequirementIdAsync(VendorGraphRequest request);
         Task<bool> UpdateHotByIdAsync(string requirementUniqueId, int hot);
-        Task<dynamic> GetCountTechStackByOrgCodeAsync(string orgCode);
+        Task<List<dynamic>> GetCountTechStackByOrgCodeAsync(TechStackRequest request);
         Task<Requirement> GetRequirementByRequirementIdAsync(int requirementId);
         Task<int> GetRequirementCountByOrgCodeAsync(string orgCode);
         Task<List<Requirement>> GetPublicRequirementAsync(List<string> orgCode, int visibility);

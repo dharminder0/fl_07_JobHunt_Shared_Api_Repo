@@ -619,25 +619,39 @@ SELECT (SELECT SUM(Positions) FROM Requirement WHERE Status = 1 ) AS OpenPositio
             return dbInstance.Select<VendorRequirementCount>(requirementQuery, new { request.OrgCode, request.StartDate, request.EndDate, request.UserId }).FirstOrDefault();
         }
 
-        public async Task<dynamic> GetCountTechStackByOrgCodeAsync(string orgCode)
+        public async Task<List<dynamic>> GetCountTechStackByOrgCodeAsync(TechStackRequest request)
         {
             var dbInstance = GetDbInstance();
-            var tableName = new Table<Resources>();
-            var query = @"SELECT 
-                s.SkillName,
-                COUNT(DISTINCT rr.Id) AS ResourceCount
-            FROM 
-                Skills s
-            INNER JOIN SkillResourcesMapping srm ON s.Id = srm.SkillId
-            INNER JOIN Resources rr ON srm.ResourcesId = rr.Id
-            WHERE 
-                rr.OrgCode = @orgCode
-            GROUP BY 
-                s.SkillName
-            ORDER BY 
-                ResourceCount DESC;";
-            return dbInstance.Select<dynamic>(query, new { orgCode }).ToList();
+
+            var searchClause = string.IsNullOrWhiteSpace(request.SearchText)
+                ? ""
+                : "AND s.SkillName LIKE @searchText";
+
+            var query = $@"
+SELECT 
+    s.SkillName,
+    COUNT(DISTINCT r.Id) AS ResourceCount
+FROM Skills s
+INNER JOIN SkillResourcesMapping srm ON s.Id = srm.SkillId
+INNER JOIN Resources r ON srm.ResourcesId = r.Id
+WHERE r.OrgCode = @orgCode
+{searchClause}
+GROUP BY s.SkillName
+ORDER BY ResourceCount DESC
+OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY;";
+
+            var parameters = new
+            {
+                orgCode = request.OrgCode,
+                searchText = $"%{request.SearchText}%",
+                offset = (request.Page - 1) * request.PageSize,
+                pageSize = request.PageSize
+            };
+
+            return dbInstance.Select<dynamic>(query, parameters).ToList();
         }
+
+
         public async Task<List<Requirement>> GetPublicRequirementAsync(List<string> orgCode, int visibility)
         {
             var dbInstance = GetDbInstance();
