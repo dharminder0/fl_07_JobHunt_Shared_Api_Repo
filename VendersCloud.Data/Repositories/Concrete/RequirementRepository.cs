@@ -439,26 +439,55 @@ ORDER BY r.CreatedOn DESC;";
             parameters.Add("orgCode", orgCode);
 
             string query = @"
-                SELECT 
-            (SELECT SUM(Positions) FROM Requirement WHERE Status = 1 AND OrgCode = @orgCode) AS OpenPositions,
-        
-            (SELECT COUNT(*) FROM Requirement WHERE Hot = 1 AND Status = 1 AND OrgCode = @orgCode) AS HotRequirements,
-        
-            (SELECT COUNT(*) FROM Applications WHERE Status IN (5, 6) 
-             AND RequirementId IN (SELECT Id FROM Requirement WHERE OrgCode = @orgCode)) AS InterviewScheduled,
-        
-            (SELECT COUNT(*) FROM Applications WHERE Status IN (2) 
-             AND RequirementId IN (SELECT Id FROM Requirement WHERE OrgCode = @orgCode)) AS CandidatesToReview,
-        
-            (SELECT COUNT(*) FROM Applications 
-             WHERE RequirementId IN (SELECT Id FROM Requirement WHERE OrgCode = @orgCode)) AS TotalApplicants,
-        
-            (SELECT COUNT(*) 
-             FROM Requirement r 
-             WHERE r.OrgCode = @orgCode
-             AND NOT EXISTS (
-                 SELECT 1 FROM Applications a WHERE a.RequirementId = r.Id
-             )) AS NoApplications
+                WITH LatestStatus AS (
+    SELECT ash.ApplicantId, ash.Status, a.RequirementId,
+           ROW_NUMBER() OVER (PARTITION BY ash.ApplicantId ORDER BY ash.ChangedOn DESC) AS rn
+    FROM ApplicantStatusHistory ash
+    JOIN Applications a ON a.id = ash.ApplicantId
+)
+, ApplicationWithStatus AS (
+    SELECT ls.RequirementId, ls.ApplicantId, ls.Status
+    FROM LatestStatus ls
+    WHERE ls.rn = 1
+)
+
+SELECT 
+    (SELECT SUM(Positions) 
+     FROM Requirement 
+     WHERE Status = 1 AND OrgCode = @orgCode) AS OpenPositions,
+
+    (SELECT COUNT(*) 
+     FROM Requirement 
+     WHERE Hot = 1 AND Status = 1 AND OrgCode = @orgCode) AS HotRequirements,
+
+    (SELECT COUNT(*) 
+     FROM ApplicationWithStatus aws 
+     WHERE aws.Status IN (5, 6, 7) 
+     AND aws.RequirementId IN (SELECT Id FROM Requirement WHERE OrgCode = @orgCode)) AS InterviewScheduled,
+
+    (SELECT COUNT(*) 
+     FROM ApplicationWithStatus aws 
+     WHERE aws.Status = 2 
+     AND aws.RequirementId IN (SELECT Id FROM Requirement WHERE OrgCode = @orgCode)) AS CandidatesToReview,
+
+    (SELECT COUNT(*) 
+     FROM ApplicationWithStatus aws 
+     WHERE aws.RequirementId IN (SELECT Id FROM Requirement WHERE OrgCode = @orgCode)) AS TotalApplicants,
+
+    (SELECT COUNT(*) 
+     FROM Requirement r 
+     WHERE r.OrgCode = @orgCode
+     AND NOT EXISTS (
+         SELECT 1 
+         FROM Applications a
+         JOIN (
+             SELECT ApplicantId, MAX(ChangedOn) AS LatestChange
+             FROM ApplicantStatusHistory
+             GROUP BY ApplicantId
+         ) latest ON a.id = latest.ApplicantId
+         WHERE a.RequirementId = r.Id
+     )) AS NoApplications
+
         ";
 
             return await connection.QueryFirstOrDefaultAsync<CompanyDashboardCountResponse>(query, parameters)

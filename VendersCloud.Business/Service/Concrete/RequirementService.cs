@@ -1310,7 +1310,22 @@ namespace VendersCloud.Business.Service.Concrete
                 List<dynamic> result = new List<dynamic>();
                 List<int> matchingCandidate = await _matchRecordRepository.GetMatchingCountByRequirementId(request.RequirementId);
                 var benchData = await _benchRepository.GetBenchResponseListByIdAsync(matchingCandidate);
-            
+                if (!string.IsNullOrWhiteSpace(request.SearchText))
+                {
+                    benchData = benchData
+                        .Where(v => v.FirstName.Contains(request.SearchText, StringComparison.OrdinalIgnoreCase)
+                                 || v.LastName.Contains(request.SearchText, StringComparison.OrdinalIgnoreCase))
+                        .ToList();
+                }
+                if (request.Availability != null && request.Availability.Any())
+                {
+                    benchData = benchData
+                        .Where(v => request.Availability.Contains(v.Availability))
+                        .ToList();
+                }
+
+
+
 
                 foreach (var item in benchData)
                 {

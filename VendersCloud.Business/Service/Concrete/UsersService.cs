@@ -373,16 +373,25 @@ namespace VendersCloud.Business.Service.Concrete
             try
             {
                 string uploadedimageUrl = string.Empty;
-                if (request.ProfileAvatar != null && request.ProfileAvatar.Count > 0)
+                try
                 {
-                    List<string> uploadedLogos = new List<string>();
-                    foreach (var file in request.ProfileAvatar)
+                    if (request.ProfileAvatar != null && request.ProfileAvatar.Count > 0)
                     {
-                        uploadedimageUrl = await _blobStorageService.UploadBase64ToBlobAsync(file);
+                        List<string> uploadedLogos = new List<string>();
+                        foreach (var file in request.ProfileAvatar)
+                        {
+                            uploadedimageUrl = await _blobStorageService.UploadBase64ToBlobAsync(file);
+
+                        }
 
                     }
-
                 }
+                catch (Exception)
+                {
+
+                 
+                }
+               
                 var res = await _usersRepository.UpdateUserProfileAsync(request, uploadedimageUrl);
                 if (res)
                 {
