@@ -140,11 +140,11 @@
         [ServiceFilter(typeof(RequireAuthorizationFilter))]
         [HttpPost]
         [Route("api/V1/Resources/TechStack")]
-        public async Task<IActionResult> GetCountTechStackByOrgCodeAsync(string orgCode)
+        public async Task<IActionResult> GetCountTechStackByOrgCodeAsync(TechStackRequest request)
         {
             try
             {
-                var result = await _benchService.GetCountTechStackByOrgCodeAsync(orgCode);
+                var result = await _benchService.GetCountTechStackByOrgCodeAsync(request);
                 return Json(result);
             }
             catch (Exception ex)

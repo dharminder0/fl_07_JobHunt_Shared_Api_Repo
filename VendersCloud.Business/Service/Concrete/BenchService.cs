@@ -596,11 +596,12 @@ namespace VendersCloud.Business.Service.Concrete
                 };
             }
         }
-        public async Task<dynamic> GetCountTechStackByOrgCodeAsync(string orgCode)
+        public async Task<dynamic> GetCountTechStackByOrgCodeAsync(TechStackRequest request)
         {
             try
             {
-                return await _requirementsRepository.GetCountTechStackByOrgCodeAsync(orgCode);
+                return  await _requirementsRepository.GetCountTechStackByOrgCodeAsync(request);
+               
             }
             catch (Exception ex)
             {
