@@ -43,7 +43,7 @@ namespace VendersCloud.Business.Service.Concrete
                     var data = await _usersRepository.InsertUserAsync(request, hashedPassword, saltBytes, orgCode,verificationOtp,token,string.Empty);
                     if (data != null)
                     {
-                        if(data.Equals("User Already Exists!!"))
+                        if(data.Equals("User Already Exists And Details Are Updated!!"))
                         {
                             return new ActionMessageResponse { Success = false, Message = "User Already Exists!!", Content = "" };
                         }
