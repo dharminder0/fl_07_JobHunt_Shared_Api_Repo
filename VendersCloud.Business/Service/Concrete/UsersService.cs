@@ -611,6 +611,11 @@ namespace VendersCloud.Business.Service.Concrete
                 };
             }
         }
-       
+        public async Task<bool> DeleteMemberByIdAsync(int userId)
+        {
+            return await _usersRepository.DeleteMemberByIdAsync(userId);
+        }
+
+
     }
 }

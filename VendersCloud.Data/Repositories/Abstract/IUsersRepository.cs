@@ -17,5 +17,6 @@
         Task<bool> SetUserPasswordAsync(string hashedPassword, byte[] salt, string userToken);
         Task<PaginationDto<UsersDto>> SearchMemberDetailsAsync(SearchMemberRequest request);
         Task<bool> UpdateEmailAsync(string OldEmail, string NewEmail, string verificationOtp);
+        Task<bool> DeleteMemberByIdAsync(int  userId);
     }
 }
