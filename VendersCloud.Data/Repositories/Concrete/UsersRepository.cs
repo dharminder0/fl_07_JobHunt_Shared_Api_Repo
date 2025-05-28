@@ -392,6 +392,25 @@
             await dbInstance.ExecuteAsync(update);
             return true;
         }
+        public async Task<bool> DeleteMemberByIdAsync(int  userId)
+        {
+            using var connection = GetConnection();
+
+            const string checkQuery = "SELECT COUNT(*) FROM Users WHERE Id = @UserId";
+            var exists = await connection.ExecuteScalarAsync<int>(checkQuery, new { UserId = userId }) > 0;
+
+            if (!exists)
+                return false;
+
+            const string deleteQuery = @"
+        UPDATE Users 
+        SET IsDeleted = 1, UpdatedOn = GETDATE()
+        WHERE Id = @UserId";
+
+            var affectedRows = await connection.ExecuteAsync(deleteQuery, new { UserId = userId });
+            return affectedRows > 0;
+        }
+
     }
 
 }
