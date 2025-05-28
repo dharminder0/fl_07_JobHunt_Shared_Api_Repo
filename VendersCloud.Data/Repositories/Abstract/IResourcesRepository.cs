@@ -4,7 +4,7 @@
     {
         Task<bool> UpsertApplicants(ApplicationsRequest request, int Id);
         Task<List<Applications>> GetApplicationsList();
-        Task<List<dynamic>> GetApplicationsPerRequirementIdAsync(int requirementId, int status);
+        Task<List<dynamic>> GetApplicationsPerRequirementIdAsyncV2(int requirementId);
         Task<int> GetTotalApplicationsPerRequirementIdAsync(int requirementId);
         Task<List<Applications>> GetApplicationsPerRequirementIdAsync(int requirementId);
         Task<int> GetTotalPlacementsAsync(List<int> requirementIds);
