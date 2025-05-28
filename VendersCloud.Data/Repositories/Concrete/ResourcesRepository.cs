@@ -193,20 +193,23 @@ namespace VendersCloud.Data.Repositories.Concrete
             return result;
         }
 
-        public async Task<int> GetTotalPlacementsByUserIdsAsync(List<int> userId)
+        public async Task<int> GetTotalPlacementsByUserIdsAsync(List<int> userIds)
         {
-            if (userId == null || userId.Count == 0)
+            if (userIds == null || userIds.Count == 0)
                 return 0;
 
             var dbInstance = GetDbInstance();
+
             var query = new Query("Applications")
-                .Where("Status", 8)
-                .Where(q => q.WhereIn("CreatedBy", userId).OrWhereIn("UpdatedBy", userId))
-                .SelectRaw("COUNT(ResourceId)");
+                .Join("ApplicantStatusHistory AS ASH", "ASH.ApplicantId", "Applications.Id")
+                .WhereIn("ASH.Status", new[] { 8, 9, 10 })
+                .Where(q => q.WhereIn("Applications.CreatedBy", userIds).OrWhereIn("Applications.UpdatedBy", userIds))
+                .SelectRaw("COUNT(DISTINCT Applications.ResourceId)");
 
             var result = await dbInstance.ExecuteScalarAsync<int>(query);
             return result;
         }
+
 
         public async Task<List<VendorDetailDto>> GetContractsByTypeAsync(VendorContractRequest request)
         {
