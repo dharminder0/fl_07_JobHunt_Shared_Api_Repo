@@ -650,14 +650,14 @@ SELECT
 
             var query = $@"
 SELECT 
-    s.SkillName,
+    s.SkillName,s.id,
     COUNT(DISTINCT r.Id) AS ResourceCount
 FROM Skills s
 INNER JOIN SkillResourcesMapping srm ON s.Id = srm.SkillId
 INNER JOIN Resources r ON srm.ResourcesId = r.Id
 WHERE r.OrgCode = @orgCode
 {searchClause}
-GROUP BY s.SkillName
+GROUP BY s.SkillName,s.Id
 ORDER BY ResourceCount DESC
 OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY;";
 

@@ -238,7 +238,8 @@ SELECT
     ) AS NumberOfApplicants,
     r.Positions AS NumberOfPosition,
     r.Duration AS ContractPeriod,
-    r.Visibility
+    r.Visibility,
+    r.locationType
 FROM RequirementVendors rv
 INNER JOIN Requirement r ON rv.RequirementId = r.Id
 LEFT JOIN Applications a ON a.RequirementId = r.Id
@@ -326,19 +327,22 @@ ORDER BY a.CreatedOn DESC";
         public async Task<Dictionary<int, int>> GetPlacementsGroupedByRequirementAsync(List<int> requirementIds)
         {
             var dbInstance = GetDbInstance();
+            var validStatuses = new List<int> { 8, 9, 10 };
 
-            var query = new Query("Applications") 
-                .WhereIn("RequirementId", requirementIds)
-                .Where("Status", 8)
-                .GroupBy("RequirementId")
-                .Select("RequirementId")
-                .SelectRaw("COUNT(DISTINCT ResourceId) AS Total");
+            var query = new Query("Applications AS A")
+                .Join("ApplicantStatusHistory AS H", "A.Id", "H.ApplicantId")
+                .WhereIn("A.RequirementId", requirementIds)
+                .WhereIn("H.Status", validStatuses)
+                .GroupBy("A.RequirementId")
+                .Select("A.RequirementId")
+                .SelectRaw("COUNT(DISTINCT A.ResourceId) AS Total");
 
             var result = await dbInstance.GetAsync<(int RequirementId, int Total)>(query);
 
             return result.ToDictionary(x => x.RequirementId, x => x.Total);
         }
-      public async Task<List<VendorDetailDto>> GetSharedContractsAsync(SharedContractsRequest request)
+
+        public async Task<List<VendorDetailDto>> GetSharedContractsAsync(SharedContractsRequest request)
 {
     using var connection = GetConnection();
     var parameters = new DynamicParameters();
