@@ -385,7 +385,8 @@ O.OrgCode AS OrgCode
 FROM Requirement R
 JOIN Applications A ON R.Id = A.RequirementId 
 JOIN Resources RS ON A.ResourceId = RS.Id   
-Join Organization O on RS.CreatedBy =O.Id
+INNER JOIN RequirementVendors rv ON rv.RequirementId = r.Id
+Join Organization O on RS.orgCode =O.orgCode
 LEFT JOIN (
     SELECT ApplicantId, status
     FROM (
