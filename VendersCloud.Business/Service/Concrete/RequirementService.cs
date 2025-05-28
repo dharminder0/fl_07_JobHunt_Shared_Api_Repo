@@ -963,6 +963,12 @@ namespace VendersCloud.Business.Service.Concrete
                         )
                         .ToList();
                 }
+                if (!string.IsNullOrEmpty(request.RequirmentUniqueId))
+                {
+                    listResponse = listResponse
+                        .Where(r => r.RequirementUniqueId == request.RequirmentUniqueId).ToList();
+                     
+                }
 
                 // Pagination logic
                 int totalRecords = listResponse.Count;
