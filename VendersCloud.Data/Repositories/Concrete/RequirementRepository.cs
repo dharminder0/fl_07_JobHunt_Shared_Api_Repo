@@ -494,25 +494,46 @@ SELECT
                    ?? new CompanyDashboardCountResponse();
         }
 
-        public async Task<CompanyDashboardCountResponse> GetVendorsCountsAsync(string orgCode ,string userId,int roleType)
+        public async Task<CompanyDashboardCountResponse> GetVendorsCountsAsync(string orgCode, string userId, int roleType)
         {
             using var connection = GetConnection();
             var parameters = new DynamicParameters();
             parameters.Add("orgCode", orgCode);
             parameters.Add("userId", userId);
- 
 
             string query = $@"
-SELECT (SELECT SUM(Positions) FROM Requirement WHERE Status = 1 ) AS OpenPositions,
-                            (SELECT COUNT(*) FROM Requirement WHERE Hot = 1 AND Status = 1 ) AS HotRequirements,
-                            (SELECT COUNT(*) FROM Applications WHERE Status IN (5, 6) And CreatedBy=@userId) AS InterviewScheduled,
-                            (SELECT COUNT(*) FROM Applications WHERE Status IN (2) And CreatedBy=@userId) AS CandidatesToReview,
-                            (SELECT COUNT(*) FROM Applications WHERE  CreatedBy=@userId)  AS TotalApplicants";
-          
+WITH LatestStatus AS (
+    SELECT 
+        ash.ApplicantId, 
+        ash.Status, 
+        a.RequirementId,
+        ROW_NUMBER() OVER (PARTITION BY ash.ApplicantId ORDER BY ash.ChangedOn DESC) AS rn
+    FROM ApplicantStatusHistory ash
+    INNER JOIN Applications a ON a.Id = ash.ApplicantId
+),
+ApplicationWithStatus AS (
+    SELECT 
+        ls.RequirementId, 
+        ls.ApplicantId, 
+        ls.Status,
+        a.CreatedBy
+    FROM LatestStatus ls
+    INNER JOIN Applications a ON a.Id = ls.ApplicantId
+    WHERE ls.rn = 1
+)
+SELECT 
+    (SELECT SUM(Positions) FROM Requirement WHERE Status = 1) AS OpenPositions,
+    (SELECT COUNT(*) FROM Requirement WHERE Hot = 1 AND Status = 1) AS HotRequirements,
+    (SELECT COUNT(*) FROM ApplicationWithStatus 
+     WHERE Status IN (5, 6,7) AND CreatedBy = @userId) AS InterviewScheduled,
+    (SELECT COUNT(*) FROM ApplicationWithStatus 
+     WHERE Status = 2 AND CreatedBy = @userId) AS CandidatesToReview,
+    (SELECT COUNT(*) FROM Applications WHERE CreatedBy = @userId) AS TotalApplicants";
 
             return await connection.QueryFirstOrDefaultAsync<CompanyDashboardCountResponse>(query, parameters)
                    ?? new CompanyDashboardCountResponse();
         }
+
 
         public async Task<List<dynamic>>GetActivePositionsByOrgCodeAsync(string orgCode,string userId)
         { 
