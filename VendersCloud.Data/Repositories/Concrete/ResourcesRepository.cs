@@ -83,17 +83,33 @@ namespace VendersCloud.Data.Repositories.Concrete
             return applicationsData;
         }
 
-        public async Task<List<dynamic>> GetApplicationsPerRequirementIdAsync(int requirementId, int status)
+        public async Task<List<dynamic>> GetApplicationsPerRequirementIdAsyncV2(int requirementId)
         {
             var dbInstance = GetDbInstance();
-            var sql = "SELECT ResourceId FROM Applications where RequirementId=@requirementId and Status=@status";
 
-            var applicationsData = dbInstance.Select<dynamic>(sql, new
+            var sql = @"
+        SELECT a.ResourceId
+        FROM Applications a
+        JOIN (
+            SELECT ApplicantId, Status
+            FROM (
+                SELECT ApplicantId, Status,
+                       ROW_NUMBER() OVER (PARTITION BY ApplicantId ORDER BY ChangedOn DESC) AS rn
+                FROM ApplicantStatusHistory
+            ) ASH
+            WHERE rn = 1
+        ) latestStatus ON latestStatus.ApplicantId = a.Id
+        WHERE a.RequirementId = @requirementId
+          AND latestStatus.Status IN (8, 9, 10);";
+
+            var applicationsData = (await dbInstance.SelectAsync<dynamic>(sql, new
             {
-                requirementId,status
-            }).ToList();
+                requirementId
+            })).ToList();
+
             return applicationsData;
         }
+
 
         public async Task<List<Applications>> GetApplicationsPerRequirementIdAsync(int requirementId)
         {

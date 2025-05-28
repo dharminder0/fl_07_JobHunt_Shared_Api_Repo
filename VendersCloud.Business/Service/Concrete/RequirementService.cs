@@ -755,7 +755,7 @@ namespace VendersCloud.Business.Service.Concrete
                         requirementId = item.Id;
                     }
                 }
-                var applicantData = await _resourcesRepository.GetApplicationsPerRequirementIdAsync(requirementId, request.Status);
+                var applicantData = await _resourcesRepository.GetApplicationsPerRequirementIdAsyncV2(requirementId);
                 var totalApplicants = applicantData.Count;
                 return totalApplicants;
 
