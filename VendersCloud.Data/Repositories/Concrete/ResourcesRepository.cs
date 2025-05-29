@@ -362,7 +362,8 @@ SELECT
     ) AS NumberOfApplicants,
     r.Positions AS NumberOfPosition,
     r.Duration AS ContractPeriod,
-    r.Visibility
+    r.Visibility,
+ r.locationType
 FROM Applications a
 INNER JOIN Resources res ON a.ResourceId = res.Id
 INNER JOIN Requirement r ON a.RequirementId = r.Id
