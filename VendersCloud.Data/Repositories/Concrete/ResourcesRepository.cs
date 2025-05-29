@@ -249,15 +249,18 @@ namespace VendersCloud.Data.Repositories.Concrete
             if (requirementIds == null || requirementIds.Count == 0)
                 return 0;
 
-            var dbInstance = GetDbInstance();
-            var query = new Query("Applications")
-                .WhereIn("RequirementId", requirementIds)
-                .Where("Status", 8)
-                .SelectRaw("COUNT(DISTINCT ResourceId)");
+            var db = GetDbInstance();
 
-            var result = await dbInstance.ExecuteScalarAsync<int>(query);
+            var query = new Query("Applications AS a")
+                .Join("ApplicantStatusHistory AS ash", "a.Id", "ash.ApplicantId")
+                .WhereIn("a.RequirementId", requirementIds)
+                .Where("ash.Status", 8)
+                .SelectRaw("COUNT(DISTINCT a.ResourceId)");
+
+            var result = await db.ExecuteScalarAsync<int>(query);
             return result;
         }
+
 
         public async Task<int> GetTotalPlacementsByUserIdsAsync(List<int> userIds)
         {
