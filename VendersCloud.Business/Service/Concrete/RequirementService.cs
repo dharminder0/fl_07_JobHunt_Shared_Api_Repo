@@ -632,9 +632,17 @@ namespace VendersCloud.Business.Service.Concrete
                 var requirementsResponseList = new List<RequirementResponse>();
                 foreach (var r in paginatedRequirements)
                 {
+                    int role = 0;
+                    if (request.RoleType.Contains("1"))
+                    {
+                        role = 1;
+                        
+                    }
                     ApplicantSearch.RequirementUniqueId = r.UniqueId;
                     ApplicantSearch.Status = 8;
-                    Applicants = await _resourcesRepository.GetTotalApplicationsPerRequirementIdAsync(r.Id);
+                    ApplicantSearch.VendorCode = request.OrgCode;
+                    ApplicantSearch.Role = role;
+                    Applicants = await _resourcesRepository.GetTotalApplicationsPerRequirementIdAsyncV2(r.Id,request.OrgCode,role);
                     matchingCandidate = await _matchRecordRepository.GetMatchingCountByRequirementId(r.Id);
                     var data = await _benchRepository.GetBenchResponseListByIdAsync(matchingCandidate);
                     var resourcesList = data.Where(x => x.OrgCode == request.OrgCode);
@@ -755,7 +763,7 @@ namespace VendersCloud.Business.Service.Concrete
                         requirementId = item.Id;
                     }
                 }
-                var applicantData = await _resourcesRepository.GetApplicationsPerRequirementIdAsyncV2(requirementId);
+                var applicantData = await _resourcesRepository.GetApplicationsPerRequirementIdAsyncV2(requirementId,request.VendorCode,request.Role);
                 var totalApplicants = applicantData.Count;
                 return totalApplicants;
 

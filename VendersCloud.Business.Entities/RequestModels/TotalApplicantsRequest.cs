@@ -4,5 +4,7 @@
     {
         public string RequirementUniqueId {  get; set; }
         public int Status {  get; set; }
+        public string  VendorCode { get; set; }
+        public int Role { get; set; }
     }
 }

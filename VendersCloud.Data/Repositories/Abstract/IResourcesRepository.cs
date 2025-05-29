@@ -13,6 +13,9 @@
         Task<Dictionary<int, int>> GetPlacementsGroupedByRequirementAsync(List<int> requirementIds);
         Task<List<VendorDetailDto>> GetSharedContractsAsync(SharedContractsRequest request);
         Task<List<Applications>> GetApplicationsPerRequirementIdAsyncV2(List<int> requirementId);
+        Task<int> GetTotalApplicationsPerRequirementIdAsyncV2(int requirementId, string vendorCode, int role);
+        Task<List<dynamic>> GetApplicationsPerRequirementIdAsyncV2(int requirementId, string vendorCode, int role);
+
 
     }
 }
