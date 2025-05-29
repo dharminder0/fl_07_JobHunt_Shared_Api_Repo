@@ -234,8 +234,8 @@ namespace VendersCloud.Business.Service.Concrete
 
                 var applications = await _resourcesRepository.GetApplicationsList();
                 var query = applications.AsQueryable();
-                var clientsList = new List<Clients>();
-                var clientsData = new Dictionary<string, Clients>();
+                var orgList = new List<Organization>();
+                var clientsData = new Dictionary<string, Organization>();
                 if (!string.IsNullOrEmpty(request.UserId) && int.TryParse(request.UserId, out var id))
                 {
                     query = query.Where(a => a.CreatedBy == id);
@@ -267,13 +267,17 @@ namespace VendersCloud.Business.Service.Concrete
 
                 var requirementIds = pagedResults.Select(a => a.RequirementId).Distinct().ToList();
                 var requirementsList = await _requirementsRepository.GetRequirementByIdAsync(requirementIds);
+                if( !string.IsNullOrWhiteSpace(request.UniqueId))
+                {
+                    requirementsList = requirementsList.Where(v => v.UniqueId == request.UniqueId);
+                }
                 var requirementsData = requirementsList.ToDictionary(r => r.Id, r => r);
 
-                var clientCodes = requirementsList.Select(r => r.ClientCode).Where(code => !string.IsNullOrWhiteSpace(code)).Distinct().ToList();
-                if (clientCodes.Any())
+                var orgCodes = requirementsList.Select(r => r.OrgCode).Where(code => !string.IsNullOrWhiteSpace(code)).Distinct().ToList();
+                if (orgCodes.Any())
                 {
-                    clientsList = await _clientsRepository.GetClientsByClientCodeListAsync(clientCodes);
-                    clientsData = clientsList.ToDictionary(c => c.ClientCode, c => c);
+                    orgList = await _organizationRepository.GetOrgByListAsync(orgCodes);
+                    clientsData = orgList.ToDictionary(c => c.OrgCode, c => c);
                 }
                 foreach (var data in pagedResults)
                 {
@@ -303,17 +307,17 @@ namespace VendersCloud.Business.Service.Concrete
                         var matchScoreResult = await _matchRecordRepository.GetMatchScoreAsync(data.RequirementId, data.ResourceId);
                         searchResponse.MatchScore = matchScoreResult.MatchScore;
                       
-                        if (clientCodes.Count != 0)
+                        if (orgCodes.Count != 0)
                         {
-                            if (!string.IsNullOrEmpty(requirement.ClientCode))
+                            if (!string.IsNullOrEmpty(requirement.OrgCode))
                             {
-                                if (clientsData.TryGetValue(requirement.ClientCode, out var client))
+                                if (clientsData.TryGetValue(requirement.OrgCode, out var organization))
                                 {
-                                    if (request.ClientOrgCode == null || !request.ClientOrgCode.Any() || request.ClientOrgCode.Contains(client.ClientCode))
+                                    if (request.ClientOrgCode == null || !request.ClientOrgCode.Any() || request.ClientOrgCode.Contains(organization.OrgCode))
                                     {
-                                        searchResponse.ClientOrgName = client.ClientName;
-                                        searchResponse.ClientOrgLogo = client.LogoURL;
-                                        searchResponse.ClientCode = requirement.ClientCode;
+                                        searchResponse.OrgCode = organization.OrgCode;
+                                        searchResponse.OrgName = organization.OrgName;
+                                        searchResponse.OrgLogo = organization.Logo;
                                     }
                                 }
                             }

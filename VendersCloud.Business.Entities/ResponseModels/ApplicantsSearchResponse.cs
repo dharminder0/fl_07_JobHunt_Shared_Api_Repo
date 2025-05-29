@@ -11,10 +11,10 @@
         public string StatusName {  get; set; }
         public DateTime ApplicationDate {  get; set; }
         public Dictionary<string, object> CV { get; set; }
-        public string ClientOrgLogo {  get; set; }
+        public string OrgLogo {  get; set; }
         //public string  Avatar { get; set; }
-        public string ClientOrgName { get; set; }
-        public string ClientCode { get; set; }
+        public string OrgName { get; set; }
+        public string OrgCode { get; set; }
         public string Comment { get; set; }
         public int MatchScore { get; set; }
         public int ApplicationId { get; set; }
