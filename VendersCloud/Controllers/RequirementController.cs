@@ -219,7 +219,7 @@
         {
             try
             {
-                var result = await _requirementService.GetDayWeekCountsAsync(request);
+                var result = await _requirementService.GetDayWeekCountsAsyncV2(request);
                 return Json(result);
             }
             catch (Exception ex)
