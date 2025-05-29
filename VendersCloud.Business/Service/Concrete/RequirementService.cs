@@ -787,6 +787,7 @@ namespace VendersCloud.Business.Service.Concrete
                 {
                     var applicationData = await _resourcesRepository.GetApplicationsPerRequirementIdAsync(requirementItem.Id);
                     if (applicationData == null) continue;
+                 
 
                     foreach (var applicationItem in applicationData)
                     {
@@ -843,7 +844,10 @@ namespace VendersCloud.Business.Service.Concrete
             {
                 throw;
             }
-
+            if (!string.IsNullOrWhiteSpace(request.VendorCode))
+            {
+                listResponse = listResponse.Where(v => v.VendorOrgCode == request.VendorCode).ToList();
+             }
             var totalRecords = listResponse.Count;
             return new PaginationDto<ApplicationListResponse>
             {
