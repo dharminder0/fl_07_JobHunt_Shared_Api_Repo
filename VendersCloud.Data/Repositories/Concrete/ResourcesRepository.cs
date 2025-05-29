@@ -109,6 +109,43 @@ namespace VendersCloud.Data.Repositories.Concrete
 
             return applicationsData;
         }
+        public async Task<List<dynamic>> GetApplicationsPerRequirementIdAsyncV2(int requirementId, string vendorCode,int role)
+        {
+            var dbInstance = GetDbInstance();
+            if (role == 1)
+            {
+
+                var sql = @"
+        SELECT a.ResourceId
+        FROM Applications a
+        JOIN (
+            SELECT ApplicantId, Status
+            FROM (
+                SELECT ApplicantId, Status,
+                       ROW_NUMBER() OVER (PARTITION BY ApplicantId ORDER BY ChangedOn DESC) AS rn
+                FROM ApplicantStatusHistory
+            ) ASH
+            WHERE rn = 1
+        ) latestStatus ON latestStatus.ApplicantId = a.Id
+        JOIN Organization o ON a.CreatedBy = o.Id
+        WHERE a.RequirementId = @requirementId
+          AND latestStatus.Status IN (8, 9, 10)
+          AND o.orgCode = @vendorCode;";
+
+                var applicationsData = (await dbInstance.SelectAsync<dynamic>(sql, new
+                {
+                    requirementId,
+                    vendorCode
+                })).ToList();
+
+                return applicationsData;
+            }
+            else
+            {
+                 var  data=await GetApplicationsPerRequirementIdAsyncV2(requirementId);
+                return data;
+            }
+        }
 
 
         public async Task<List<Applications>> GetApplicationsPerRequirementIdAsync(int requirementId)
@@ -177,6 +214,35 @@ namespace VendersCloud.Data.Repositories.Concrete
             }).FirstOrDefault();
             return applicationsCount;
         }
+
+        public async Task<int> GetTotalApplicationsPerRequirementIdAsyncV2(int requirementId, string vendorCode, int role )
+        {
+            if (role == 1)
+            {
+                var dbInstance = GetDbInstance();
+                var sql = @"
+        SELECT COUNT(a.ResourceId)
+        FROM Applications a
+        INNER JOIN Organization o ON a.CreatedBy = o.Id
+        WHERE a.RequirementId = @requirementId
+          AND o.orgCode = @vendorCode";
+
+
+                var applicationsCount = Query<int>(sql, new
+                {
+                    requirementId,
+                    vendorCode
+                }).FirstOrDefault();
+
+                return applicationsCount;
+            }
+            else
+            {
+                int count =  await GetTotalApplicationsPerRequirementIdAsync(requirementId);
+                return count;
+            }
+        }
+
 
         public async Task<int> GetTotalPlacementsAsync(List<int> requirementIds)
         {
