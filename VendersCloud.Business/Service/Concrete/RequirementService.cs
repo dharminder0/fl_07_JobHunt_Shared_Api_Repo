@@ -198,6 +198,13 @@ namespace VendersCloud.Business.Service.Concrete
                                 res.ClientName = orgData.ClientName;
                                 res.ClientFavicon = orgData.FaviconURL;
                             }
+                        var partnerdata = await _organizationRepository.GetOrganizationData(item.OrgCode);
+                        if(partnerdata != null)
+                        {
+                            res.PartnerCode = partnerdata.OrgCode;
+                            res.PartnerName = partnerdata.OrgName;
+                            res.PartnerFavicon = partnerdata.Logo;
+                        }
                         skillMappingData = await _skillRequirementMappingRepository.GetSkillRequirementMappingAsync(item.Id);
                         if (skillMappingData != null)
                         {

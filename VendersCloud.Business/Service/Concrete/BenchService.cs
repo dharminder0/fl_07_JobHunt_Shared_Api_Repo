@@ -267,10 +267,7 @@ namespace VendersCloud.Business.Service.Concrete
 
                 var requirementIds = pagedResults.Select(a => a.RequirementId).Distinct().ToList();
                 var requirementsList = await _requirementsRepository.GetRequirementByIdAsync(requirementIds);
-                if( !string.IsNullOrWhiteSpace(request.UniqueId))
-                {
-                    requirementsList = requirementsList.Where(v => v.UniqueId == request.UniqueId);
-                }
+              
                 var requirementsData = requirementsList.ToDictionary(r => r.Id, r => r);
 
                 var orgCodes = requirementsList.Select(r => r.OrgCode).Where(code => !string.IsNullOrWhiteSpace(code)).Distinct().ToList();
@@ -337,13 +334,16 @@ namespace VendersCloud.Business.Service.Concrete
                     
                     listSearchResponse.Add(searchResponse);
                 }
-
+                if (!string.IsNullOrWhiteSpace(request.UniqueId))
+                {
+                    listSearchResponse = listSearchResponse.Where(v => v.UniqueId == request.UniqueId).ToList();
+                }
                 return new PaginationDto<ApplicantsSearchResponse>
                 {
                     Count = totalCount,
                     Page = request.Page,
                     TotalPages = totalPages,
-                    List = listSearchResponse
+                    List = listSearchResponse.OrderByDescending(v => v.Id).ToList()
                 };
             }
             catch (Exception ex)
