@@ -127,7 +127,7 @@ namespace VendersCloud.Data.Repositories.Concrete
             ) ASH
             WHERE rn = 1
         ) latestStatus ON latestStatus.ApplicantId = a.Id
-        JOIN Organization o ON a.CreatedBy = o.Id
+        JOIN Users o ON a.CreatedBy = o.Id
         WHERE a.RequirementId = @requirementId
           AND latestStatus.Status IN (8, 9, 10)
           AND o.orgCode = @vendorCode;";
@@ -223,7 +223,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                 var sql = @"
         SELECT COUNT(a.ResourceId)
         FROM Applications a
-        INNER JOIN Organization o ON a.CreatedBy = o.Id
+        INNER JOIN users o ON a.CreatedBy = o.Id
         WHERE a.RequirementId = @requirementId
           AND o.orgCode = @vendorCode";
 
