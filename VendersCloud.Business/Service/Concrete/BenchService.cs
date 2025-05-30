@@ -160,11 +160,30 @@ namespace VendersCloud.Business.Service.Concrete
                     benchResponseList.Add(benchResponse);
                 }
 
+                if (request.TopSkillId != 0)
+                {
+                
+                    var skillIds = new List<int> { request.TopSkillId.Value };
+                    var skillsName = await _skillRepository.GetAllSkillNamesAsync(skillIds);
+                    string skillName = skillsName.FirstOrDefault();
+
+                    if (!string.IsNullOrEmpty(skillName))
+                    {
+                        benchResponseList = benchResponseList.Where(benchResponse =>
+                            benchResponse.CV != null &&
+                            benchResponse.CV.TryGetValue("top_skills", out var topSkillsObj) &&
+                            topSkillsObj is Newtonsoft.Json.Linq.JArray topSkillsJArray &&
+                            topSkillsJArray.Any(skill => skill.ToString().Equals(skillName, StringComparison.OrdinalIgnoreCase))
+                        ).ToList();
+                    }
+
+                }
+
                 return new PaginationDto<BenchResponse>
                 {
-                    Count = totalRecords,
+                    Count = benchResponseList.Count,
                     Page = request.Page,
-                    TotalPages = (int)Math.Ceiling(totalRecords / (double)request.PageSize),
+                    TotalPages = (int)Math.Ceiling(benchResponseList.Count / (double)request.PageSize),
                     List = benchResponseList
                 };
             }
@@ -173,6 +192,7 @@ namespace VendersCloud.Business.Service.Concrete
                 throw;
             }
         }
+
 
 
         public async Task<ActionMessageResponse> UpsertApplicants(ApplicationsRequest request)
