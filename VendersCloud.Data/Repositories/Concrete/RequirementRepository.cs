@@ -689,6 +689,10 @@ OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY;";
             var dbInstance = GetDbInstance();
             var sql = "select * from Requirement where  visibility=@visibility";
 
+            if(orgCode !=null && orgCode.Any())
+            {
+                sql += "  and orgCode in @orgCode";
+            }
             var profile = dbInstance.Select<Requirement>(sql, new { orgCode,visibility }).ToList();
             return profile;
         }
