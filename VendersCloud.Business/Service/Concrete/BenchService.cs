@@ -552,9 +552,8 @@ namespace VendersCloud.Business.Service.Concrete
                         var responseItem = new OrgActivePositionsResponse
                         {
                             ClientCode = req.OrgCode,
-                            TotalPositions = req.Positions,
-                            RequirmentCount= topOrg.Count
-                            
+                            TotalPositions = sharedRequirements.Sum(v=>v.Positions)
+                          
                         };
 
                         var clientData = await _organizationRepository.GetOrganizationData(req.OrgCode);
