@@ -1,6 +1,6 @@
 ﻿namespace VendersCloud.Data.Repositories.Abstract
 {
-    public interface IBenchRepository :IBaseRepository<Resources>
+    public interface IBenchRepository : IBaseRepository<Resources>
     {
         Task<int> UpsertBenchMembersAsync(BenchRequest request);
         Task<List<Resources>> GetBenchResponseListAsync(string orgCode);
@@ -13,5 +13,6 @@
         Task<List<ApplicantStatusHistory>> GetStatusHistoryByApplicantId(int applicantId);
         Task<Resources> GetBenchResponseByIdAsyncV2(int benchId);
         Task<bool> UpdateResourceAvailabilityAsync(int id, string orgCode, int availability);
-       
+
+    }
 }
