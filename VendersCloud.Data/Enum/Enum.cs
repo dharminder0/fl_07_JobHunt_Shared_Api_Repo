@@ -90,7 +90,7 @@ namespace VendersCloud.Data.Enum
             [Description("Negotiable")]
             Negotiable = 6,
 
-            [Description("NotAvailable")]
+            [Description("Not Available")]
             NotAvailable = 7,
 
         }
