@@ -28,7 +28,8 @@ namespace VendersCloud.Data.Enum
         {
             Open=1,
             OnHold=2,
-            Closed=3
+            Closed=3,
+            
         }
         public enum LocationType
         {
@@ -87,7 +88,11 @@ namespace VendersCloud.Data.Enum
             Days90Notice = 5,
 
             [Description("Negotiable")]
-            Negotiable = 6
+            Negotiable = 6,
+
+            [Description("NotAvailable")]
+            NotAvailable = 7,
+
         }
         public enum RecruitmentStatus
         {
