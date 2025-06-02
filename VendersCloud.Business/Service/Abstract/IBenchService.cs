@@ -19,5 +19,6 @@ namespace VendersCloud.Business.Service.Abstract
         Task<ActionMessageResponse> GetVendorContractsAsync(VendorContractRequest request);
         Task<bool> UpsertApplicantStatusHistory(ApplicantStatusHistory model);
         Task<List<ApplicantStatusHistoryResponse>> GetApplicantStatusHistory(int applicantId);
+        Task<bool> UpdateResourceAvailabilityAsync(UpdateAvailabilityRequest request);
     }
 }

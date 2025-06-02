@@ -12,6 +12,6 @@
         Task<bool> InsertApplicantStatusHistory(ApplicantStatusHistory model);
         Task<List<ApplicantStatusHistory>> GetStatusHistoryByApplicantId(int applicantId);
         Task<Resources> GetBenchResponseByIdAsyncV2(int benchId);
-
-    }
+        Task<bool> UpdateResourceAvailabilityAsync(int id, string orgCode, int availability);
+       
 }

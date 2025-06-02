@@ -697,7 +697,15 @@ namespace VendersCloud.Business.Service.Concrete
                 throw ex;
             }
         }
+        public async Task<bool> UpdateResourceAvailabilityAsync(UpdateAvailabilityRequest request)
+        {
+            if (request == null || request.Id <= 0 || string.IsNullOrWhiteSpace(request.OrgCode))
+            {
+                return false;
+            }
 
+            return await _benchRepository.UpdateResourceAvailabilityAsync(request.Id, request.OrgCode, request.Availability);
+        }
 
         public async Task<List<dynamic>> GetBenchMatchResultAsync(BenchMatchRecord request)
         {
