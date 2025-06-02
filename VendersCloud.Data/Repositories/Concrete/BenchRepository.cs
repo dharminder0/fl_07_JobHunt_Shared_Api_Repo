@@ -103,6 +103,7 @@ namespace VendersCloud.Data.Repositories.Concrete
             var list = dbInstance.Select<Resources>(sql, new { benchId }).ToList();
             return list.FirstOrDefault();
         }
+     
         public async Task<List<Resources>> GetBenchListBySearchAsync(BenchSearchRequest request)
         {
             using var connection = GetConnection();
@@ -159,6 +160,30 @@ namespace VendersCloud.Data.Repositories.Concrete
                 });
                 await dbInstance.ExecuteAsync(insertQuery);
                 return true;
+            }
+        }
+        public async Task<bool> UpdateResourceAvailabilityAsync(int id, string orgCode, int availability)
+        {
+            try
+            {
+                var dbInstance = GetDbInstance();
+
+                var query = new Query("Resources")
+                    .Where("Id", id)
+                    .Where("OrgCode", orgCode)
+                    .AsUpdate(new
+                    {
+                        Availability = availability,
+                        UpdatedOn = DateTime.UtcNow // assuming UTC for updated timestamp
+                    });
+
+                var rowsAffected = await dbInstance.ExecuteAsync(query);
+                return rowsAffected > 0;
+            }
+            catch (Exception ex)
+            {
+                // Log the error as needed
+                return false;
             }
         }
 
