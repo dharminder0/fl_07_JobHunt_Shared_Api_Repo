@@ -1,4 +1,5 @@
-﻿using Azure.Core;
+﻿using AutoMapper.Internal;
+using Azure.Core;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using SqlKata;
@@ -517,6 +518,9 @@ namespace VendersCloud.Business.Service.Concrete
              
                 List<int> requirementVendorsId = await _requirementVendorsRepository.GetRequirementShareJobsAsync(request.VendorCode);
                 var sharedRequirements = (await _requirementRepository.GetRequirementByIdAsync(requirementVendorsId)).ToList();
+                var pubicReq = await _requirementRepository.GetPublicRequirementAsync(sharedRequirements.Select(v => v.OrgCode).ToList(), 3);
+                sharedRequirements = sharedRequirements.Concat(pubicReq).ToList();
+
 
                 var topOrg = sharedRequirements
          .Where(r => !string.IsNullOrEmpty(r.OrgCode))
@@ -537,6 +541,7 @@ namespace VendersCloud.Business.Service.Concrete
           .GroupBy(r => r.OrgCode) 
           .Select(g => g.First()) 
           .ToList();
+
 
                     var totalCount = topOrgRequirements.Count;
                     var totalPages = (int)Math.Ceiling((double)totalCount / request.PageSize);
