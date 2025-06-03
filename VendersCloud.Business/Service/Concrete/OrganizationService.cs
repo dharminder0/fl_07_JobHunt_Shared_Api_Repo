@@ -31,7 +31,7 @@ namespace VendersCloud.Business.Service.Concrete
             _configuration = configuration;
             _partnerVendorRelRepository = partnerVendorRelRepository;   
             _organizationRelationshipsRepository =organizationRelationshipsRepository;
-            _communicationService = new CommunicationService(configuration);
+            _communicationService = new CommunicationService(usersRepository,configuration);
             _blobStorageService = blobStorageService;
         }
 
@@ -337,39 +337,74 @@ namespace VendersCloud.Business.Service.Concrete
 
         public async Task<ActionMessageResponse> DispatchedOrganizationInvitationAsync(DispatchedInvitationRequest request)
         {
-            try
+            if (string.IsNullOrEmpty(request.PartnerCode) ||
+                string.IsNullOrEmpty(request.VendorCode) ||
+                request.CreatedBy <= 0)
             {
-                if (string.IsNullOrEmpty(request.PartnerCode) ||
-                    string.IsNullOrEmpty(request.VendorCode) ||
-                    request.CreatedBy <= 0 )
+                return new ActionMessageResponse
                 {
-                    throw new ArgumentException("Invalid request payload!");
-                }
-
-          
-                  
-                    var newRelation = new PartnerVendorRel
-                    {
-                        PartnerCode = request.PartnerCode,
-                        VendorCode = request.VendorCode,
-                        StatusId = request.StatusId,
-                        CreatedBy = request.CreatedBy,
-                        UpdatedBy = request.UpdatedBy,
-                        CreatedOn = DateTime.UtcNow,
-                        UpdatedOn = DateTime.UtcNow,
-                        IsDeleted = false
-                    };
-
-                    var insertResult = await _partnerVendorRelRepository.UpsertPartnerVendorRelAsync(newRelation);
-
-                return new ActionMessageResponse { Content = insertResult, Message = "Dispatched Invitation  Sucessfully", Success = true };
-                
+                    Content = null,
+                    Message = "Invalid request payload!",
+                    Success = false
+                };
             }
-            catch
+
+            var newRelation = new PartnerVendorRel
             {
-                throw;
+                PartnerCode = request.PartnerCode,
+                VendorCode = request.VendorCode,
+                StatusId = request.StatusId,
+                CreatedBy = request.CreatedBy,
+                UpdatedBy = request.UpdatedBy,
+                CreatedOn = DateTime.UtcNow,
+                UpdatedOn = DateTime.UtcNow,
+               Message = request.Message   ,   
+                IsDeleted = false
+            };
+
+            var insertResult = await _partnerVendorRelRepository.UpsertPartnerVendorRelAsync(newRelation);
+            if (insertResult == null)
+            {
+                return new ActionMessageResponse
+                {
+                    Content = null,
+                    Message = "Failed to create relationship",
+                    Success = false
+                };
             }
+
+            var vendorObj = await _organizationRepository.GetOrganizationData(request.VendorCode);
+            var partnerObj = await _organizationRepository.GetOrganizationData(request.PartnerCode);
+
+            if (vendorObj == null || partnerObj == null)
+            {
+                return new ActionMessageResponse
+                {
+                    Content = null,
+                    Message = "Failed to retrieve organization data",
+                    Success = false
+                };
+            }
+
+            bool emailSent = await _communicationService.DispatchedInvitationMailAsync(
+      vendorObj.OrgName,
+      partnerObj.OrgName,
+      partnerObj.Email ?? string.Empty,
+      vendorObj.Email ?? string.Empty,
+      request.Message);
+
+            string message = emailSent
+                ? "Dispatched Invitation successfully and email sent."
+                : "Dispatched Invitation successfully but failed to send email.";
+
+            return new ActionMessageResponse
+            {
+                Content = insertResult,
+                Message = message,
+                Success = true
+            };
         }
+
 
 
 

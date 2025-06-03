@@ -8,20 +8,28 @@ namespace VendersCloud.Business.Service.Concrete
     {
         public IConfiguration _configuration;
         private readonly ExternalConfigReader _externalConfig ;
-        public CommunicationService(IConfiguration configuration) : base(configuration[""], configuration[""])
+        private readonly IUsersRepository _usersRepository;
+        public CommunicationService(IUsersRepository usersRepositor,IConfiguration configuration) : base(configuration[""], configuration[""])
         {
             _configuration = configuration;
+            _usersRepository = usersRepositor;
             _externalConfig = new ExternalConfigReader(configuration);
         }
 
         public async Task<bool> SendUserVerificationEmail(string firstname, string lastname, string email, string verificationOtp, string usertoken)
         {
             var url = _externalConfig.GetVerifyEmailDomainUrl();
+
+            // DB se template content load karo (VerificationEmail template)
+            var templateContent = await GetTemplateContentAsync("VerificationEmail");
+
+            var emailBody = VCEmailTemplates.GetVerificationEmailTemplate(templateContent, firstname, lastname, verificationOtp, usertoken, url);
+
             var emailMessage = new EmailMessage
             {
                 To = email,
-                Subject = "🔐 Verify Your Email - Welcome to VendorsCloud!",
-                Body = VCEmailTemplates.GetVerificationEmailTemplate(firstname, lastname, email, verificationOtp, usertoken, url)
+                Subject = templateContent.ContainsKey("Subject") ? templateContent["Subject"] : "🔐 Verify Your Email - Welcome to VendorsCloud!",
+                Body = emailBody
             };
 
             return await SendEmailAsync(emailMessage);
@@ -30,11 +38,17 @@ namespace VendersCloud.Business.Service.Concrete
         public async Task<bool> SendUserEmailVerification(string firstname, string lastname, string email, string usertoken)
         {
             var url = _externalConfig.GetVerifyEmailDomainUrl();
+
+            // DB se UserVerificationEmail template content lo
+            var templateContent = await GetTemplateContentAsync("UserVerificationEmail");
+
+            var emailBody = VCEmailTemplates.GetUserVerificationEmailTemplate(templateContent, firstname, lastname, usertoken, url);
+
             var emailMessage = new EmailMessage
             {
                 To = email,
-                Subject = "🔐 Verify Your Email - Welcome to VendorsCloud!",
-                Body = VCEmailTemplates.GetUserVerificationEmailTemplate(firstname, lastname, usertoken, url)
+                Subject = templateContent.ContainsKey("Subject") ? templateContent["Subject"] : "🔐 Verify Your Email - Welcome to VendorsCloud!",
+                Body = emailBody
             };
 
             return await SendEmailAsync(emailMessage);
@@ -42,11 +56,16 @@ namespace VendersCloud.Business.Service.Concrete
 
         public async Task<bool> DispatchedInvitationMailAsync(string receiverOrgName, string senderOrgName, string senderEmail, string receiverEmail, string senderMessage)
         {
+            
+            var templateContent = await GetTemplateContentAsync("InvitationEmail");
+
+            var emailBody = VCEmailTemplates.GetInvitationEmailTemplate(templateContent, receiverOrgName, senderOrgName, senderMessage);
+
             var emailMessage = new EmailMessage
             {
                 To = receiverEmail,
-                Subject = $"📩 Invitation from {senderOrgName}",
-                Body = VCEmailTemplates.GetInvitationEmailTemplate(receiverOrgName, senderOrgName, senderMessage)
+                Subject = templateContent.ContainsKey("Subject") ? templateContent["Subject"] : $"📩 Invitation from {senderOrgName}",
+                Body = emailBody
             };
 
             return await SendEmailAsync(emailMessage);
@@ -86,6 +105,11 @@ namespace VendersCloud.Business.Service.Concrete
                 return false;
             }
         }
+        public async Task<Dictionary<string, string>> GetTemplateContentAsync(string templateKey) { 
+       
+            var templateEntries = await _usersRepository.GetTemplateContentAsync(templateKey);
 
+            return templateEntries.ToDictionary(x => x.ContentKey, x => x.ContentValue);
+        }
     }
 }

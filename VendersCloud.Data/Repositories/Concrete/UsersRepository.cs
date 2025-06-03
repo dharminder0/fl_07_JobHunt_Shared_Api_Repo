@@ -410,6 +410,14 @@
             var affectedRows = await connection.ExecuteAsync(deleteQuery, new { UserId = userId });
             return affectedRows > 0;
         }
+        public async Task<IEnumerable<EmailTemplatesContent>> GetTemplateContentAsync(string templateKey)
+        {
+            var dbInstance = GetDbInstance();
+            var sql = @"select * from EmailTemplatesContent where templateKey=@templateKey";
+            return dbInstance.Select<EmailTemplatesContent>(sql, new { templateKey });
+        }
+
+
 
     }
 

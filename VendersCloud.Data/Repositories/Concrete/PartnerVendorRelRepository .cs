@@ -165,6 +165,7 @@ namespace VendersCloud.Data.Repositories.Concrete
                         UpdatedBy = entity.UpdatedBy,
                         UpdatedOn = DateTime.UtcNow,
                         IsDeleted = false,
+                        Message = entity.Message,
                         entity.StatusId
                     });
 

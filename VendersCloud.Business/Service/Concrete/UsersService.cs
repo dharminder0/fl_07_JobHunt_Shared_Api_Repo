@@ -19,7 +19,7 @@ namespace VendersCloud.Business.Service.Concrete
             _organizationService = organizationService;
             _userProfilesService = userProfilesService;
             _configuration = configuration;
-            _communicationService = new CommunicationService(configuration);
+            _communicationService = new CommunicationService(_usersRepository,configuration);
             _blobStorageService = blobStorageService;
             _userProfilesRepository = userProfilesRepository;
         }
