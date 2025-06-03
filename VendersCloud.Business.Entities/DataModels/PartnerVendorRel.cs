@@ -12,6 +12,7 @@
         public DateTime CreatedOn { get; set; }
         public DateTime UpdatedOn { get; set; }
         public bool IsDeleted { get; set; }
+        public string  Message { get; set; }
     }
 
     public class PartnerVendorRelMapper : ClassMapper<PartnerVendorRel>
