@@ -1,10 +1,12 @@
 ﻿using AutoMapper.Internal;
 using Azure.Core;
+using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using SqlKata;
 using System.Dynamic;
 using VendersCloud.Business.CommonMethods;
+using VendersCloud.Business.Entities.Dtos;
 using static VendersCloud.Common.Extensions.StringExtensions;
 
 namespace VendersCloud.Business.Service.Concrete
@@ -26,13 +28,14 @@ namespace VendersCloud.Business.Service.Concrete
         private readonly IPartnerVendorRelRepository _partnerVendorRelRepository;
         private readonly IRequirementVendorsRepository _requirementVendorsRepository;
         private readonly INotificationRepository _notificationRepository;
+        private readonly IHubContext<NotificationHub> _hubContext;
 
         public BenchService(IBenchRepository benchRepository, IResourcesRepository resourcesRepository, IRequirementRepository requirementsRepository,
             IOrganizationRepository organizationRepository, 
             IClientsRepository clientsRepository, IOrgRelationshipsRepository orgRelationshipsRepository, IUsersRepository _usersRepository,
             ISkillRepository skillRepository, ISkillResourcesMappingRepository skillRequirementMappingRepository, IBlobStorageService blobStorageService,
             IMatchRecordRepository matchRecordRepository, IRequirementRepository requirementRepository, IPartnerVendorRelRepository partnerVendorRelRepository,
-            IRequirementVendorsRepository requirementVendorsRepository, INotificationRepository notificationRepository)
+            IRequirementVendorsRepository requirementVendorsRepository, INotificationRepository notificationRepository, IHubContext<NotificationHub> hubContext)
         {
             _benchRepository = benchRepository;
             _resourcesRepository = resourcesRepository;
@@ -49,6 +52,7 @@ namespace VendersCloud.Business.Service.Concrete
             _partnerVendorRelRepository = partnerVendorRelRepository;
             _requirementVendorsRepository = requirementVendorsRepository;
             _notificationRepository = notificationRepository;
+            _hubContext = hubContext;
         }
 
         public async Task<ActionMessageResponse> UpsertBenchAsync(BenchRequest benchRequest)
@@ -223,22 +227,36 @@ namespace VendersCloud.Business.Service.Concrete
                 var res = await _resourcesRepository.UpsertApplicants(request, Id);
                 if (res)
                 {
-
                     try
                     {
-                        var  vendorObj =await  _userRepository.GetUserByIdAsync( int.Parse(request.UserId));
-                        string vendorName = vendorObj.FirstName + vendorObj.LastName;
-                        await _notificationRepository.InsertNotificationAsync(requirementdata.Select(v=>v.OrgCode).First(),
-    $"A resource has been applied to your requirement by vendor {vendorName}.",
-    (int)NotificationType.ResourceApplied);
+                        var vendorObj = await _userRepository.GetUserByIdAsync(int.Parse(request.UserId));
+                        string vendorName = $"{vendorObj.FirstName} {vendorObj.LastName}";
 
+                        // 1️⃣ Insert notification into DB
+                        var orgCode = requirementdata.Select(v => v.OrgCode).First();
+                        string message = $"A resource has been applied to your requirement by vendor {vendorName}.";
 
+                        await _notificationRepository.InsertNotificationAsync(
+                            orgCode,
+                            message,
+                            (int)NotificationType.ResourceApplied
+                        );
+
+                        // 2️⃣ Send real-time SignalR notification to organization group
+                        await _hubContext.Clients.Group(orgCode)
+                            .SendAsync("ReceiveNotification", new
+                            {
+                                OrgCode = orgCode,
+                                Message = message,
+                                NotificationType = (int)NotificationType.ResourceApplied,
+                                CreatedOn = DateTime.UtcNow
+                            });
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
-
-                 
+                        // Log exception if needed, skip crashing
                     }
+
                     return new ActionMessageResponse()
                     {
                         Success = true,
@@ -858,6 +876,15 @@ namespace VendersCloud.Business.Service.Concrete
                             message,
                             (int)NotificationType.ResourceStatusChanged
                         );
+                        var notificationData = new
+                        {
+                            Message = message,
+                            OrgCode = orgObject.VendorCode,
+                            NotificationType = (int)NotificationType.ResourceStatusChanged,
+                            CreatedOn = DateTime.UtcNow
+                        };
+
+                        await _hubContext.Clients.User(orgObject.VendorCode).SendAsync("ReceiveNotification", notificationData);
                     }
                 }
                 catch (Exception ex)
