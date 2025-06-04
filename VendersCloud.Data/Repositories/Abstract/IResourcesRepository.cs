@@ -15,6 +15,7 @@
         Task<List<Applications>> GetApplicationsPerRequirementIdAsyncV2(List<int> requirementId);
         Task<int> GetTotalApplicationsPerRequirementIdAsyncV2(int requirementId, string vendorCode, int role);
         Task<List<dynamic>> GetApplicationsPerRequirementIdAsyncV2(int requirementId, string vendorCode, int role);
+        Task<ApplicationDetailDto> GetApplicationWithVendorAndResourceByIdAsync(int applicationId);
 
 
     }

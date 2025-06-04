@@ -17,9 +17,11 @@ namespace VendersCloud.Business.Service.Concrete
         private readonly CommunicationService _communicationService;
         private readonly IBlobStorageService _blobStorageService;
         private IConfiguration _configuration;
-        public OrganizationService(IConfiguration configuration,IOrganizationRepository organizationRepository, IUserProfilesRepository userProfilesRepository, IOrgProfilesRepository _orgProfilesRepository, IOrgLocationRepository organizationLocationRepository, IOrgSocialRepository organizationSocialRepository, 
+        private readonly INotificationRepository _notificationRepository;   
+        public OrganizationService(IConfiguration configuration,IOrganizationRepository organizationRepository, IUserProfilesRepository userProfilesRepository,
+            IOrgProfilesRepository _orgProfilesRepository, IOrgLocationRepository organizationLocationRepository, IOrgSocialRepository organizationSocialRepository, 
             IListValuesRepository listValuesRepository,IUsersRepository usersRepository, IOrgRelationshipsRepository organizationRelationshipsRepository,
-            IBlobStorageService blobStorageService, IPartnerVendorRelRepository partnerVendorRelRepository)
+            IBlobStorageService blobStorageService, IPartnerVendorRelRepository partnerVendorRelRepository, INotificationRepository notificationRepository)
         {
             _organizationRepository = organizationRepository;
             _userProfilesRepository = userProfilesRepository;
@@ -33,6 +35,7 @@ namespace VendersCloud.Business.Service.Concrete
             _organizationRelationshipsRepository =organizationRelationshipsRepository;
             _communicationService = new CommunicationService(usersRepository,configuration);
             _blobStorageService = blobStorageService;
+            _notificationRepository = notificationRepository;   
         }
 
         public async Task<string> RegisterNewOrganizationAsync(RegistrationRequest request)
@@ -396,6 +399,15 @@ namespace VendersCloud.Business.Service.Concrete
             string message = emailSent
                 ? "Dispatched Invitation successfully and email sent."
                 : "Dispatched Invitation successfully but failed to send email.";
+            try
+            {
+                await _notificationRepository.InsertNotificationAsync(partnerObj.OrgCode, $"Invitation sent to {vendorObj.OrgName} by {partnerObj.OrgName} with message: {request.Message}", (int)NotificationType.VendorEmpanelled);  
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
 
             return new ActionMessageResponse
             {

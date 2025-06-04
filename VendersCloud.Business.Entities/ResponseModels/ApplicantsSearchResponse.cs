@@ -73,5 +73,16 @@
         public string LogoURL { get; set; }
     }
 
-
+    public class ApplicationDetailDto
+    {
+        public int Id { get; set; }
+        public int RequirementId { get; set; }
+        public int ResourceId { get; set; }
+        public string ResourceName { get; set; }
+        public int Status { get; set; }
+        public string Comment { get; set; }
+        public string VendorCode { get; set; }
+        public DateTime CreatedOn { get; set; }
+        public DateTime UpdatedOn { get; set; }
+    }
 }
