@@ -25,13 +25,14 @@ namespace VendersCloud.Business.Service.Concrete
         private readonly IRequirementRepository _requirementRepository;
         private readonly IPartnerVendorRelRepository _partnerVendorRelRepository;
         private readonly IRequirementVendorsRepository _requirementVendorsRepository;
+        private readonly INotificationRepository _notificationRepository;
 
         public BenchService(IBenchRepository benchRepository, IResourcesRepository resourcesRepository, IRequirementRepository requirementsRepository,
             IOrganizationRepository organizationRepository, 
             IClientsRepository clientsRepository, IOrgRelationshipsRepository orgRelationshipsRepository, IUsersRepository _usersRepository,
             ISkillRepository skillRepository, ISkillResourcesMappingRepository skillRequirementMappingRepository, IBlobStorageService blobStorageService,
             IMatchRecordRepository matchRecordRepository, IRequirementRepository requirementRepository, IPartnerVendorRelRepository partnerVendorRelRepository,
-            IRequirementVendorsRepository requirementVendorsRepository)
+            IRequirementVendorsRepository requirementVendorsRepository, INotificationRepository notificationRepository)
         {
             _benchRepository = benchRepository;
             _resourcesRepository = resourcesRepository;
@@ -47,6 +48,7 @@ namespace VendersCloud.Business.Service.Concrete
              _requirementRepository = requirementRepository;
             _partnerVendorRelRepository = partnerVendorRelRepository;
             _requirementVendorsRepository = requirementVendorsRepository;
+            _notificationRepository = notificationRepository;
         }
 
         public async Task<ActionMessageResponse> UpsertBenchAsync(BenchRequest benchRequest)
@@ -221,6 +223,22 @@ namespace VendersCloud.Business.Service.Concrete
                 var res = await _resourcesRepository.UpsertApplicants(request, Id);
                 if (res)
                 {
+
+                    try
+                    {
+                        var  vendorObj =await  _userRepository.GetUserByIdAsync( int.Parse(request.UserId));
+                        string vendorName = vendorObj.FirstName + vendorObj.LastName;
+                        await _notificationRepository.InsertNotificationAsync(requirementdata.Select(v=>v.OrgCode).First(),
+    $"A resource has been applied to your requirement by vendor {vendorName}.",
+    (int)NotificationType.ResourceApplied);
+
+
+                    }
+                    catch (Exception)
+                    {
+
+                 
+                    }
                     return new ActionMessageResponse()
                     {
                         Success = true,
@@ -825,15 +843,38 @@ namespace VendersCloud.Business.Service.Concrete
                 if (model == null || model.ApplicantId <= 0 || model.Status <= 0)
                     return false;
 
-                model.ChangedOn = DateTime.UtcNow; 
+                model.ChangedOn = DateTime.UtcNow;
                 var result = await _benchRepository.InsertApplicantStatusHistory(model);
+
+                try
+                {
+                    var orgObject = await _resourcesRepository.GetApplicationWithVendorAndResourceByIdAsync(model.ApplicantId);
+                    if (orgObject != null)
+                    {
+                        string message = $"Applicant with name {orgObject.ResourceName} status changed to {model.Status} by {model.ChangedBy}";
+
+                        await _notificationRepository.InsertNotificationAsync(
+                            orgObject.VendorCode,
+                            message,
+                            (int)NotificationType.ResourceStatusChanged
+                        );
+                    }
+                }
+                catch (Exception ex)
+                {
+                   
+                }
+
                 return result;
             }
             catch (Exception ex)
             {
+                // Optionally log the outer exception too
+                Console.WriteLine($"Error during UpsertApplicantStatusHistory: {ex.Message}");
                 return false;
             }
         }
+
         public async Task<List<ApplicantStatusHistoryResponse>> GetApplicantStatusHistory(int applicantId)
         {
             var history = await _benchRepository.GetStatusHistoryByApplicantId(applicantId);

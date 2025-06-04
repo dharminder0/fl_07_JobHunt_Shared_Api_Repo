@@ -505,6 +505,61 @@ and ASH.Status =@Status ";
 
 
 
+        public async Task<ApplicationDetailDto> GetApplicationWithVendorAndResourceByIdAsync(int applicationId)
+        {
+            using var connection = GetConnection();
+
+  
+            var sql = "SELECT * FROM Applications WHERE Id = @applicationId";
+            var app = (await connection.QueryAsync<Applications>(sql, new { applicationId })).FirstOrDefault();
+
+            if (app == null)
+                return null;
+
+       
+            var resourceSql = "SELECT FirstName, LastName FROM Resources WHERE Id = @resourceId";
+            var resource = (await connection.QueryAsync<Resources>(resourceSql, new { resourceId = app.ResourceId })).FirstOrDefault();
+            string resourceName = resource != null ? $"{resource.FirstName} {resource.LastName}" : "N/A";
+
+            var userSql = "SELECT OrgCode FROM Users WHERE Id = @userId";
+            var vendorCode = await connection.ExecuteScalarAsync<string>(userSql, new { userId = app.CreatedBy }) ?? "N/A";
+
+          
+            var statusList = await benchRepository.GetStatusHistoryByApplicantId(app.Id);
+            int latestStatus = app.Status;
+            string latestComment = app.Comment;
+
+            if (statusList != null && statusList.Any())
+            {
+                latestStatus = statusList
+                    .OrderByDescending(v => v.ChangedOn)
+                    .Select(v => v.Status)
+                    .FirstOrDefault();
+
+                latestComment = statusList
+                    .OrderByDescending(v => v.ChangedOn)
+                    .Select(v => v.Comment)
+                    .FirstOrDefault();
+            }
+
+
+            var applicationDetail = new ApplicationDetailDto
+            {
+                Id = app.Id,
+                RequirementId = app.RequirementId,
+                ResourceId = app.ResourceId,
+                ResourceName = resourceName,
+                Status = latestStatus,
+                Comment = latestComment,
+                VendorCode = vendorCode,
+                CreatedOn = app.CreatedOn,
+                UpdatedOn = app.UpdatedOn
+            };
+
+            return applicationDetail;
+        }
+
+
 
 
 
