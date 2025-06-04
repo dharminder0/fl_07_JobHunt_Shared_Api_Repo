@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using Microsoft.AspNetCore.SignalR;
 using VendersCloud.Business.CommonMethods;
 
 namespace VendersCloud.Business.Service.Concrete
@@ -17,11 +18,13 @@ namespace VendersCloud.Business.Service.Concrete
         private readonly CommunicationService _communicationService;
         private readonly IBlobStorageService _blobStorageService;
         private IConfiguration _configuration;
-        private readonly INotificationRepository _notificationRepository;   
+        private readonly INotificationRepository _notificationRepository;
+        private readonly IHubContext<NotificationHub> _hubContext;
+
         public OrganizationService(IConfiguration configuration,IOrganizationRepository organizationRepository, IUserProfilesRepository userProfilesRepository,
             IOrgProfilesRepository _orgProfilesRepository, IOrgLocationRepository organizationLocationRepository, IOrgSocialRepository organizationSocialRepository, 
             IListValuesRepository listValuesRepository,IUsersRepository usersRepository, IOrgRelationshipsRepository organizationRelationshipsRepository,
-            IBlobStorageService blobStorageService, IPartnerVendorRelRepository partnerVendorRelRepository, INotificationRepository notificationRepository)
+            IBlobStorageService blobStorageService, IPartnerVendorRelRepository partnerVendorRelRepository, INotificationRepository notificationRepository, IHubContext<NotificationHub> hubContext)
         {
             _organizationRepository = organizationRepository;
             _userProfilesRepository = userProfilesRepository;
@@ -35,7 +38,8 @@ namespace VendersCloud.Business.Service.Concrete
             _organizationRelationshipsRepository =organizationRelationshipsRepository;
             _communicationService = new CommunicationService(usersRepository,configuration);
             _blobStorageService = blobStorageService;
-            _notificationRepository = notificationRepository;   
+            _notificationRepository = notificationRepository;
+            _hubContext = hubContext;
         }
 
         public async Task<string> RegisterNewOrganizationAsync(RegistrationRequest request)
@@ -401,7 +405,24 @@ namespace VendersCloud.Business.Service.Concrete
                 : "Dispatched Invitation successfully but failed to send email.";
             try
             {
-                await _notificationRepository.InsertNotificationAsync(partnerObj.OrgCode, $"Invitation sent to {vendorObj.OrgName} by {partnerObj.OrgName} with message: {request.Message}", (int)NotificationType.VendorEmpanelled);  
+              
+                string notificationMessage = $"Invitation sent to {vendorObj.OrgName} by {partnerObj.OrgName} with message: {request.Message}";
+
+                await _notificationRepository.InsertNotificationAsync(
+                    partnerObj.OrgCode,
+                    notificationMessage,
+                    (int)NotificationType.VendorEmpanelled
+                );
+
+                // 2️⃣ Send real-time SignalR notification to organization group
+                await _hubContext.Clients.Group(partnerObj.OrgCode)
+                    .SendAsync("ReceiveNotification", new
+                    {
+                        OrgCode = partnerObj.OrgCode,
+                        Message = notificationMessage,
+                        NotificationType = (int)NotificationType.VendorEmpanelled,
+                        CreatedOn = DateTime.UtcNow
+                    });
             }
             catch (Exception)
             {
