@@ -358,7 +358,7 @@ namespace VendersCloud.Business.Service.Concrete
                 UpdatedBy = request.UpdatedBy,
                 CreatedOn = DateTime.UtcNow,
                 UpdatedOn = DateTime.UtcNow,
-               Message = request.Message   ,   
+               Comment = request.Message   ,   
                 IsDeleted = false
             };
 

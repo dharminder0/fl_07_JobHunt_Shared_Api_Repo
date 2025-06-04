@@ -16,7 +16,7 @@ namespace VendersCloud.Data.Repositories.Abstract
         Task<List<PartnerVendorRel>> GetByPartnerIdAsync(string partnerCode, string vendorCode);
         Task<bool> ManagePartnerStatusAsync(ManageRelationshipStatusRequest manageRelationship);
         Task<PartnerVendorRel> ManagePartnerStatusAsync(string partnerCode, string vendorCode);
-        Task<List<PartnerVendorRel>> GetOrgRelationshipsListAsync(string orgCode);
+        Task<List<PartnerVendorRel>>  GetOrgRelationshipsListAsync(string orgCode);
         Task<PaginationDto<OrgRelationshipSearchResponse>> GetListRelationshipAsync(OrgRelationshipSearchRequest request);
         Task<List<string>> GetAllVendorCodeAsync(string partnerCode);
         Task<IEnumerable<PartnerVendorRel>> GetBenchResponseListByIdAsync(string orgCode);
