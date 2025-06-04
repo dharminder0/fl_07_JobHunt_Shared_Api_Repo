@@ -514,11 +514,16 @@ namespace VendersCloud.Business.Service.Concrete
             try
             {
                 List<OrgActivePositionsResponse> orgActivePositionsResponseList = new();
+                var pubicReq = new List<Requirement>();
 
-             
+
+
                 List<int> requirementVendorsId = await _requirementVendorsRepository.GetRequirementShareJobsAsync(request.VendorCode);
                 var sharedRequirements = (await _requirementRepository.GetRequirementByIdAsync(requirementVendorsId)).ToList();
-                var pubicReq = await _requirementRepository.GetPublicRequirementAsync(sharedRequirements.Select(v => v.OrgCode).ToList(), 3);
+                if (sharedRequirements != null && sharedRequirements.Any())
+                {
+                     pubicReq = await _requirementRepository.GetPublicRequirementAsync(sharedRequirements.Select(v => v.OrgCode).ToList(), 3);
+                }
                 sharedRequirements = sharedRequirements.Concat(pubicReq).ToList();
 
 
