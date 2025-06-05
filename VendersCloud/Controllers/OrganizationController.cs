@@ -1,4 +1,6 @@
-﻿namespace VendersCloud.WebApi.Controllers
+﻿using VendersCloud.Business.Entities.ResponseModels;
+
+namespace VendersCloud.WebApi.Controllers
 {
     [ApiController]
     public class OrganizationController : BaseApiController
@@ -167,5 +169,56 @@
                 return BadRequest(ex.Message);
             }
         }
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ServiceFilter(typeof(RequireAuthorizationFilter))]
+        [HttpGet]
+        [Route("api/V1/Notifications/list")]
+        public async Task<IActionResult> GetNotificationsAsync(string orgCode)
+        {
+            try
+            {
+                var result = await _organizationService.GetNotificationsAsync(orgCode);
+
+                var response = new NotificationListResponse
+                {
+                    Count = result.Count,
+                    Notifications = result
+                };
+
+                return Ok(response); 
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+
+          [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ServiceFilter(typeof(RequireAuthorizationFilter))]
+        [HttpPost]
+        [Route("api/V1/Notifications/update-status")]
+        public async Task<IActionResult> UpsertNotificationAsync(int notificationId, bool isRead)
+        {
+            try
+            {
+                var result = await _organizationService.UpsertNotificationAsync(notificationId,isRead);
+
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+
     }
 }

@@ -30,6 +30,39 @@ namespace VendersCloud.Data.Repositories.Concrete
             await dbInstance.ExecuteAsync(insertQuery);
             return true;
         }
+        public async Task< List<Notifications>> GetNotificationsAsync(string orgCode)
+        {
+
+            var dbInstance = GetDbInstance();
+            var sql = @"SELECT * FROM Notifications 
+                    WHERE orgCode = @orgCode  and isread=0
+                    ORDER BY CreatedOn ASC";
+            var history = dbInstance.Select<Notifications>(sql, new { orgCode }).ToList();
+            return history;
+        }
+        public async Task<bool> UpsertNotificationAsync(int notificationId, bool isRead)
+        {
+            try
+            {
+                var dbInstance = GetDbInstance();
+
+                var updateQuery = new Query("Notifications")
+                    .Where("Id", notificationId)
+                    .AsUpdate(new
+                    {
+                        IsRead = isRead,
+                     
+                    });
+
+                var rowsAffected = await dbInstance.ExecuteAsync(updateQuery);
+                return rowsAffected > 0;
+            }
+            catch (Exception ex)
+            {
+              
+                return false;
+            }
+        }
 
     }
 }

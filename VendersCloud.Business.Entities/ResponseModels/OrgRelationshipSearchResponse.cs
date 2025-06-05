@@ -1,4 +1,6 @@
-﻿namespace VendersCloud.Business.Entities.ResponseModels
+﻿using VendersCloud.Business.Entities.DataModels;
+
+namespace VendersCloud.Business.Entities.ResponseModels
 {
     public class OrgRelationshipSearchResponse
     {
@@ -19,4 +21,11 @@
         public DateTime UpdatedOn { get; set; }
         public bool IsDeleted { get; set; }
     }
+
+    public class NotificationListResponse
+    {
+        public int Count { get; set; }
+        public List<Notifications> Notifications { get; set; }
+    }
+
 }
