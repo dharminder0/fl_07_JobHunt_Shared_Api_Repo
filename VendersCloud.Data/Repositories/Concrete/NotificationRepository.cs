@@ -30,16 +30,30 @@ namespace VendersCloud.Data.Repositories.Concrete
             await dbInstance.ExecuteAsync(insertQuery);
             return true;
         }
-        public async Task< List<Notifications>> GetNotificationsAsync(string orgCode)
+        public async Task<List<Notifications>> GetNotificationsAsync(NotificationsRequest request)
         {
-
             var dbInstance = GetDbInstance();
+
+     
+            int pageNumber = request.Page > 0 ? request.Page : 1;
+            int pageSize = request.PageSize > 0 ? request.PageSize : 10;
+            int offset = (pageNumber - 1) * pageSize;
+
             var sql = @"SELECT * FROM Notifications 
-                    WHERE orgCode = @orgCode  and isread=0
-                    ORDER BY CreatedOn ASC";
-            var history = dbInstance.Select<Notifications>(sql, new { orgCode }).ToList();
+                WHERE orgCode = @orgCode AND isread = 0
+                ORDER BY CreatedOn ASC 
+                OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY";
+
+            var history = dbInstance.Select<Notifications>(sql, new
+            {
+                orgCode = request.OrgCode,
+                offset,
+                pageSize
+            }).ToList();
+
             return history;
         }
+
         public async Task<bool> UpsertNotificationAsync(int notificationId, bool isRead)
         {
             try

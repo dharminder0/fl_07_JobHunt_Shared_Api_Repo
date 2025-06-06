@@ -16,5 +16,10 @@
         public int StatusId { get; set; }
         public int UpdatedBy { get; set; }
     }
-
+    public class NotificationsRequest
+    {
+        public string  OrgCode { get; set; }
+        public int PageSize { get; set; }
+        public int Page { get; set; }
+    }
 }

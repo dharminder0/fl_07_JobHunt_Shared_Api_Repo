@@ -869,7 +869,18 @@ namespace VendersCloud.Business.Service.Concrete
                     var orgObject = await _resourcesRepository.GetApplicationWithVendorAndResourceByIdAsync(model.ApplicantId);
                     if (orgObject != null)
                     {
-                        string message = $"Applicant with name {orgObject.ResourceName} status changed to {model.Status} by {model.ChangedBy}";
+                        string status = Enum.GetName(typeof(RecruitmentStatus), model.Status);
+                        try
+                        {
+                            var orgName=await _organizationRepository.GetOrganizationData(model.ChangedBy);
+                            model.ChangedBy = orgName.OrgName;
+                        }
+                        catch (Exception)
+                        {
+
+                            throw;
+                        }
+                        string message = $"Applicant with name {orgObject.ResourceName} status changed to {status} by {model.ChangedBy}";
 
                         await _notificationRepository.InsertNotificationAsync(
                             orgObject.VendorCode,
