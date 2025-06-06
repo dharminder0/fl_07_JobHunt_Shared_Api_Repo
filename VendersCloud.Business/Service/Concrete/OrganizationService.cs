@@ -409,7 +409,7 @@ namespace VendersCloud.Business.Service.Concrete
                 string notificationMessage = $"Invitation sent to {vendorObj.OrgName} by {partnerObj.OrgName} with message: {request.Message}";
 
                 await _notificationRepository.InsertNotificationAsync(
-                    partnerObj.OrgCode,
+                    vendorObj.OrgCode,
                     notificationMessage,
                     (int)NotificationType.VendorEmpanelled
                 );
@@ -418,7 +418,7 @@ namespace VendersCloud.Business.Service.Concrete
                 await _hubContext.Clients.Group(partnerObj.OrgCode)
                     .SendAsync("ReceiveNotification", new
                     {
-                        OrgCode = partnerObj.OrgCode,
+                        OrgCode = vendorObj.OrgCode,
                         Message = notificationMessage,
                         NotificationType = (int)NotificationType.VendorEmpanelled,
                         CreatedOn = DateTime.UtcNow
@@ -478,9 +478,9 @@ namespace VendersCloud.Business.Service.Concrete
             }
            
         }
-        public async Task< List<Notifications>> GetNotificationsAsync(string orgCode)
+        public async Task< List<Notifications>> GetNotificationsAsync(NotificationsRequest obj)
         {
-            return await _notificationRepository.GetNotificationsAsync(orgCode);    
+            return await _notificationRepository.GetNotificationsAsync(obj);    
         }
         public async Task<bool> UpsertNotificationAsync(int notificationId, bool isRead)
         {

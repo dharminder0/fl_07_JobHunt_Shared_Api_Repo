@@ -8,7 +8,7 @@
         public string Message { get; set; }
         public DateTime CreatedOn { get; set; }
         public bool IsRead { get; set; }
-        public NotificationType Type { get; set; }
+        public NotificationType NotificationType { get; set; }
     }
     public enum NotificationType
     {

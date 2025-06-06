@@ -174,13 +174,13 @@ namespace VendersCloud.WebApi.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ServiceFilter(typeof(RequireAuthorizationFilter))]
-        [HttpGet]
+        [HttpPost]
         [Route("api/V1/Notifications/list")]
-        public async Task<IActionResult> GetNotificationsAsync(string orgCode)
+        public async Task<IActionResult> GetNotificationsAsync(NotificationsRequest req)
         {
             try
             {
-                var result = await _organizationService.GetNotificationsAsync(orgCode);
+                var result = await _organizationService.GetNotificationsAsync(req);
 
                 var response = new NotificationListResponse
                 {
@@ -188,7 +188,7 @@ namespace VendersCloud.WebApi.Controllers
                     Notifications = result
                 };
 
-                return Ok(response); 
+                return Json(response); 
             }
             catch (Exception ex)
             {
@@ -211,7 +211,7 @@ namespace VendersCloud.WebApi.Controllers
                 var result = await _organizationService.UpsertNotificationAsync(notificationId,isRead);
 
 
-                return Ok(result);
+                return Json(result);
             }
             catch (Exception ex)
             {
