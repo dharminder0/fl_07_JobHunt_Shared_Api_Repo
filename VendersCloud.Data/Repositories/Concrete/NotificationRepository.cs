@@ -41,7 +41,7 @@ namespace VendersCloud.Data.Repositories.Concrete
             int offset = (pageNumber - 1) * pageSize;
 
             var sql = @"SELECT * FROM Notifications 
-                WHERE orgCode = @orgCode AND isread = 0
+                WHERE orgCode = @orgCode
                 ORDER BY CreatedOn ASC 
                 OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY";
 
@@ -54,6 +54,15 @@ namespace VendersCloud.Data.Repositories.Concrete
 
             return history;
         }
+        public async Task<int> GetNotificationsCountAsync(string orgCode)
+        {
+            var dbInstance = GetDbInstance();
+
+            var sql = @"SELECT count(*) FROM Notifications 
+                 WHERE orgCode = @orgCode  and isRead=0 ";
+            return dbInstance.Select<int>(sql, new { orgCode }).FirstOrDefault();   
+        }
+
 
         public async Task<bool> UpsertNotificationAsync(int notificationId, bool isRead)
         {
