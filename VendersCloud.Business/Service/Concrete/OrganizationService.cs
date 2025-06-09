@@ -407,7 +407,7 @@ namespace VendersCloud.Business.Service.Concrete
             {
               
                 string notificationMessage = $"Invitation sent to {vendorObj.OrgName} by {partnerObj.OrgName} with message: {request.Message}";
-                string notificationTitle = "Invitation Sent";   
+                string notificationTitle = $" Invitation Recieved  from  {partnerObj.OrgName} ";   
 
                 await _notificationRepository.InsertNotificationAsync(
                     vendorObj.OrgCode,
