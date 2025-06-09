@@ -18,5 +18,6 @@ namespace VendersCloud.Business.Service.Abstract
         Task<PaginationDto<OrgRelationshipSearchResponse>> GetListRelationshipAsync(OrgRelationshipSearchRequest request);
         Task<List<Notifications>> GetNotificationsAsync(NotificationsRequest req);
         Task<bool> UpsertNotificationAsync(int notificationId, bool isRead);
+        Task<int> GetNotificationsCountAsync(string orgCode);
     }
 }

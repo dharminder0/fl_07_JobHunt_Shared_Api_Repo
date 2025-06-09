@@ -489,5 +489,9 @@ namespace VendersCloud.Business.Service.Concrete
         {
             return await _notificationRepository.UpsertNotificationAsync(notificationId,isRead);
         }
+        public async Task<int> GetNotificationsCountAsync(string  orgCode)
+        {
+            return await _notificationRepository.GetNotificationsCountAsync(orgCode);
+        }
     }
 }
