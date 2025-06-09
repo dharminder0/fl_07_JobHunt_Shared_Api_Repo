@@ -12,7 +12,7 @@ namespace VendersCloud.Data.Repositories.Concrete
         {
                 
         }
-        public async Task<bool> InsertNotificationAsync(string orgCode, string message,int type)
+        public async Task<bool> InsertNotificationAsync(string orgCode, string message,int type, string title)
         {
             var dbInstance = GetDbInstance();
             var tableName = new Table<Notifications>(); 
@@ -24,7 +24,8 @@ namespace VendersCloud.Data.Repositories.Concrete
                     Message = message,
                     CreatedOn = DateTime.UtcNow,
                     IsRead = false,
-                    NotificationType = type
+                    NotificationType = type,
+                    Title=title
                 });
 
             await dbInstance.ExecuteAsync(insertQuery);

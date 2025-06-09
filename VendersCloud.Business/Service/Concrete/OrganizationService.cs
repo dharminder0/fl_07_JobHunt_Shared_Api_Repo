@@ -407,11 +407,13 @@ namespace VendersCloud.Business.Service.Concrete
             {
               
                 string notificationMessage = $"Invitation sent to {vendorObj.OrgName} by {partnerObj.OrgName} with message: {request.Message}";
+                string notificationTitle = "Invitation Sent";   
 
                 await _notificationRepository.InsertNotificationAsync(
                     vendorObj.OrgCode,
                     notificationMessage,
-                    (int)NotificationType.VendorEmpanelled
+                    (int)NotificationType.VendorEmpanelled,
+                    notificationTitle
                 );
 
                 // 2️⃣ Send real-time SignalR notification to organization group
@@ -421,6 +423,7 @@ namespace VendersCloud.Business.Service.Concrete
                         OrgCode = vendorObj.OrgCode,
                         Message = notificationMessage,
                         NotificationType = (int)NotificationType.VendorEmpanelled,
+                        notificationTitle,
                         CreatedOn = DateTime.UtcNow
                     });
             }

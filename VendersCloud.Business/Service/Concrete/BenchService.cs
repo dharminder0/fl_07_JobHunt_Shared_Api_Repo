@@ -239,7 +239,8 @@ namespace VendersCloud.Business.Service.Concrete
                         await _notificationRepository.InsertNotificationAsync(
                             orgCode,
                             message,
-                            (int)NotificationType.ResourceApplied
+                            (int)NotificationType.ResourceApplied,
+                            "Resource Applied Notification"
                         );
 
                         // 2️⃣ Send real-time SignalR notification to organization group
@@ -249,7 +250,8 @@ namespace VendersCloud.Business.Service.Concrete
                                 OrgCode = orgCode,
                                 Message = message,
                                 NotificationType = (int)NotificationType.ResourceApplied,
-                                CreatedOn = DateTime.UtcNow
+                                CreatedOn = DateTime.UtcNow,
+                                Title = "Resource Applied Notification"
                             });
                     }
                     catch (Exception ex)
@@ -881,18 +883,21 @@ namespace VendersCloud.Business.Service.Concrete
                             throw;
                         }
                         string message = $"Applicant with name {orgObject.ResourceName} status changed to {status} by {model.ChangedBy}";
+                        string notificationTitle = $"Applicant Status Changed: {orgObject.ResourceName}";   
 
                         await _notificationRepository.InsertNotificationAsync(
                             orgObject.VendorCode,
                             message,
-                            (int)NotificationType.ResourceStatusChanged
+                            (int)NotificationType.ResourceStatusChanged,
+                            notificationTitle   
                         );
                         var notificationData = new
                         {
                             Message = message,
                             OrgCode = orgObject.VendorCode,
                             NotificationType = (int)NotificationType.ResourceStatusChanged,
-                            CreatedOn = DateTime.UtcNow
+                            CreatedOn = DateTime.UtcNow,
+                            notificationTitle
                         };
 
                         await _hubContext.Clients.User(orgObject.VendorCode).SendAsync("ReceiveNotification", notificationData);

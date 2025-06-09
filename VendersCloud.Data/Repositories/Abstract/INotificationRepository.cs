@@ -8,7 +8,7 @@ namespace VendersCloud.Data.Repositories.Abstract
 {
     public interface INotificationRepository : IBaseRepository<Notifications>
     {
-        Task<bool> InsertNotificationAsync(string orgCode, string message,int type);
+        Task<bool> InsertNotificationAsync(string orgCode, string message,int type,string title);
         Task<List<Notifications>> GetNotificationsAsync(NotificationsRequest notificationsRequest);
         Task<bool> UpsertNotificationAsync(int notificationId, bool isRead);
     }
