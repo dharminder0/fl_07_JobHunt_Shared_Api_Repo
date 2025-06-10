@@ -169,19 +169,18 @@ namespace VendersCloud.WebApi
 
             services.AddCors(options => {
 
-                options.AddPolicy("AllowedOrigins",
-                        builder => {
-                            builder.AllowAnyMethod().AllowAnyHeader();
-                            //if (!string.IsNullOrWhiteSpace(ConfigurationManager.AppSettings["AllowedOrigins"]) && ConfigurationManager.AppSettings["AllowedOrigins"] != "*")
-                            if (!string.IsNullOrWhiteSpace(GlobalSettings.AllowedOrigins) && GlobalSettings.AllowedOrigins != "*")
-                            {
-                                builder.WithOrigins(GlobalSettings.AllowedOrigins.Split(','));
-                            }
-                            else
-                            {
-                                builder.AllowAnyOrigin();
-                            }
-                        });
+                options.AddPolicy("DefaultCorsPolicy", builder =>
+                {
+                    builder.AllowAnyMethod()
+                           .AllowAnyHeader();
+                    var allowedOrigins = string.IsNullOrWhiteSpace(GlobalSettings.AllowedOrigins) || GlobalSettings.AllowedOrigins == "*"
+                        ? new[] { "https://fl-07-jobhunt-shared-api-test.azurewebsites.net/api/" }
+                        : GlobalSettings.AllowedOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                                       .Select(o => o.Trim())
+                                                       .ToArray();
+                    builder.WithOrigins(allowedOrigins)
+                           .AllowCredentials();
+                });
             });
 
 
@@ -204,6 +203,7 @@ namespace VendersCloud.WebApi
 
             app.UseEndpoints(endpoints => {
                 endpoints.MapControllers();
+                endpoints.MapHub<NotificationHub>("/notificationhub");
             });
             // Enable middleware to serve generated Swagger as a JSON endpoint.
             app.UseSwagger();
@@ -212,6 +212,9 @@ namespace VendersCloud.WebApi
             // specifying the Swagger JSON endpoint.
             app.UseSwaggerUI(c => {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "CCS API V1");
+
+
+
             });
         }
 
