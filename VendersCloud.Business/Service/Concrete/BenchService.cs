@@ -900,7 +900,7 @@ namespace VendersCloud.Business.Service.Concrete
                             notificationTitle
                         };
 
-                        await _hubContext.Clients.User(orgObject.VendorCode).SendAsync("ReceiveNotification", notificationData);
+                        await _hubContext.Clients.Group(orgObject.VendorCode).SendAsync("ReceiveNotification", notificationData);
                     }
                 }
                 catch (Exception ex)
