@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VendersCloud.Business.Entities.DataModels;
 
 namespace VendersCloud.Data.Repositories.Concrete
 {
@@ -87,6 +88,20 @@ namespace VendersCloud.Data.Repositories.Concrete
                 return false;
             }
         }
+        public async Task<Notifications> GetNotificationByIdAsync(int id)
+        {
+            var dbInstance = GetDbInstance();
 
-    }
+
+
+            var sql = @"SELECT orgcode FROM Notifications 
+                WHERE id = @id ";
+            var res = dbInstance.Select<Notifications>(sql, new { id }).ToList();
+            return res.FirstOrDefault();
+
+
+
+        }
+
+        }
 }
