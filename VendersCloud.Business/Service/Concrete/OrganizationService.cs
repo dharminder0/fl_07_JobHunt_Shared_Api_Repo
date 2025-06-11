@@ -416,7 +416,7 @@ namespace VendersCloud.Business.Service.Concrete
                     notificationTitle
                 );
 
-                // 2️⃣ Send real-time SignalR notification to organization group
+               
                 await _hubContext.Clients.Group(partnerObj.OrgCode)
                     .SendAsync("ReceiveNotification", new
                     {
@@ -504,7 +504,14 @@ namespace VendersCloud.Business.Service.Concrete
 
         public async Task<int> GetNotificationsCountAsync(string  orgCode)
         {
-            return await _notificationRepository.GetNotificationsCountAsync(orgCode);
+            int updatedCount = await _notificationRepository.GetNotificationsCountAsync(orgCode);
+
+            await _hubContext.Clients.Group(orgCode).SendAsync("ReceiveNotificationCountUpdate", new
+            {
+                OrgCode = orgCode,
+                Count = updatedCount
+            });
+            return updatedCount;
         }
     }
 }
