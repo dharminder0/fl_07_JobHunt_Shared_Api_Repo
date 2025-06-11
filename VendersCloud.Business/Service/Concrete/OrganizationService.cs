@@ -407,13 +407,13 @@ namespace VendersCloud.Business.Service.Concrete
             {
               
                 string notificationMessage = $"Invitation sent to {vendorObj.OrgName} by {partnerObj.OrgName} with message: {request.Message}";
-                string notificationTitle = $" Invitation Recieved  from  {partnerObj.OrgName} ";   
+                string Title = $" Invitation Recieved  from  {partnerObj.OrgName} ";   
 
                 await _notificationRepository.InsertNotificationAsync(
                     vendorObj.OrgCode,
                     notificationMessage,
                     (int)NotificationType.VendorEmpanelled,
-                    notificationTitle
+                    Title
                 );
 
                
@@ -423,7 +423,7 @@ namespace VendersCloud.Business.Service.Concrete
                         OrgCode = vendorObj.OrgCode,
                         Message = notificationMessage,
                         NotificationType = (int)NotificationType.VendorEmpanelled,
-                        notificationTitle,
+                        Title,
                         CreatedOn = DateTime.UtcNow
                     });
             }
