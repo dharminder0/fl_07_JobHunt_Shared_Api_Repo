@@ -487,27 +487,20 @@ namespace VendersCloud.Business.Service.Concrete
         }
         public async Task<bool> UpsertNotificationAsync(int notificationId, bool isRead)
         {
-            var result = await _notificationRepository.UpsertNotificationAsync(notificationId, isRead);
+            var result= await _notificationRepository.UpsertNotificationAsync(notificationId,isRead);
             if (result)
             {
-             
-                var notification = await _notificationRepository.GetNotificationByIdAsync(notificationId);
-
-                if (notification != null && !string.IsNullOrEmpty(notification.OrgCode))
+            
+                await _hubContext.Clients.All.SendAsync("ReceiveNotificationUpdate", new
                 {
-                
-                    await _hubContext.Clients.Group(notification.OrgCode).SendAsync("ReceiveNotificationUpdate", new
-                    {
-                        NotificationId = notificationId,
-                        IsRead = isRead
-                    });
-                }
+                    NotificationId = notificationId,
+                    IsRead = isRead
+                });
             }
 
             return result;
         }
-
-
+    
 
         public async Task<int> GetNotificationsCountAsync(string  orgCode)
         {

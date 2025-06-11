@@ -12,6 +12,5 @@ namespace VendersCloud.Data.Repositories.Abstract
         Task<List<Notifications>> GetNotificationsAsync(NotificationsRequest notificationsRequest);
         Task<bool> UpsertNotificationAsync(int notificationId, bool isRead);
         Task<int> GetNotificationsCountAsync(string orgCode);
-        Task<Notifications> GetNotificationByIdAsync(int id);
     }
 }
