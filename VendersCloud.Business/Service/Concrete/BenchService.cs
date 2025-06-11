@@ -251,7 +251,7 @@ namespace VendersCloud.Business.Service.Concrete
                                 Message = message,
                                 NotificationType = (int)NotificationType.ResourceApplied,
                                 CreatedOn = DateTime.UtcNow,
-                                Title = "Resource Applied Notification"
+                                title = "Resource Applied Notification"
                             });
                     }
                     catch (Exception ex)
@@ -883,13 +883,13 @@ namespace VendersCloud.Business.Service.Concrete
                             throw;
                         }
                         string message = $"Applicant with name {orgObject.ResourceName} status changed to {status} by {model.ChangedBy}";
-                        string Title = $"Applicant Status Changed: {orgObject.ResourceName}";   
+                        string title = $"Applicant Status Changed: {orgObject.ResourceName}";   
 
                         await _notificationRepository.InsertNotificationAsync(
                             orgObject.VendorCode,
                             message,
                             (int)NotificationType.ResourceStatusChanged,
-                            Title
+                            title
                         );
                         var notificationData = new
                         {
@@ -897,7 +897,7 @@ namespace VendersCloud.Business.Service.Concrete
                             OrgCode = orgObject.VendorCode,
                             NotificationType = (int)NotificationType.ResourceStatusChanged,
                             CreatedOn = DateTime.UtcNow,
-                            Title
+                            title
                         };
 
                         await _hubContext.Clients.Group(orgObject.VendorCode).SendAsync("ReceiveNotification", notificationData);
