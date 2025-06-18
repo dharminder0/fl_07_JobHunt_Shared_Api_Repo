@@ -15,7 +15,9 @@
     {
         VendorEmpanelled = 1,
         ResourceStatusChanged = 2,
-        ResourceApplied = 3
+        ResourceApplied = 3,
+        EmpanelledStatus=4
+
     }
     public class NotificationsMapper : ClassMapper<Notifications>
     {
