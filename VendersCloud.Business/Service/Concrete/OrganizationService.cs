@@ -448,23 +448,57 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-                if(request .PartnerVendorRelId<= 0|| request .StatusId<= 0)
+                if (request.PartnerVendorRelId <= 0 || request.StatusId <= 0)
                 {
                     throw new ArgumentException("Provide Valid Input!!");
                 }
 
-                var result= await _partnerVendorRelRepository.ManagePartnerStatusAsync(request);
+                var result = await _partnerVendorRelRepository.ManagePartnerStatusAsync(request);
+
                 if (result)
                 {
+         
+                    var relationInfo = await _partnerVendorRelRepository.GetByIdAsync(request.PartnerVendorRelId);
+
+                    if (relationInfo != null)
+                    {
+                        var partnerObj = relationInfo.PartnerCode; 
+                        var vendorObj = relationInfo.VendorCode;
+                        var vendorInfo =await  _organizationRepository.GetOrganizationData(vendorObj);
+
+                        string notificationMessage = $"Your empanelment request has been accepted by {vendorInfo.OrgName}";
+                        string title = $"Empanelment Accepted by {vendorInfo.OrgName}";
+
+                        await _notificationRepository.InsertNotificationAsync(
+                            partnerObj,
+                            notificationMessage,
+                            (int)NotificationType.VendorEmpanelled,
+                            title
+                        );
+
+                        await _hubContext.Clients.Group(partnerObj)
+                            .SendAsync("ReceiveNotification", new
+                            {
+                                OrgCode = partnerObj,
+                                Message = notificationMessage,
+                                NotificationType = (int)NotificationType.EmpanelledStatus,
+                                Title = title,
+                                CreatedOn = DateTime.UtcNow
+                            });
+                    }
+
                     return true;
                 }
+
                 return false;
             }
             catch (Exception ex)
             {
-                throw ex;
+                // It's better to throw the original exception without wrapping
+                throw;
             }
         }
+
 
         public async Task<PaginationDto<OrgRelationshipSearchResponse>> GetListRelationshipAsync(OrgRelationshipSearchRequest request)
         {
