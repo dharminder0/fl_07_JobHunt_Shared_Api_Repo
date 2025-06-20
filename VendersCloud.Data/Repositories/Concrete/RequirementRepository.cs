@@ -474,19 +474,10 @@ SELECT
      FROM ApplicationWithStatus aws 
      WHERE aws.RequirementId IN (SELECT Id FROM Requirement WHERE OrgCode = @orgCode)) AS TotalApplicants,
 
-    (SELECT COUNT(*) 
-     FROM Requirement r 
-     WHERE r.OrgCode = @orgCode
-     AND NOT EXISTS (
-         SELECT 1 
-         FROM Applications a
-         JOIN (
-             SELECT ApplicantId, MAX(ChangedOn) AS LatestChange
-             FROM ApplicantStatusHistory
-             GROUP BY ApplicantId
-         ) latest ON a.id = latest.ApplicantId
-         WHERE a.RequirementId = r.Id
-     )) AS NoApplications
+       (SELECT COUNT(*) 
+     FROM Requirement r
+     LEFT JOIN Applications a ON a.RequirementId = r.Id
+     WHERE r.OrgCode = @orgCode AND a.Id IS NULL) AS NoApplications
 
         ";
 
