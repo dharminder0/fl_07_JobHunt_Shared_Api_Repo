@@ -460,7 +460,7 @@ namespace VendersCloud.Business.Service.Concrete
                     var dbUser = await _usersRepository.GetUserByUserTokenAsync(request.UserToken);
                     if (dbUser == null)
                     {
-                        return new ActionMessageResponse { Success = true, Message = "User Found!!", Content = "" };
+                        return new ActionMessageResponse { Success = false, Message = "User not  Found!!", Content = "" };
                     }
                  
                     var res = await _usersRepository.SetUserPasswordAsync(hashedPassword, saltBytes, request.UserToken);
