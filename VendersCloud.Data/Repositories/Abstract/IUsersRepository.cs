@@ -19,5 +19,6 @@
         Task<bool> UpdateEmailAsync(string OldEmail, string NewEmail, string verificationOtp);
         Task<bool> DeleteMemberByIdAsync(int  userId);
         Task<IEnumerable<EmailTemplatesContent>> GetTemplateContentAsync(string templateKey);
+        Task<bool> UpdateUserTokenAsync(int  userId, string token);
     }
 }

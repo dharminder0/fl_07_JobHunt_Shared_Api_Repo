@@ -482,6 +482,69 @@ namespace VendersCloud.Business.Service.Concrete
                 return new ActionMessageResponse { Success = false, Message = ex.Message, Content = "" };
             }
         }
+        public async Task<ActionMessageResponse> ForgetPasswordAsync(string email)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(email))
+                {
+                    return new ActionMessageResponse
+                    {
+                        Success = false,
+                        Message = "Please provide a valid email address.",
+                        Content = ""
+                    };
+                }
+
+                var user = await _usersRepository.GetUserByEmailAsync(email);
+                if (user == null)
+                {
+                    return new ActionMessageResponse
+                    {
+                        Success = false,
+                        Message = "User with the given email does not exist.",
+                        Content = ""
+                    };
+                }
+
+              
+                string newToken = Guid.NewGuid().ToString();
+
+        
+                user.Token = newToken;
+                await _usersRepository.UpdateUserTokenAsync(user.Id, newToken);
+
+    
+                bool emailSent = await _communicationService.SendUserForgotPasswordEmail(
+                    user.FirstName, user.LastName, email, newToken);
+
+                if (emailSent)
+                {
+                    return new ActionMessageResponse
+                    {
+                        Success = true,
+                        Message = "Password reset link has been sent to your email.",
+                        Content = ""
+                    };
+                }
+
+                return new ActionMessageResponse
+                {
+                    Success = false,
+                    Message = "Failed to send reset email. Please try again.",
+                    Content = ""
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ActionMessageResponse
+                {
+                    Success = false,
+                    Message = ex.Message,
+                    Content = ""
+                };
+            }
+        }
 
         public async Task<ActionMessageResponse> AddOrganizationMemberAsync(AddMemberRequest request)
         {

@@ -80,6 +80,24 @@
                 });
             
         }
+        public async Task<bool> UpdateUserTokenAsync(int userId, string token)
+        {
+            var dbInstance = GetDbInstance();
+            var tableName = new Table<Users>();
+
+            var updateQuery = new Query(tableName.TableName)
+                .AsUpdate(new
+                {
+                    Token = token,
+                    UpdatedOn = DateTime.UtcNow
+                })
+                .Where("Id", userId);
+
+            await dbInstance.ExecuteAsync(updateQuery);
+            return true;
+        }
+
+
 
         public async Task<Users> GetUserByEmailAndOrgCodeAsync(string email,string orgCode)
         {
