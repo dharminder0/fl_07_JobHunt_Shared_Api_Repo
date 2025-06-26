@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Net.Mail;
 using VendersCloud.Business.CommonMethods;
+using VendersCloud.Business.Service.Abstract;
 
 namespace VendersCloud.Business.Service.Concrete
 {
@@ -52,6 +53,48 @@ namespace VendersCloud.Business.Service.Concrete
             };
 
             return await SendEmailAsync(emailMessage);
+        }
+        public async Task<bool> SendUserForgotPasswordEmail(string firstname, string lastname, string email, string usertoken)
+        {
+
+
+            var url = _externalConfig.GetVerifyEmailDomainUrl();
+            var templateContent = await GetTemplateContentAsync("ForgetPassword");
+
+            var emailBody = GetForgotPasswordEmailTemplate(templateContent, firstname, lastname, usertoken,url);
+
+            var emailMessage = new EmailMessage
+            {
+                To = email,
+                Subject = templateContent.ContainsKey("Title") ? templateContent["Title"] : "🔐 Reset Your Password - VendorsCloud",
+                Body = emailBody
+            };
+
+            return await SendEmailAsync(emailMessage);
+        }
+
+        public static string GetForgotPasswordEmailTemplate(
+    Dictionary<string, string> content,
+    string firstname,
+    string lastname,
+    string token,
+    string urlBase)
+        {
+            var fullName = $"{firstname} {lastname}";
+            var resetLink = $"{urlBase}?token={token}";
+
+            return $@"
+        <h2>{content["Title"]}</h2>
+        <p>Hi {fullName},</p>
+        <p>{content["Body"]}</p>
+        <p><a href='{resetLink}' style='background:#3B82F6;color:#fff;padding:10px 20px;border-radius:5px;text-decoration:none;'>{content["ButtonText"]}</a></p>
+        <p>{content["CopyPasteInstruction"]}</p>
+        <p>{resetLink}</p>
+        <p>{content["ExpiryNote"]}</p>
+        <br/>
+        <p>{content["FooterNote"]}</p>
+        <p>{content["FooterSignature"]}</p>
+    ";
         }
 
         public async Task<bool> DispatchedInvitationMailAsync(string receiverOrgName, string senderOrgName, string senderEmail, string receiverEmail, string senderMessage)
@@ -111,5 +154,7 @@ namespace VendersCloud.Business.Service.Concrete
 
             return templateEntries.ToDictionary(x => x.ContentKey, x => x.ContentValue);
         }
+       
+
     }
 }

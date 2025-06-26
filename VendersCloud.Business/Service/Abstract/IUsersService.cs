@@ -24,5 +24,6 @@ namespace VendersCloud.Business.Service.Abstract
         Task<PaginationDto<UsersDto>> SearchMemberDetailsAsync(SearchMemberRequest request);
         Task<ActionMessageResponse> ChangeEmailAsync(string oldEmail, string newEmail);
         Task<bool> DeleteMemberByIdAsync(int userId);
+        Task<ActionMessageResponse> ForgetPasswordAsync(string email);
     }
 }
