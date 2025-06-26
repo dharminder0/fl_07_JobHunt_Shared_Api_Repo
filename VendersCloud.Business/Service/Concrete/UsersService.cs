@@ -462,10 +462,7 @@ namespace VendersCloud.Business.Service.Concrete
                     {
                         return new ActionMessageResponse { Success = true, Message = "User Found!!", Content = "" };
                     }
-                    if (!string.IsNullOrEmpty(dbUser.Password))
-                    {
-                        return new ActionMessageResponse { Success = false, Message = "User Already Generated Password!!", Content = "" };
-                    }
+                 
                     var res = await _usersRepository.SetUserPasswordAsync(hashedPassword, saltBytes, request.UserToken);
                     if (res) {
                         Entities.RequestModels.LoginRequest loginRequest = new Entities.RequestModels.LoginRequest();
