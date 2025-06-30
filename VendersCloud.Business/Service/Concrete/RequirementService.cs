@@ -1653,7 +1653,19 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
+        public async Task<List<MatchingRequirementDto>> GetMatchingRequirementsAsync(MatchingRequirementRequest request)
+        {
+         
+            if (request.RequirementId <= 0)
+                throw new ArgumentException("Invalid RequirementId");
 
+            if (request.PageIndex <= 0) request.PageIndex = 1;
+            if (request.PageSize <= 0) request.PageSize = 10;
+
+    
+            var results = await _requirementRepository.GetMatchingRequirementsAsync(request);
+            return results;
+        }
 
 
     }

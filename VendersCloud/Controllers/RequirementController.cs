@@ -395,7 +395,15 @@
             var result = await _requirementService.GetSharedContractsAsync(request);
             return Json(result);
         }
+        [HttpPost("api/V1/Requirement/matching")]
+        public async Task<IActionResult> GetMatchingRequirements([FromBody] MatchingRequirementRequest req)
+        {
+            if (req == null || req.RequirementId <= 0)
+                return BadRequest("Invalid input");
 
+            var result = await _requirementService.GetMatchingRequirementsAsync(req);
+            return Ok(result);
+        }
     }
 }
 
