@@ -48,7 +48,7 @@
 
         public async Task<PaginationDto<Organization>> SearchOrganizationsDetails(SearchRequest request)
         {
-            using var connection = GetConnection(); // Ensure this returns IDbConnection
+            using var connection = GetConnection(); 
             var predicates = new List<string>();
             var parameters = new DynamicParameters();
 
@@ -92,32 +92,61 @@
                 }
             }
 
-
-            if (request.Strength != null && request.Strength.Any())
+  
+            if (request.Strength is { Count: > 0 })
             {
                 var strengthConditions = new List<string>();
-                for (int i = 0; i < request.Strength.Count; i++)
+                var idx = 0;
+
+                foreach (var token in request.Strength.Distinct())
                 {
-                    if (int.TryParse(request.Strength[i], out int strength))
+                    if (string.IsNullOrWhiteSpace(token)) continue;
+
+                    var text = token.Trim();
+                    int minVal = 0;
+                    int maxVal = int.MaxValue;
+
+                    char[] delimiters = { ',', '-' };
+
+                    if (text.EndsWith("+"))
                     {
-                        int minStrength = 0, maxStrength = int.MaxValue;
-
-                        if (strength == 0) { minStrength = 0; maxStrength = 50; }
-                        else if (strength == 50) { minStrength = 50; maxStrength = 100; }
-                        else if (strength == 100) { minStrength = 100; maxStrength = 200; }
-                        else if (strength == 200) { minStrength = 200; maxStrength = 500; }
-                        else if (strength == 500) { minStrength = 500; maxStrength = int.MaxValue; }
-
-                        strengthConditions.Add($"(o.EmpCount BETWEEN @minStrength{i} AND @maxStrength{i})");
-                        parameters.Add($"minStrength{i}", minStrength);
-                        parameters.Add($"maxStrength{i}", maxStrength);
+     
+                        if (!int.TryParse(text.TrimEnd('+'), out minVal)) continue;
                     }
+                    else if (text.Contains(",") || text.Contains("-"))
+                    {
+                        var parts = text.Split(delimiters, StringSplitOptions.RemoveEmptyEntries);
+                        if (!int.TryParse(parts[0], out minVal)) continue;
+
+                        if (parts.Length >= 2 && int.TryParse(parts[1], out var tempMax))
+                            maxVal = tempMax; 
+                    }
+                    else if (int.TryParse(text, out var singleMin))
+                    {
+                
+                        minVal = singleMin;
+                    }
+                    else
+                    {
+                        continue; 
+                    }
+
+                    if (minVal > maxVal)
+                    {
+                        (minVal, maxVal) = (maxVal, minVal);
+                    }
+
+                    strengthConditions.Add($"(o.EmpCount BETWEEN @minStrength{idx} AND @maxStrength{idx})");
+                    parameters.Add($"minStrength{idx}", minVal);
+                    parameters.Add($"maxStrength{idx}", maxVal);
+                    idx++;
                 }
-                if (strengthConditions.Any())
-                {
+
+                if (strengthConditions.Count > 0)
                     predicates.Add($"({string.Join(" OR ", strengthConditions)})");
-                }
             }
+
+
 
             string whereClause = predicates.Any() ? "WHERE " + string.Join(" AND ", predicates) : "";
 

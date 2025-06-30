@@ -28,5 +28,8 @@
         Task<int> GetRequirementCountByOrgCodeAsyncV2(string orgCode,string clientCode);
         Task<List<Requirement>> GetPublicRequirementAsyncV2(string orgCode, int visibility);
         Task<List<Requirement>> GetRequirementsWithNoApplicantsAsync();
+        Task<List<MatchingRequirementDto>> GetMatchingRequirementsAsync(
+        MatchingRequirementRequest request);
+
     }
 }

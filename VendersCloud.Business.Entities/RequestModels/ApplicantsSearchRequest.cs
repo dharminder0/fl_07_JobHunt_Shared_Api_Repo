@@ -36,4 +36,23 @@
         public int   PageSize { get; set; }
         public int Page { get; set; }
     }
+    public class MatchingRequirementRequest
+    {
+        public long RequirementId { get; set; }
+        public int PageIndex { get; set; } = 1;
+        public int PageSize { get; set; } = 10;
+    }
+
+    public class MatchingRequirementDto
+    {
+        public long Id { get; set; }      // Requirement.Id
+        public string UniqueId { get; set; }      // e.g. Req‑2025‑0001
+        public string Title { get; set; }
+        public int MatchingSkillCount { get; set; }      // shared skills with source requirement
+        public int MatchingCandidateCount { get; set; }      // distinct resources whose skills match this requirement
+        public string PartnerName { get; set; }
+        public string PartnerLogo { get; set; }
+        public string PartnerCode { get; set; }
+    }
+
 }

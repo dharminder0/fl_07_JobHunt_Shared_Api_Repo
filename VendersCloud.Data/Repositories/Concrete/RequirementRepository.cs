@@ -710,5 +710,64 @@ OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY;";
             var requirements = await dbInstance.SelectAsync<Requirement>(sql, new { });
             return requirements.ToList();
         }
+        public async Task<List<MatchingRequirementDto>> GetMatchingRequirementsAsync(
+        MatchingRequirementRequest request)
+        {
+            var db = GetDbInstance();
+
+            var sql = @"
+WITH source_skills AS (
+    SELECT rs.SkillId
+    FROM SkillRequirementMapping rs
+    WHERE rs.RequirementId = @requirementId
+),
+candidate_reqs AS (
+    SELECT
+        r.Id,
+        r.UniqueId,
+        r.Title,
+        p.orgname as partnerName,
+        p.logo as PartnerLogo,
+        p.orgCode as PartnerCode,
+        COUNT(DISTINCT rs.SkillId)                        AS MatchingSkillCount
+    FROM Requirement r
+    JOIN Organization      p   ON p.Id = r.CreatedBy
+    JOIN SkillRequirementMapping rs ON rs.RequirementId = r.Id
+    JOIN source_skills  ss  ON ss.SkillId = rs.SkillId
+    WHERE r.Id <> @requirementId             
+    GROUP BY r.Id, r.UniqueId, r.Title,
+             p.orgname, p.logo, p.orgCode
+),
+final AS (
+    SELECT
+        cr.*,
+        (
+            SELECT COUNT(DISTINCT res.Id)
+            FROM Resources res
+            JOIN SkillResourcesMapping srm ON srm.ResourcesId = res.Id
+            JOIN SkillRequirementMapping rqs      ON rqs.SkillId    = srm.SkillId
+            WHERE rqs.RequirementId = cr.Id
+        ) AS MatchingCandidateCount
+    FROM candidate_reqs cr
+)
+SELECT *
+FROM final
+ORDER BY MatchingSkillCount DESC,
+         MatchingCandidateCount DESC,
+         Id
+OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY;
+
+";
+
+            var parms = new
+            {
+                requirementId = request.RequirementId,
+                offset = (request.PageIndex - 1) * request.PageSize,
+                pageSize = request.PageSize
+            };
+
+            return db.Select<MatchingRequirementDto>(sql, parms).ToList();
+        }
+
     }
 }

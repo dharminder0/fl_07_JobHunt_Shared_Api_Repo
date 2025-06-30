@@ -28,5 +28,6 @@ namespace VendersCloud.Business.Service.Abstract
         Task<List<SimilerRequirementResponse>> GetSimilerRequirementsAsync(SimilerRequirmentequest request);
         Task<ActionMessageResponse> GetSharedContractsAsync(SharedContractsRequest request);
         Task<List<CompanyGraphResponse>> GetDayWeekCountsAsyncV2(CompanyGraphRequest request);
+        Task<List<MatchingRequirementDto>> GetMatchingRequirementsAsync(MatchingRequirementRequest request);
     }
 }
