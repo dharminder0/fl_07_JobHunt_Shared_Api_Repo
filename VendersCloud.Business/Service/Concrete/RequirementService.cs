@@ -1664,6 +1664,17 @@ namespace VendersCloud.Business.Service.Concrete
 
     
             var results = await _requirementRepository.GetMatchingRequirementsAsync(request);
+            List<int> requirementVendorsId = await _requirementVendorsRepository.GetRequirementShareJobsAsync(request.OrgCode);
+            var sharedRequirements = await _requirementRepository.GetRequirementByIdAsync(requirementVendorsId);
+            var publicReq = await _requirementRepository.GetPublicRequirementAsync(sharedRequirements.Select(v => v.OrgCode).ToList(), 3);
+            sharedRequirements = sharedRequirements.Concat(publicReq);
+            var sharedOrgCodes = new HashSet<string>(sharedRequirements.Select(v => v.OrgCode));
+
+
+            results = results.Where(v => sharedOrgCodes.Contains(v.PartnerCode)).ToList();
+
+
+
             return results;
         }
 
