@@ -402,7 +402,7 @@
                 return BadRequest("Invalid input");
 
             var result = await _requirementService.GetMatchingRequirementsAsync(req);
-            return Ok(result);
+            return  Json(result);
         }
     }
 }

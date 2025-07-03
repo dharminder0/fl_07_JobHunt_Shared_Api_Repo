@@ -721,6 +721,12 @@ WITH source_skills AS (
     FROM SkillRequirementMapping rs
     WHERE rs.RequirementId = @requirementId
 ),
+req_org AS (
+    SELECT o.orgCode
+    FROM Requirement r
+    JOIN Organization o ON o.Id = r.CreatedBy
+    WHERE r.Id = @requirementId
+),
 candidate_reqs AS (
     SELECT
         r.Id,
@@ -729,14 +735,13 @@ candidate_reqs AS (
         p.orgname as partnerName,
         p.logo as PartnerLogo,
         p.orgCode as PartnerCode,
-        COUNT(DISTINCT rs.SkillId)                        AS MatchingSkillCount
+        COUNT(DISTINCT rs.SkillId) AS MatchingSkillCount
     FROM Requirement r
-    JOIN Organization      p   ON p.Id = r.CreatedBy
+    JOIN Organization p ON p.Id = r.CreatedBy
     JOIN SkillRequirementMapping rs ON rs.RequirementId = r.Id
-    JOIN source_skills  ss  ON ss.SkillId = rs.SkillId
-    WHERE r.Id <> @requirementId             
-    GROUP BY r.Id, r.UniqueId, r.Title,
-             p.orgname, p.logo, p.orgCode
+    JOIN source_skills ss ON ss.SkillId = rs.SkillId
+    WHERE r.Id <> @requirementId
+    GROUP BY r.Id, r.UniqueId, r.Title, p.orgname, p.logo, p.orgCode
 ),
 final AS (
     SELECT
@@ -745,8 +750,11 @@ final AS (
             SELECT COUNT(DISTINCT res.Id)
             FROM Resources res
             JOIN SkillResourcesMapping srm ON srm.ResourcesId = res.Id
-            JOIN SkillRequirementMapping rqs      ON rqs.SkillId    = srm.SkillId
+            JOIN SkillRequirementMapping rqs ON rqs.SkillId = srm.SkillId
+            JOIN Requirement r2 ON r2.Id = rqs.RequirementId
+            JOIN Organization o2 ON o2.Id = r2.CreatedBy
             WHERE rqs.RequirementId = cr.Id
+              AND o2.orgCode = (SELECT orgCode FROM req_org)
         ) AS MatchingCandidateCount
     FROM candidate_reqs cr
 )
@@ -756,6 +764,7 @@ ORDER BY MatchingSkillCount DESC,
          MatchingCandidateCount DESC,
          Id
 OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY;
+;
 
 ";
 
