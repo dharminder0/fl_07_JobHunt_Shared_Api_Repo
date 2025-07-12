@@ -1,16 +1,16 @@
-﻿
-using Ignite.Security.Lib;
-using Microsoft.AspNetCore.Mvc;
+﻿using IgniteSecurityLib;
 using Newtonsoft.Json.Serialization;
+using Prompt.Engine.Business.Entities;
 
-namespace VendersCloud.WebApi.Controllers {
+namespace VendersCloud.WebApi.Controllers
+{
     public class BaseApiController : ControllerBase {
-        //protected string LanguageCode {
-        //    get {
-        //        var langCode = Request.Headers[DefaultSettings.LanguageHeader].ToString();
-        //        return !string.IsNullOrWhiteSpace(langCode) ? langCode : DefaultSettings.LanguageCode;
-        //    }
-        //}
+        protected string LanguageCode {
+            get {
+                var langCode = Request.Headers[DefaultSettings.LanguageHeader].ToString();
+                return !string.IsNullOrWhiteSpace(langCode) ? langCode : DefaultSettings.LanguageCode;
+            }
+        }
         protected string UserToken {
             get {
                 var token = Request.Headers["token"];

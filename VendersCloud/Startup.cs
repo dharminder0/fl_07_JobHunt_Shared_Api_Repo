@@ -1,15 +1,12 @@
 ﻿using Autofac;
 using Microsoft.OpenApi.Models;
 using NetCore.AutoRegisterDi;
+using Newtonsoft.Json;
 using System.Reflection;
 using VendersCloud.Business;
-using VendersCloud.Business.Service.Abstract;
-using VendersCloud.Business.Service.Concrete;
 using VendersCloud.Common.Configuration;
 using VendersCloud.Common.Settings;
 using VendersCloud.Common.Utils;
-using VendersCloud.Data.Repositories.Abstract;
-using VendersCloud.Data.Repositories.Concrete;
 using ConfigurationManager = VendersCloud.Common.Configuration.ConfigurationManager;
 
 namespace VendersCloud.WebApi
@@ -29,7 +26,8 @@ namespace VendersCloud.WebApi
         {
             InitSettings();
             var conn = Configuration.GetConnectionString("");
-            // Register the Swagger generator, defining 1 or more Swagger documents
+            services.AddScoped<RequireAuthorizationFilter>();
+            //// Register the Swagger generator, defining 1 or more Swagger documents
             services.AddSwaggerGen(c => {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Venders Cloud Service", Version = "v1" });
                 // Authorization header
@@ -146,28 +144,47 @@ namespace VendersCloud.WebApi
 
             services.AddScoped<IpHelper>();
 
+            services.AddMvc().AddNewtonsoftJson(options =>
+            {
+                options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+                options.SerializerSettings.PreserveReferencesHandling = PreserveReferencesHandling.Objects;
+                options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+            });
+            //// for handling error The collection type 'Newtonsoft.Json.Linq.JObject or JToken or JArray' is not supported
+            //// requires https://www.nuget.org/packages/Microsoft.AspNetCore.Mvc.NewtonsoftJson/
+
+
+            services.Configure<Microsoft.AspNetCore.Mvc.MvcOptions>(options =>
+            {
+                options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
+            });
+
+            services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+                });
+
             //add CORS for origins to be allowed
 
             services.AddCors(options => {
 
-                options.AddPolicy("AllowedOrigins",
-                        builder => {
-                            builder.AllowAnyMethod().AllowAnyHeader();
-                            //if (!string.IsNullOrWhiteSpace(ConfigurationManager.AppSettings["AllowedOrigins"]) && ConfigurationManager.AppSettings["AllowedOrigins"] != "*")
-                            if (!string.IsNullOrWhiteSpace(GlobalSettings.AllowedOrigins) && GlobalSettings.AllowedOrigins != "*")
-                            {
-                                builder.WithOrigins(GlobalSettings.AllowedOrigins.Split(','));
-                            }
-                            else
-                            {
-                                builder.AllowAnyOrigin();
-                            }
-                        });
+                options.AddPolicy("DefaultCorsPolicy", builder =>
+                {
+                    builder.AllowAnyMethod()
+                           .AllowAnyHeader();
+                    var allowedOrigins = string.IsNullOrWhiteSpace(GlobalSettings.AllowedOrigins) || GlobalSettings.AllowedOrigins == "*"
+                        ? new[] { "https://fl-07-jobhunt-shared-api-test.azurewebsites.net/api/" }
+                        : GlobalSettings.AllowedOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                                       .Select(o => o.Trim())
+                                                       .ToArray();
+                    builder.WithOrigins(allowedOrigins)
+                           .AllowCredentials();
+                });
             });
-            // for handling error The collection type 'Newtonsoft.Json.Linq.JObject or JToken or JArray' is not supported
-            // requires https://www.nuget.org/packages/Microsoft.AspNetCore.Mvc.NewtonsoftJson/
-            services.AddMvc().AddNewtonsoftJson();
-            services.AddControllers();
+
+
+            services.AddSignalR();
         }
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -186,6 +203,7 @@ namespace VendersCloud.WebApi
 
             app.UseEndpoints(endpoints => {
                 endpoints.MapControllers();
+                endpoints.MapHub<NotificationHub>("/notificationhub");
             });
             // Enable middleware to serve generated Swagger as a JSON endpoint.
             app.UseSwagger();
@@ -194,6 +212,9 @@ namespace VendersCloud.WebApi
             // specifying the Swagger JSON endpoint.
             app.UseSwaggerUI(c => {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "CCS API V1");
+
+
+
             });
         }
 
