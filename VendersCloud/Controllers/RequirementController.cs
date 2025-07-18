@@ -75,12 +75,12 @@
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ServiceFilter(typeof(RequireAuthorizationFilter))]
         [HttpGet]
-        [Route("api/V1/Requirement/GetList/{requirementId}")]
-        public async Task<IActionResult> GetRequirementListByIdAsync(string requirementId)
+        [Route("api/V1/Requirement/GetList/{requirementId}/{orgCode}")]
+        public async Task<IActionResult> GetRequirementListByIdAsync(string requirementId,string orgCode)
         {
             try
             {
-                var result = await _requirementService.GetRequirementListByIdAsync(requirementId);
+                var result = await _requirementService.GetRequirementListByIdAsync(requirementId,orgCode);
                 return Json(result);
             }
             catch (Exception ex)

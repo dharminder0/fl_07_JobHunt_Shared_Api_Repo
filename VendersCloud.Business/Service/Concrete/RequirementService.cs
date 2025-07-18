@@ -174,7 +174,7 @@ namespace VendersCloud.Business.Service.Concrete
             }
         }
 
-        public async Task<RequirementResponse> GetRequirementListByIdAsync(string requirementId)
+        public async Task<RequirementResponse> GetRequirementListByIdAsync(string requirementId,string orgCode)
         {
             try
             {
@@ -215,6 +215,8 @@ namespace VendersCloud.Business.Service.Concrete
                             }
                             var skillName = await _skillRepository.GetAllSkillNamesAsync(Ids);
                               List<int> matchingCandidate = await _matchRecordRepository.GetMatchingCountByRequirementId(item.Id);
+                            var data = await _benchRepository.GetBenchResponseListByIdAsync(matchingCandidate);
+                            var resourcesList = data.Where(x => x.OrgCode == orgCode);
                             res.Id = item.Id;
                             res.Title = item.Title;
                             res.OrgCode = item.OrgCode;
@@ -240,7 +242,7 @@ namespace VendersCloud.Business.Service.Concrete
                             res.IsDeleted = item.IsDeleted;
                             res.UniqueId = item.UniqueId;
                             res.Skills = skillName;
-                            res.MatchingCandidates = matchingCandidate.Count;
+                            res.MatchingCandidates = resourcesList.Count();
                         }
                     }
                 }

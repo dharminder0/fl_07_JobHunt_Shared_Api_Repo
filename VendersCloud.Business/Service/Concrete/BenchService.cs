@@ -307,8 +307,8 @@ namespace VendersCloud.Business.Service.Concrete
 
                 var resourceIds = query.Select(a => a.ResourceId).Distinct().ToList();
                 var benchDataList = await _benchRepository.GetBenchResponseListByIdAsync(resourceIds);
-                if (!string.IsNullOrEmpty(request.OrgCOde)){
-                    benchDataList = benchDataList.Where(v => v.OrgCode == request.OrgCOde);
+                if (!string.IsNullOrEmpty(request.OrgCode)){
+                    benchDataList = benchDataList.Where(v => v.OrgCode == request.OrgCode);
 
                 }
                 var benchData = benchDataList.GroupBy(r => r.Id).ToDictionary(g => g.Key, g => g.ToList());
