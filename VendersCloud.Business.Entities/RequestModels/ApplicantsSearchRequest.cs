@@ -9,7 +9,7 @@
         public int Page { get; set; }
         public int PageSize { get; set; }
         public string  UniqueId { get; set; }
-        public string  OrgCOde { get; set; }
+        public string  OrgCode { get; set; }
     }
     public class VendorContractRequest
     {
