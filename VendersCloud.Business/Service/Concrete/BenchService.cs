@@ -188,7 +188,7 @@ namespace VendersCloud.Business.Service.Concrete
 
                 return new PaginationDto<BenchResponse>
                 {
-                    Count = benchResponseList.Count,
+                    Count = totalRecords,
                     Page = request.Page,
                     TotalPages = (int)Math.Ceiling(benchResponseList.Count / (double)request.PageSize),
                     List = benchResponseList
@@ -299,7 +299,7 @@ namespace VendersCloud.Business.Service.Concrete
                 {
                     query = query.Where(a => a.CreatedBy == id);
                 }
-
+           
                 if (request.Status != null && request.Status.Any())
                 {
                     query = query.Where(a => request.Status.Contains(a.Status));
@@ -307,7 +307,12 @@ namespace VendersCloud.Business.Service.Concrete
 
                 var resourceIds = query.Select(a => a.ResourceId).Distinct().ToList();
                 var benchDataList = await _benchRepository.GetBenchResponseListByIdAsync(resourceIds);
+                if (!string.IsNullOrEmpty(request.OrgCOde)){
+                    benchDataList = benchDataList.Where(v => v.OrgCode == request.OrgCOde);
+
+                }
                 var benchData = benchDataList.GroupBy(r => r.Id).ToDictionary(g => g.Key, g => g.ToList());
+               
 
                 if (!string.IsNullOrEmpty(request.SearchText))
                 {

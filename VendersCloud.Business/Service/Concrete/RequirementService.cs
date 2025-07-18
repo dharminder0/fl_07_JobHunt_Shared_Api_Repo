@@ -214,6 +214,7 @@ namespace VendersCloud.Business.Service.Concrete
 
                             }
                             var skillName = await _skillRepository.GetAllSkillNamesAsync(Ids);
+                              List<int> matchingCandidate = await _matchRecordRepository.GetMatchingCountByRequirementId(item.Id);
                             res.Id = item.Id;
                             res.Title = item.Title;
                             res.OrgCode = item.OrgCode;
@@ -239,6 +240,7 @@ namespace VendersCloud.Business.Service.Concrete
                             res.IsDeleted = item.IsDeleted;
                             res.UniqueId = item.UniqueId;
                             res.Skills = skillName;
+                            res.MatchingCandidates = matchingCandidate.Count;
                         }
                     }
                 }
