@@ -299,6 +299,7 @@ namespace VendersCloud.Data.Repositories.Concrete
 SELECT 
     r.Title AS RequirementTitle,
     r.CreatedOn AS RequirmentPostedDate,
+r.id as RequirementId,
     CONCAT(res.FirstName, ' ', res.LastName) AS ResourceName,
     '' AS ClientLogoUrl,
     r.ClientCode AS ClientName,
@@ -333,7 +334,8 @@ SELECT
     ) AS NumberOfApplicants,
     r.Positions AS NumberOfPosition,
     r.Duration AS ContractPeriod,
-    r.Visibility
+    r.Visibility,
+r.id as RequirementId
 FROM Requirement r
 WHERE r.Visibility = 3 AND r.OrgCode = @orgcode
 ORDER BY r.CreatedOn DESC";
@@ -356,6 +358,7 @@ ORDER BY r.CreatedOn DESC";
                 var contractQuery = $@"
 SELECT 
     r.Title AS RequirementTitle,
+    r.id as RequirementId,
     r.CreatedOn AS RequirmentPostedDate,
     CONCAT(res.FirstName, ' ', res.LastName) AS ResourceName,
     '' AS ClientLogoUrl,
