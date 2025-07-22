@@ -438,7 +438,7 @@ SELECT
 r.LocationType  as LocationType
 FROM Requirement r
 
-WHERE r.ClientCode = @clientCode
+WHERE r.ClientCode = @clientCode and r.status=1
 ORDER BY r.CreatedOn DESC; 
 ;
 ;
