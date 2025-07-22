@@ -126,9 +126,7 @@ namespace VendersCloud.Business.Service.Concrete
                     StatusName = CommonFunctions.GetEnumDescription((InviteStatus)status)
                 }).ToList();
 
-                organizationDtos = organizationDtos
-                 .Where(o => o.OrgCode != request.OrgCode)
-                 .ToList();
+              
                 return new PaginationDto<OrganizationDto>
                 {
                     Count = data.Count,

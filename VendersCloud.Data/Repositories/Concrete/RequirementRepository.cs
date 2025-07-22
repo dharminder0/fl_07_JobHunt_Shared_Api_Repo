@@ -641,8 +641,7 @@ SELECT
             // Fix: Use FirstOrDefault instead of ToList to return a single instance of VendorRequirementCount  
             return dbInstance.Select<VendorRequirementCount>(requirementQuery, new { request.OrgCode, request.StartDate, request.EndDate, request.UserId }).FirstOrDefault();
         }
-
-        public async Task<List<dynamic>> GetCountTechStackByOrgCodeAsync(TechStackRequest request)
+        public async Task<PaginationResponse> GetCountTechStackByOrgCodeAsync(TechStackRequest request)
         {
             var dbInstance = GetDbInstance();
 
@@ -650,18 +649,28 @@ SELECT
                 ? ""
                 : "AND s.SkillName LIKE @searchText";
 
-            var query = $@"
-SELECT 
-    s.SkillName,s.id,
-    COUNT(DISTINCT r.Id) AS ResourceCount
+            var baseQuery = $@"
 FROM Skills s
 INNER JOIN SkillResourcesMapping srm ON s.Id = srm.SkillId
 INNER JOIN Resources r ON srm.ResourcesId = r.Id
 WHERE r.OrgCode = @orgCode
-{searchClause}
-GROUP BY s.SkillName,s.Id
+{searchClause}";
+
+            var dataQuery = $@"
+SELECT 
+    s.SkillName, s.Id,
+    COUNT(DISTINCT r.Id) AS ResourceCount
+{baseQuery}
+GROUP BY s.SkillName, s.Id
 ORDER BY ResourceCount DESC
 OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY;";
+
+            var countQuery = $@"
+SELECT * FROM (
+    SELECT s.Id
+    {baseQuery}
+    GROUP BY s.SkillName, s.Id
+) AS countTable;";
 
             var parameters = new
             {
@@ -671,7 +680,17 @@ OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY;";
                 pageSize = request.PageSize
             };
 
-            return dbInstance.Select<dynamic>(query, parameters).ToList();
+            // Get paged data
+            var data = dbInstance.Select<TechStackResponse>(dataQuery, parameters).ToList();
+            var count = dbInstance.Select<TechStackResponse>(countQuery, parameters).ToList();
+
+
+
+            return new PaginationResponse
+            {
+                Data = data,
+                TotalCount = count.Count()
+            };
         }
 
 
