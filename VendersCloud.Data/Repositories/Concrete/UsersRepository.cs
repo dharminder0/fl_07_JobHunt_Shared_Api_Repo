@@ -303,9 +303,14 @@
             }
             if (!string.IsNullOrEmpty(request.SearchText))
             {
-                predicates.Add("(o.FirstName LIKE @searchText OR o.LastName LIKE @searchText)");
+                predicates.Add(@"(
+        o.FirstName LIKE @searchText OR 
+        o.LastName LIKE @searchText OR 
+        (ISNULL(o.FirstName, '') + ' ' + ISNULL(o.LastName, '')) LIKE @searchText
+    )");
                 parameters.Add("searchText", $"%{request.SearchText}%");
             }
+
 
             if (request.Status >= 0)
             {
