@@ -286,135 +286,136 @@ namespace VendersCloud.Business.Service.Concrete
         }
 
         public async Task<PaginationDto<ApplicantsSearchResponse>> GetSearchApplicantsList(ApplicantsSearchRequest request)
+{
+    try
+    {
+        List<ApplicantsSearchResponse> listSearchResponse = new();
+
+        var applications = await _resourcesRepository.GetApplicationsList();
+        var query = applications.AsQueryable();
+
+        if (!string.IsNullOrEmpty(request.UserId) && int.TryParse(request.UserId, out var id))
         {
-            try
-            {
-                List<ApplicantsSearchResponse> listSearchResponse = new List<ApplicantsSearchResponse>();
-
-                var applications = await _resourcesRepository.GetApplicationsList();
-                var query = applications.AsQueryable();
-                var orgList = new List<Organization>();
-                var clientsData = new Dictionary<string, Organization>();
-                if (!string.IsNullOrEmpty(request.UserId) && int.TryParse(request.UserId, out var id))
-                {
-                    query = query.Where(a => a.CreatedBy == id);
-                }
-           
-                if (request.Status != null && request.Status.Any())
-                {
-                    query = query.Where(a => request.Status.Contains(a.Status));
-                }
-
-                var resourceIds = query.Select(a => a.ResourceId).Distinct().ToList();
-                var benchDataList = await _benchRepository.GetBenchResponseListByIdAsync(resourceIds);
-                if (!string.IsNullOrEmpty(request.OrgCode)){
-                    benchDataList = benchDataList.Where(v => v.OrgCode == request.OrgCode).ToList();
-
-                }
-                var benchData = benchDataList.GroupBy(r => r.Id).ToDictionary(g => g.Key, g => g.ToList());
-               
-
-                if (!string.IsNullOrEmpty(request.SearchText))
-                {
-                    query = query.Where(a =>
-                        benchData.ContainsKey(a.ResourceId) &&
-                        benchData[a.ResourceId].Any(r =>
-                            (!string.IsNullOrEmpty(r.FirstName) && r.FirstName.Contains(request.SearchText, StringComparison.OrdinalIgnoreCase)) ||
-                            (!string.IsNullOrEmpty(r.LastName) && r.LastName.Contains(request.SearchText, StringComparison.OrdinalIgnoreCase))
-                        )
-                    );
-                }
-
-                var totalCount = query.Count();
-                var totalPages = (int)Math.Ceiling((double)totalCount / request.PageSize);
-                var pagedResults = query.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToList();
-
-                var requirementIds = pagedResults.Select(a => a.RequirementId).Distinct().ToList();
-                var requirementsList = await _requirementsRepository.GetRequirementByIdAsync(requirementIds);
-              
-                var requirementsData = requirementsList.ToDictionary(r => r.Id, r => r);
-
-                var orgCodes = requirementsList.Select(r => r.OrgCode).Where(code => !string.IsNullOrWhiteSpace(code)).Distinct().ToList();
-                if (orgCodes.Any())
-                {
-                    orgList = await _organizationRepository.GetOrgByListAsync(orgCodes);
-                    clientsData = orgList.ToDictionary(c => c.OrgCode, c => c);
-                }
-                foreach (var data in pagedResults)
-                {
-                    var searchResponse = new ApplicantsSearchResponse
-                    {
-                        Status = data.Status,
-                        StatusName = CommonFunctions.GetEnumDescription((RecruitmentStatus)data.Status),
-                        Comment = data.Comment,
-                        ApplicationDate = data.CreatedOn,
-                        ApplicationId=data.Id
-                        
-                    };
-
-                    if (requirementsData.TryGetValue(data.RequirementId, out var requirement))
-                    {
-                        searchResponse.Title = requirement.Title;
-                        searchResponse.Id = data.Id;
-                        searchResponse.CV = await GetCvByIdAsync(data.ResourceId);
-    //                    searchResponse.Avatar = benchDataList
-    //.FirstOrDefault(v => v.Id == data.ResourceId)?.Avtar;
-
-
-
-
-
-                        searchResponse.UniqueId = requirement.UniqueId;
-                        var matchScoreResult = await _matchRecordRepository.GetMatchScoreAsync(data.RequirementId, data.ResourceId);
-                        searchResponse.MatchScore = matchScoreResult.MatchScore;
-                      
-                        if (orgCodes.Count != 0)
-                        {
-                            if (!string.IsNullOrEmpty(requirement.OrgCode))
-                            {
-                                if (clientsData.TryGetValue(requirement.OrgCode, out var organization))
-                                {
-                                    if (request.ClientOrgCode == null || !request.ClientOrgCode.Any() || request.ClientOrgCode.Contains(organization.OrgCode))
-                                    {
-                                        searchResponse.OrgCode = organization.OrgCode;
-                                        searchResponse.OrgName = organization.OrgName;
-                                        searchResponse.OrgLogo = organization.Logo;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                
-
-                    if (benchData.TryGetValue(data.ResourceId, out var resourceList))
-                    {
-                        var resource = resourceList.FirstOrDefault();
-                        if (resource != null)
-                        {
-                            searchResponse.FirstName = resource.FirstName;
-                            searchResponse.LastName = resource.LastName;
-                        }
-                    }
-                    
-                    listSearchResponse.Add(searchResponse);
-                }
-                if (!string.IsNullOrWhiteSpace(request.UniqueId))
-                {
-                    listSearchResponse = listSearchResponse.Where(v => v.UniqueId == request.UniqueId).ToList();
-                }
-                return new PaginationDto<ApplicantsSearchResponse>
-                {
-                    Count = totalCount,
-                    Page = request.Page,
-                    TotalPages = totalPages,
-                    List = listSearchResponse.OrderByDescending(v => v.Id).ToList()
-                };
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error fetching applicants: {ex.Message}", ex);
-            }
+            query = query.Where(a => a.CreatedBy == id);
         }
+
+        if (request.Status != null && request.Status.Any())
+        {
+            query = query.Where(a => request.Status.Contains(a.Status));
+        }
+
+        var resourceIds = query.Select(a => a.ResourceId).Distinct().ToList();
+        var benchDataList = await _benchRepository.GetBenchResponseListByIdAsync(resourceIds);
+
+        if (!string.IsNullOrEmpty(request.OrgCode))
+        {
+            benchDataList = benchDataList.Where(v => v.OrgCode == request.OrgCode).ToList();
+        }
+
+        var benchData = benchDataList.GroupBy(r => r.Id).ToDictionary(g => g.Key, g => g.ToList());
+
+        // Final filter using benchData and searchText
+        var filteredApplications = query
+            .Where(a => benchData.ContainsKey(a.ResourceId))
+            .ToList();
+
+        if (!string.IsNullOrWhiteSpace(request.SearchText))
+        {
+            filteredApplications = filteredApplications
+                .Where(a =>
+                    benchData[a.ResourceId].Any(r =>
+                        (!string.IsNullOrEmpty(r.FirstName) && r.FirstName.Contains(request.SearchText, StringComparison.OrdinalIgnoreCase)) ||
+                        (!string.IsNullOrEmpty(r.LastName) && r.LastName.Contains(request.SearchText, StringComparison.OrdinalIgnoreCase))
+                    )
+                ).ToList();
+        }
+
+        // Pagination
+        var totalCount = filteredApplications.Count;
+        var totalPages = (int)Math.Ceiling((double)totalCount / request.PageSize);
+        var pagedResults = filteredApplications
+            .Skip((request.Page - 1) * request.PageSize)
+            .Take(request.PageSize)
+            .ToList();
+
+        // Fetch requirement data
+        var requirementIds = pagedResults.Select(a => a.RequirementId).Distinct().ToList();
+        var requirementsList = await _requirementsRepository.GetRequirementByIdAsync(requirementIds);
+        var requirementsData = requirementsList.ToDictionary(r => r.Id, r => r);
+
+        // Fetch organization data
+        var orgCodes = requirementsList.Select(r => r.OrgCode).Where(code => !string.IsNullOrWhiteSpace(code)).Distinct().ToList();
+        var clientsData = new Dictionary<string, Organization>();
+        if (orgCodes.Any())
+        {
+            var orgList = await _organizationRepository.GetOrgByListAsync(orgCodes);
+            clientsData = orgList.ToDictionary(c => c.OrgCode, c => c);
+        }
+
+        // Construct response list
+        foreach (var data in pagedResults)
+        {
+            var searchResponse = new ApplicantsSearchResponse
+            {
+                Status = data.Status,
+                StatusName = CommonFunctions.GetEnumDescription((RecruitmentStatus)data.Status),
+                Comment = data.Comment,
+                ApplicationDate = data.CreatedOn,
+                ApplicationId = data.Id
+            };
+
+            if (requirementsData.TryGetValue(data.RequirementId, out var requirement))
+            {
+                searchResponse.Title = requirement.Title;
+                searchResponse.Id = data.Id;
+                searchResponse.CV = await GetCvByIdAsync(data.ResourceId);
+                searchResponse.UniqueId = requirement.UniqueId;
+
+                var matchScoreResult = await _matchRecordRepository.GetMatchScoreAsync(data.RequirementId, data.ResourceId);
+                searchResponse.MatchScore = matchScoreResult.MatchScore;
+
+                if (!string.IsNullOrEmpty(requirement.OrgCode) &&
+                    (request.ClientOrgCode == null || !request.ClientOrgCode.Any() || request.ClientOrgCode.Contains(requirement.OrgCode)) &&
+                    clientsData.TryGetValue(requirement.OrgCode, out var organization))
+                {
+                    searchResponse.OrgCode = organization.OrgCode;
+                    searchResponse.OrgName = organization.OrgName;
+                    searchResponse.OrgLogo = organization.Logo;
+                }
+            }
+
+            if (benchData.TryGetValue(data.ResourceId, out var resourceList))
+            {
+                var resource = resourceList.FirstOrDefault();
+                if (resource != null)
+                {
+                    searchResponse.FirstName = resource.FirstName;
+                    searchResponse.LastName = resource.LastName;
+                }
+            }
+
+            listSearchResponse.Add(searchResponse);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.UniqueId))
+        {
+            listSearchResponse = listSearchResponse.Where(v => v.UniqueId == request.UniqueId).ToList();
+        }
+
+        return new PaginationDto<ApplicantsSearchResponse>
+        {
+            Count = totalCount,
+            Page = request.Page,
+            TotalPages = totalPages,
+            List = listSearchResponse.OrderByDescending(v => v.Id).ToList()
+        };
+    }
+    catch (Exception ex)
+    {
+        throw new Exception($"Error fetching applicants: {ex.Message}", ex);
+    }
+}
+
 
         public async Task<PaginationDto<OrgActivePositionsResponse>> GetActiveVacanciesByOrgCodeAsync(CompanyActiveClientResponse request)
         {
