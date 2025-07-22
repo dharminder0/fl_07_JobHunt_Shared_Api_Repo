@@ -308,7 +308,7 @@ namespace VendersCloud.Business.Service.Concrete
                 var resourceIds = query.Select(a => a.ResourceId).Distinct().ToList();
                 var benchDataList = await _benchRepository.GetBenchResponseListByIdAsync(resourceIds);
                 if (!string.IsNullOrEmpty(request.OrgCode)){
-                    benchDataList = benchDataList.Where(v => v.OrgCode == request.OrgCode);
+                    benchDataList = benchDataList.Where(v => v.OrgCode == request.OrgCode).ToList();
 
                 }
                 var benchData = benchDataList.GroupBy(r => r.Id).ToDictionary(g => g.Key, g => g.ToList());
@@ -556,57 +556,55 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-                List<OrgActivePositionsResponse> orgActivePositionsResponseList = new();
-                var pubicReq = new List<Requirement>();
+                var orgActivePositionsResponseList = new List<OrgActivePositionsResponse>();
 
+                List<int> requirementVendorIds = await _requirementVendorsRepository.GetRequirementShareJobsAsync(request.VendorCode);
 
-
-                List<int> requirementVendorsId = await _requirementVendorsRepository.GetRequirementShareJobsAsync(request.VendorCode);
-                var sharedRequirements = (await _requirementRepository.GetRequirementByIdAsync(requirementVendorsId)).ToList();
-                if (sharedRequirements != null && sharedRequirements.Any())
-                {
-                     pubicReq = await _requirementRepository.GetPublicRequirementAsync(sharedRequirements.Select(v => v.OrgCode).ToList(), 3);
-                }
-                sharedRequirements = sharedRequirements.Concat(pubicReq).ToList();
-
+                var sharedRequirements = (await _requirementRepository.GetRequirementByIdAsync(requirementVendorIds));
+                                           
 
                 var topOrg = sharedRequirements
-         .Where(r => !string.IsNullOrEmpty(r.OrgCode))
-         .GroupBy(r => r.OrgCode)
-         .Select(g => new
-         {
-             OrgCode = g.Key,
-             Count = g.Select(x => x.Id).Distinct().Count()
-         })
-         .OrderByDescending(x => x.Count)
-         .FirstOrDefault();
+                    .Where(r => !string.IsNullOrEmpty(r.OrgCode))
+                    .GroupBy(r => r.OrgCode)
+                    .Select(g => new
+                    {
+                        OrgCode = g.Key,
+                        Count = g.Select(x => x.Id).Distinct().Count()
+                    })
+                    .OrderByDescending(x => x.Count)
+                    .FirstOrDefault();
 
                 if (topOrg != null)
                 {
-
+                    // Filter by topOrg.OrgCode
                     var topOrgRequirements = sharedRequirements
-          .Where(r => r.OrgCode == topOrg.OrgCode)
-          .GroupBy(r => r.OrgCode) 
-          .Select(g => g.First()) 
-          .ToList();
+                        .Where(r => r.OrgCode == topOrg.OrgCode)
+                        .ToList();
 
+                    // Group by OrgCode to avoid duplicates
+                    var groupedByOrgCode = topOrgRequirements
+                        .GroupBy(r => r.OrgCode)
+                        .Select(g => g.First()) // Take first from each group
+                        .ToList();
 
-                    var totalCount = topOrgRequirements.Count;
+                    var totalCount = groupedByOrgCode.Count;
                     var totalPages = (int)Math.Ceiling((double)totalCount / request.PageSize);
 
-                    var pagedData = topOrgRequirements
+                    var pagedData = groupedByOrgCode
                         .Skip((request.PageNumber - 1) * request.PageSize)
                         .Take(request.PageSize)
                         .ToList();
 
-            
                     foreach (var req in pagedData)
                     {
+                        var totalPositions = sharedRequirements
+                            .Where(r => r.OrgCode == req.OrgCode && r.Status == 1)
+                            .Sum(r => r.Positions);
+
                         var responseItem = new OrgActivePositionsResponse
                         {
                             ClientCode = req.OrgCode,
-                            TotalPositions = sharedRequirements.Sum(v=>v.Positions)
-                          
+                            TotalPositions = totalPositions
                         };
 
                         var clientData = await _organizationRepository.GetOrganizationData(req.OrgCode);
@@ -614,7 +612,6 @@ namespace VendersCloud.Business.Service.Concrete
                         {
                             responseItem.ClientName = clientData.OrgName;
                             responseItem.ClientFavicon = clientData.Logo;
-                           
                         }
 
                         orgActivePositionsResponseList.Add(responseItem);
@@ -629,20 +626,21 @@ namespace VendersCloud.Business.Service.Concrete
                     };
                 }
 
-                // If no top org found
                 return new PaginationDto<OrgActivePositionsResponse>
                 {
                     Count = 0,
                     Page = request.PageNumber,
                     TotalPages = 0,
-                    List = orgActivePositionsResponseList
+                    List = new List<OrgActivePositionsResponse>()
                 };
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw; // Let higher layers handle the exception
+                throw;
             }
         }
+
+
 
         public async Task<ActionMessageResponse> GetVendorContractsAsync(VendorContractRequest request)
         {
