@@ -40,7 +40,7 @@
             var dbInstance = GetDbInstance();
             var sql = "SELECT * FROM OrgProfiles Where OrgCode=@orgCode";
 
-            var profile = dbInstance.Select<OrgProfiles>(sql, new {orgCode}).ToList();
+            var profile = dbInstance.Select<OrgProfiles>(sql, new { orgCode }).ToList();
             return profile;
         }
         public async Task<PaginationDto<Organization>> SearchOrganizationsDetails(SearchRequest request)
@@ -60,15 +60,16 @@
             // PROFILE ID (RoleId filter via JOIN)
             if (request.Role != 0)
             {
-                joins.Add("INNER JOIN OrgProfiles op ON op.OrgCode = o.OrgCode");
-                predicates.Add("op.ProfileId = @RoleId");
+                joins.Add("INNER JOIN Users u ON u.OrgCode = o.OrgCode");
+                joins.Add("INNER JOIN UserProfiles up ON up.UserId = u.Id");
+                predicates.Add("up.ProfileId = @RoleId");
                 parameters.Add("RoleId", request.Role);
             }
 
-            // TECHNOLOGY FILTER (Assuming you want to filter organizations that have matching technologies)
-            if (request.Technology != null && request.Technology.Any())
+            // TECHNOLOGY FILTER
+            if (request.Technology?.Any() == true)
             {
-                var techPlaceholders = string.Join(", ", request.Technology.Select((tech, index) => $"@Tech{index}"));
+                var techPlaceholders = string.Join(", ", request.Technology.Select((tech, i) => $"@Tech{i}"));
                 predicates.Add($@"EXISTS (
             SELECT 1 
             FROM OrgTechnologies ot 
@@ -83,14 +84,14 @@
             }
 
             // RESOURCE FILTER
-            if (request.Resource != null && request.Resource.Any())
+            if (request.Resource?.Any() == true)
             {
-                var resourcePlaceholders = string.Join(", ", request.Resource.Select((r, index) => $"@Resource{index}"));
+                var resPlaceholders = string.Join(", ", request.Resource.Select((r, i) => $"@Resource{i}"));
                 predicates.Add($@"EXISTS (
             SELECT 1 
             FROM Requirement r 
             WHERE r.OrgCode = o.OrgCode 
-            AND r.LocationType IN ({resourcePlaceholders})
+            AND r.LocationType IN ({resPlaceholders})
         )");
 
                 for (int i = 0; i < request.Resource.Count; i++)
@@ -100,47 +101,39 @@
             }
 
             // STRENGTH FILTER
-            if (request.Strength is { Count: > 0 })
+            if (request.Strength?.Count > 0)
             {
                 var strengthConditions = new List<string>();
-                var idx = 0;
+                int idx = 0;
 
                 foreach (var token in request.Strength.Distinct())
                 {
                     if (string.IsNullOrWhiteSpace(token)) continue;
 
-                    var text = token.Trim();
-                    int minVal = 0;
-                    int maxVal = int.MaxValue;
-
-                    char[] delimiters = { ',', '-' };
+                    string text = token.Trim();
+                    int min = 0, max = int.MaxValue;
 
                     if (text.EndsWith("+"))
                     {
-                        if (!int.TryParse(text.TrimEnd('+'), out minVal)) continue;
+                        if (!int.TryParse(text.TrimEnd('+'), out min)) continue;
                     }
                     else if (text.Contains(",") || text.Contains("-"))
                     {
-                        var parts = text.Split(delimiters, StringSplitOptions.RemoveEmptyEntries);
-                        if (!int.TryParse(parts[0], out minVal)) continue;
-                        if (parts.Length >= 2 && int.TryParse(parts[1], out var tempMax))
-                            maxVal = tempMax;
+                        var parts = text.Split(new[] { ',', '-' }, StringSplitOptions.RemoveEmptyEntries);
+                        if (!int.TryParse(parts[0], out min)) continue;
+                        if (parts.Length > 1 && int.TryParse(parts[1], out int parsedMax))
+                            max = parsedMax;
                     }
-                    else if (int.TryParse(text, out var singleMin))
+                    else if (int.TryParse(text, out int single))
                     {
-                        minVal = singleMin;
-                    }
-                    else
-                    {
-                        continue;
+                        min = single;
                     }
 
-                    if (minVal > maxVal)
-                        (minVal, maxVal) = (maxVal, minVal);
+                    if (min > max) (min, max) = (max, min);
 
                     strengthConditions.Add($"(o.EmpCount BETWEEN @minStrength{idx} AND @maxStrength{idx})");
-                    parameters.Add($"minStrength{idx}", minVal);
-                    parameters.Add($"maxStrength{idx}", maxVal);
+                    parameters.Add($"minStrength{idx}", min);
+                    parameters.Add($"maxStrength{idx}", max);
                     idx++;
                 }
 
@@ -148,22 +141,20 @@
                     predicates.Add($"({string.Join(" OR ", strengthConditions)})");
             }
 
-            // JOIN clause
+            // JOIN + WHERE
             string joinClause = joins.Any() ? string.Join(" ", joins) : "";
-
-            // WHERE clause
             string whereClause = predicates.Any() ? "WHERE " + string.Join(" AND ", predicates) : "";
 
-            // SQL QUERY
+            // MAIN QUERY
             string query = $@"
-SELECT DISTINCT o.* 
+SELECT DISTINCT o.*, {(request.Role != 0 ? "up.ProfileId" : "NULL AS ProfileId")}
 FROM Organization o
 {joinClause}
 {whereClause}
 ORDER BY o.CreatedOn DESC
 OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY;
 
-SELECT COUNT(DISTINCT o.OrgCode) 
+SELECT COUNT(DISTINCT o.OrgCode)
 FROM Organization o
 {joinClause}
 {whereClause};";
@@ -173,12 +164,12 @@ FROM Organization o
 
             using var multi = await connection.QueryMultipleAsync(query, parameters);
             var organizations = (await multi.ReadAsync<Organization>()).ToList();
-            int totalRecords = await multi.ReadFirstOrDefaultAsync<int>();
+            var totalRecords = await multi.ReadFirstOrDefaultAsync<int>();
 
             return new PaginationDto<Organization>
             {
-                Count = totalRecords,
                 Page = request.Page,
+                Count = totalRecords,
                 TotalPages = (int)Math.Ceiling(totalRecords / (double)request.PageSize),
                 List = organizations
             };
@@ -186,9 +177,10 @@ FROM Organization o
 
 
 
+
         public async Task<PaginationDto<Organization>> SearchOrganizationsDetailsV2(SearchRequest request)
         {
-            using var connection = GetConnection(); 
+            using var connection = GetConnection();
             var predicates = new List<string>();
             var parameters = new DynamicParameters();
 
@@ -218,7 +210,7 @@ FROM Organization o
             AND op.ProfileId = @RoleId 
         )");
                 parameters.Add("RoleId", request.Role);
-                
+
             }
 
 
@@ -233,7 +225,7 @@ FROM Organization o
                 }
             }
 
-  
+
             if (request.Strength is { Count: > 0 })
             {
                 var strengthConditions = new List<string>();
@@ -251,7 +243,7 @@ FROM Organization o
 
                     if (text.EndsWith("+"))
                     {
-     
+
                         if (!int.TryParse(text.TrimEnd('+'), out minVal)) continue;
                     }
                     else if (text.Contains(",") || text.Contains("-"))
@@ -260,16 +252,16 @@ FROM Organization o
                         if (!int.TryParse(parts[0], out minVal)) continue;
 
                         if (parts.Length >= 2 && int.TryParse(parts[1], out var tempMax))
-                            maxVal = tempMax; 
+                            maxVal = tempMax;
                     }
                     else if (int.TryParse(text, out var singleMin))
                     {
-                
+
                         minVal = singleMin;
                     }
                     else
                     {
-                        continue; 
+                        continue;
                     }
 
                     if (minVal > maxVal)
@@ -304,8 +296,8 @@ FROM Organization o
 
             using var multi = await connection.QueryMultipleAsync(query, parameters);
             var organizations = (await multi.ReadAsync<Organization>()).ToList();
-           
-         
+
+
             int totalRecords = await multi.ReadFirstOrDefaultAsync<int>();
 
             return new PaginationDto<Organization>
