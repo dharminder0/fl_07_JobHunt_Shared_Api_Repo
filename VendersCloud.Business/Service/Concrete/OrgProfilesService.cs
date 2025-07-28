@@ -44,10 +44,18 @@ namespace VendersCloud.Business.Service.Concrete
                 List<PartnerVendorRel> orgRelationshipData = new List<PartnerVendorRel>();
                 var data = await _orgProfilesRepository.SearchOrganizationsDetails(request);
                 if (data?.List == null || !data.List.Any())
-                    return null;
+                {
+                    return new PaginationDto<OrganizationDto>
+                    {
+                        Count = 0,
+                        Page = request.Page,
+                        TotalPages = 0,
+                        List = new List<OrganizationDto>()
+                    };
+                }
 
                 // Fetch all OrgCodes from list  
-              
+
                 var orgCodes = data.List.Select(x => x.OrgCode).Distinct().ToList();
 
                 if (!orgCodes.Any())
