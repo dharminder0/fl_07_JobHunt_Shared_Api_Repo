@@ -194,7 +194,7 @@ namespace VendersCloud.WebApi.Controllers
                 var response = new NotificationListResponse
                 {
                     Count = result.Count,
-                    Notifications = result
+                    Notifications = paginatedNotifications
                 };
 
                 return Json(response); 
