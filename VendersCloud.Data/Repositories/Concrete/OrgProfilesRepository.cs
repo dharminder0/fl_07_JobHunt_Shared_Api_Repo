@@ -40,15 +40,147 @@
             var dbInstance = GetDbInstance();
             var sql = "SELECT * FROM OrgProfiles Where OrgCode=@orgCode";
 
-            var profile = dbInstance.Select<OrgProfiles>(sql, new {orgCode}).ToList();
+            var profile = dbInstance.Select<OrgProfiles>(sql, new { orgCode }).ToList();
             return profile;
+        }
+        public async Task<PaginationDto<Organization>> SearchOrganizationsDetails(SearchRequest request)
+        {
+            using var connection = GetConnection();
+            var predicates = new List<string>();
+            var parameters = new DynamicParameters();
+            var joins = new List<string>();
+
+            // TEXT SEARCH
+            if (!string.IsNullOrEmpty(request.SearchText))
+            {
+                predicates.Add("(o.OrgName LIKE @searchText OR o.Description LIKE @searchText)");
+                parameters.Add("searchText", $"%{request.SearchText}%");
+            }
+
+            // PROFILE ID (RoleId filter via JOIN)
+            if (request.Role != 0)
+            {
+                joins.Add("INNER JOIN Users u ON u.OrgCode = o.OrgCode");
+                joins.Add("INNER JOIN UserProfiles up ON up.UserId = u.Id");
+                predicates.Add("up.ProfileId = @RoleId");
+                parameters.Add("RoleId", request.Role);
+            }
+
+            // TECHNOLOGY FILTER
+            if (request.Technology?.Any() == true)
+            {
+                var techPlaceholders = string.Join(", ", request.Technology.Select((tech, i) => $"@Tech{i}"));
+                predicates.Add($@"EXISTS (
+            SELECT 1 
+            FROM OrgTechnologies ot 
+            WHERE ot.OrgCode = o.OrgCode 
+            AND ot.Technology IN ({techPlaceholders})
+        )");
+
+                for (int i = 0; i < request.Technology.Count; i++)
+                {
+                    parameters.Add($"Tech{i}", request.Technology[i]);
+                }
+            }
+
+            // RESOURCE FILTER
+            if (request.Resource?.Any() == true)
+            {
+                var resPlaceholders = string.Join(", ", request.Resource.Select((r, i) => $"@Resource{i}"));
+                predicates.Add($@"EXISTS (
+            SELECT 1 
+            FROM Requirement r 
+            WHERE r.OrgCode = o.OrgCode 
+            AND r.LocationType IN ({resPlaceholders})
+        )");
+
+                for (int i = 0; i < request.Resource.Count; i++)
+                {
+                    parameters.Add($"Resource{i}", request.Resource[i]);
+                }
+            }
+
+            // STRENGTH FILTER
+            if (request.Strength?.Count > 0)
+            {
+                var strengthConditions = new List<string>();
+                int idx = 0;
+
+                foreach (var token in request.Strength.Distinct())
+                {
+                    if (string.IsNullOrWhiteSpace(token)) continue;
+
+                    string text = token.Trim();
+                    int min = 0, max = int.MaxValue;
+
+                    if (text.EndsWith("+"))
+                    {
+                        if (!int.TryParse(text.TrimEnd('+'), out min)) continue;
+                    }
+                    else if (text.Contains(",") || text.Contains("-"))
+                    {
+                        var parts = text.Split(new[] { ',', '-' }, StringSplitOptions.RemoveEmptyEntries);
+                        if (!int.TryParse(parts[0], out min)) continue;
+                        if (parts.Length > 1 && int.TryParse(parts[1], out int parsedMax))
+                            max = parsedMax;
+                    }
+                    else if (int.TryParse(text, out int single))
+                    {
+                        min = single;
+                    }
+
+                    if (min > max) (min, max) = (max, min);
+
+                    strengthConditions.Add($"(o.EmpCount BETWEEN @minStrength{idx} AND @maxStrength{idx})");
+                    parameters.Add($"minStrength{idx}", min);
+                    parameters.Add($"maxStrength{idx}", max);
+                    idx++;
+                }
+
+                if (strengthConditions.Count > 0)
+                    predicates.Add($"({string.Join(" OR ", strengthConditions)})");
+            }
+
+            // JOIN + WHERE
+            string joinClause = joins.Any() ? string.Join(" ", joins) : "";
+            string whereClause = predicates.Any() ? "WHERE " + string.Join(" AND ", predicates) : "";
+
+            // MAIN QUERY
+            string query = $@"
+SELECT DISTINCT o.*, {(request.Role != 0 ? "up.ProfileId" : "NULL AS ProfileId")}
+FROM Organization o
+{joinClause}
+{whereClause}
+ORDER BY o.CreatedOn DESC
+OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY;
+
+SELECT COUNT(DISTINCT o.OrgCode)
+FROM Organization o
+{joinClause}
+{whereClause};";
+
+            parameters.Add("offset", (request.Page - 1) * request.PageSize);
+            parameters.Add("pageSize", request.PageSize);
+
+            using var multi = await connection.QueryMultipleAsync(query, parameters);
+            var organizations = (await multi.ReadAsync<Organization>()).ToList();
+            var totalRecords = await multi.ReadFirstOrDefaultAsync<int>();
+
+            return new PaginationDto<Organization>
+            {
+                Page = request.Page,
+                Count = totalRecords,
+                TotalPages = (int)Math.Ceiling(totalRecords / (double)request.PageSize),
+                List = organizations
+            };
         }
 
 
 
-        public async Task<PaginationDto<Organization>> SearchOrganizationsDetails(SearchRequest request)
+
+        public async Task<PaginationDto<Organization>> SearchOrganizationsDetailsV2(SearchRequest request)
         {
-            using var connection = GetConnection(); 
+            using var connection = GetConnection();
             var predicates = new List<string>();
             var parameters = new DynamicParameters();
 
@@ -75,9 +207,10 @@
             SELECT 1 
             FROM OrgProfiles op 
             WHERE op.OrgCode = o.OrgCode 
-            AND op.ProfileId = @RoleId
+            AND op.ProfileId = @RoleId 
         )");
                 parameters.Add("RoleId", request.Role);
+
             }
 
 
@@ -92,7 +225,7 @@
                 }
             }
 
-  
+
             if (request.Strength is { Count: > 0 })
             {
                 var strengthConditions = new List<string>();
@@ -110,7 +243,7 @@
 
                     if (text.EndsWith("+"))
                     {
-     
+
                         if (!int.TryParse(text.TrimEnd('+'), out minVal)) continue;
                     }
                     else if (text.Contains(",") || text.Contains("-"))
@@ -119,16 +252,16 @@
                         if (!int.TryParse(parts[0], out minVal)) continue;
 
                         if (parts.Length >= 2 && int.TryParse(parts[1], out var tempMax))
-                            maxVal = tempMax; 
+                            maxVal = tempMax;
                     }
                     else if (int.TryParse(text, out var singleMin))
                     {
-                
+
                         minVal = singleMin;
                     }
                     else
                     {
-                        continue; 
+                        continue;
                     }
 
                     if (minVal > maxVal)
@@ -163,8 +296,8 @@
 
             using var multi = await connection.QueryMultipleAsync(query, parameters);
             var organizations = (await multi.ReadAsync<Organization>()).ToList();
-           
-         
+
+
             int totalRecords = await multi.ReadFirstOrDefaultAsync<int>();
 
             return new PaginationDto<Organization>

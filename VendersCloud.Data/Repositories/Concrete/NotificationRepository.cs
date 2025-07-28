@@ -36,20 +36,16 @@ namespace VendersCloud.Data.Repositories.Concrete
             var dbInstance = GetDbInstance();
 
      
-            int pageNumber = request.Page > 0 ? request.Page : 1;
-            int pageSize = request.PageSize > 0 ? request.PageSize : 10;
-            int offset = (pageNumber - 1) * pageSize;
 
             var sql = @"SELECT * FROM Notifications 
                 WHERE orgCode = @orgCode
-                ORDER BY CreatedOn ASC 
-                OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY";
+                ORDER BY CreatedOn ASC" 
+               ;
 
             var history = dbInstance.Select<Notifications>(sql, new
             {
                 orgCode = request.OrgCode,
-                offset,
-                pageSize
+               
             }).ToList();
 
             return history;

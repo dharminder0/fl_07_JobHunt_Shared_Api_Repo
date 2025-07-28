@@ -300,7 +300,6 @@ SELECT
     r.Title AS RequirementTitle,
     r.CreatedOn AS RequirmentPostedDate,
 r.id as RequirementId,
-    CONCAT(res.FirstName, ' ', res.LastName) AS ResourceName,
     '' AS ClientLogoUrl,
     r.ClientCode AS ClientName,
     (
@@ -312,9 +311,7 @@ r.id as RequirementId,
     r.locationType
 FROM RequirementVendors rv
 INNER JOIN Requirement r ON rv.RequirementId = r.Id
-LEFT JOIN Applications a ON a.RequirementId = r.Id
-LEFT JOIN Resources res ON a.ResourceId = res.Id
-WHERE rv.OrgCode = @vendorCode AND r.OrgCode = @orgcode
+WHERE rv.OrgCode = @vendorCode AND r.OrgCode = @orgcode and r.status=1
 ORDER BY r.CreatedOn DESC
 OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY";
 
@@ -326,7 +323,6 @@ OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY";
 SELECT 
     r.Title AS RequirementTitle,
     r.CreatedOn AS RequirmentPostedDate,
-    NULL AS ResourceName,
     '' AS ClientLogoUrl,
     r.ClientCode AS ClientName,
     (
@@ -337,7 +333,7 @@ SELECT
     r.Visibility,
 r.id as RequirementId
 FROM Requirement r
-WHERE r.Visibility = 3 AND r.OrgCode = @orgcode
+WHERE r.Visibility = 3 AND r.OrgCode = @orgcode and r.status=1
 ORDER BY r.CreatedOn DESC";
 
                 var publicResults = await connection.QueryAsync<VendorDetailDto>(publicQuery, parameters);

@@ -75,7 +75,7 @@ namespace VendersCloud.WebApi.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)] 
         [ServiceFilter(typeof(RequireAuthorizationFilter))]
         [HttpPost]
         [Route("api/V1/Organization/UpsertProfile")]
@@ -177,16 +177,24 @@ namespace VendersCloud.WebApi.Controllers
         [ServiceFilter(typeof(RequireAuthorizationFilter))]
         [HttpPost]
         [Route("api/V1/Notifications/list")]
-        public async Task<IActionResult> GetNotificationsAsync(NotificationsRequest req)
+        public async Task<IActionResult> GetNotificationsAsync(NotificationsRequest request)
         {
             try
             {
-                var result = await _organizationService.GetNotificationsAsync(req);
+                var result = await _organizationService.GetNotificationsAsync(request);
+                int pageNumber = request.Page > 0 ? request.Page : 1;
+                int pageSize = request.PageSize > 0 ? request.PageSize : 10;
+                int skip = (pageNumber - 1) * pageSize;
+
+                var paginatedNotifications = result
+                    .Skip(skip)
+                    .Take(pageSize)
+                    .ToList();
 
                 var response = new NotificationListResponse
                 {
                     Count = result.Count,
-                    Notifications = result
+                    Notifications = paginatedNotifications
                 };
 
                 return Json(response); 
