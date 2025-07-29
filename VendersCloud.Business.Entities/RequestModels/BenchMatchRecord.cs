@@ -8,7 +8,7 @@ namespace VendersCloud.Business.Entities.RequestModels
 {
     public class BenchMatchRecord
     {
-        public int ResourcesId { get; set; }
+        public int ResourceId { get; set; }
         public string OrgCode { get; set; }
         public string SearchText { get; set; }
         public  List<int> Status { get; set; }

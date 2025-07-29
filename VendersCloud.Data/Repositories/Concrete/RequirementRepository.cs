@@ -652,7 +652,7 @@ SELECT
             var baseQuery = $@"
 FROM Skills s
 INNER JOIN SkillResourcesMapping srm ON s.Id = srm.SkillId
-INNER JOIN Resources r ON srm.ResourcesId = r.Id
+INNER JOIN Resources r ON srm.ResourceId = r.Id
 WHERE r.OrgCode = @orgCode
 {searchClause}";
 
@@ -768,7 +768,7 @@ final AS (
         (
             SELECT COUNT(DISTINCT res.Id)
             FROM Resources res
-            JOIN SkillResourcesMapping srm ON srm.ResourcesId = res.Id
+            JOIN SkillResourcesMapping srm ON srm.ResourceId = res.Id
             JOIN SkillRequirementMapping rqs ON rqs.SkillId = srm.SkillId
             JOIN Requirement r2 ON r2.Id = rqs.RequirementId
             JOIN Organization o2 ON o2.Id = r2.CreatedBy
