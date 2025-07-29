@@ -140,7 +140,7 @@ namespace VendersCloud.Business.Service.Concrete
                 {
                     var matchResultList = await GetBenchMatchResultAsync(new BenchMatchRecord
                     {
-                        ResourcesId = item.Id,
+                        ResourceId = item.Id,
                         OrgCode = item.OrgCode
                     });
                     int totalMatchCount = matchResultList.Sum(x => (int)x.MatchingRecordCount);
@@ -766,13 +766,13 @@ namespace VendersCloud.Business.Service.Concrete
 
         public async Task<List<dynamic>> GetBenchMatchResultAsync(BenchMatchRecord request)
         {
-            if (request.ResourcesId <= 0 || string.IsNullOrEmpty(request.OrgCode))
+            if (request.ResourceId <= 0 || string.IsNullOrEmpty(request.OrgCode))
             {
                 throw new ArgumentException("Enter valid inputs");
             }
 
             List<dynamic> resultList = new List<dynamic>();
-            var data = await _matchRecordRepository.GetMatchRecordByResourceIdAsync(request.ResourcesId);
+            var data = await _matchRecordRepository.GetMatchRecordByResourceIdAsync(request.ResourceId);
 
             if (data != null)
             {
