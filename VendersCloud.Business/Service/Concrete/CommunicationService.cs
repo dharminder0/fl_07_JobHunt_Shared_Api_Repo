@@ -80,7 +80,7 @@ namespace VendersCloud.Business.Service.Concrete
     string token,
     string urlBase)
         {
-             urlBase = "https://fl-01-ymen-shared-ui-cin-test.azurewebsites.net/setpassword";
+             urlBase = "https://fl-07-jobhunt-shared-ui-test.azurewebsites.net/setpassword";
             var fullName = $"{firstname} {lastname}";
             var resetLink = $"{urlBase}/{token}";
 
