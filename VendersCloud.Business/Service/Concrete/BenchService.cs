@@ -559,12 +559,13 @@ namespace VendersCloud.Business.Service.Concrete
             {
                 var orgActivePositionsResponseList = new List<OrgActivePositionsResponse>();
 
+            
                 List<int> requirementVendorIds = await _requirementVendorsRepository.GetRequirementShareJobsAsync(request.VendorCode);
 
-                var sharedRequirements = (await _requirementRepository.GetRequirementByIdAsync(requirementVendorIds));
-                                           
+                var sharedRequirements = await _requirementRepository.GetRequirementByIdAsync(requirementVendorIds);
 
-                var topOrg = sharedRequirements
+ 
+                var topOrgs = sharedRequirements
                     .Where(r => !string.IsNullOrEmpty(r.OrgCode))
                     .GroupBy(r => r.OrgCode)
                     .Select(g => new
@@ -573,66 +574,68 @@ namespace VendersCloud.Business.Service.Concrete
                         Count = g.Select(x => x.Id).Distinct().Count()
                     })
                     .OrderByDescending(x => x.Count)
-                    .FirstOrDefault();
+                    .ToList(); 
 
-                if (topOrg != null)
+                if (!topOrgs.Any())
                 {
-                    // Filter by topOrg.OrgCode
-                    var topOrgRequirements = sharedRequirements
-                        .Where(r => r.OrgCode == topOrg.OrgCode)
-                        .ToList();
-
-                    // Group by OrgCode to avoid duplicates
-                    var groupedByOrgCode = topOrgRequirements
-                        .GroupBy(r => r.OrgCode)
-                        .Select(g => g.First()) // Take first from each group
-                        .ToList();
-
-                    var totalCount = groupedByOrgCode.Count;
-                    var totalPages = (int)Math.Ceiling((double)totalCount / request.PageSize);
-
-                    var pagedData = groupedByOrgCode
-                        .Skip((request.PageNumber - 1) * request.PageSize)
-                        .Take(request.PageSize)
-                        .ToList();
-
-                    foreach (var req in pagedData)
-                    {
-                        var totalPositions = sharedRequirements
-                            .Where(r => r.OrgCode == req.OrgCode && r.Status == 1)
-                            .Sum(r => r.Positions);
-
-                        var responseItem = new OrgActivePositionsResponse
-                        {
-                            ClientCode = req.OrgCode,
-                            TotalPositions = totalPositions
-                        };
-
-                        var clientData = await _organizationRepository.GetOrganizationData(req.OrgCode);
-                        if (clientData != null)
-                        {
-                            responseItem.ClientName = clientData.OrgName;
-                            responseItem.ClientFavicon = clientData.Logo;
-                        }
-
-                        orgActivePositionsResponseList.Add(responseItem);
-                    }
-
                     return new PaginationDto<OrgActivePositionsResponse>
                     {
-                        Count = totalCount,
+                        Count = 0,
                         Page = request.PageNumber,
-                        TotalPages = totalPages,
-                        List = orgActivePositionsResponseList
+                        TotalPages = 0,
+                        List = new List<OrgActivePositionsResponse>()
                     };
                 }
 
+           
+                var orgCodes = topOrgs.Select(x => x.OrgCode).ToList();
+
+         
+                var groupedByOrgCode = sharedRequirements
+                    .Where(r => orgCodes.Contains(r.OrgCode))
+                    .GroupBy(r => r.OrgCode)
+                    .Select(g => g.First()) 
+                    .ToList();
+
+                var totalCount = groupedByOrgCode.Count;
+                var totalPages = (int)Math.Ceiling((double)totalCount / request.PageSize);
+
+                var pagedData = groupedByOrgCode
+                    .Skip((request.PageNumber - 1) * request.PageSize)
+                    .Take(request.PageSize)
+                    .ToList();
+
+           
+                foreach (var req in pagedData)
+                {
+                    var totalPositions = sharedRequirements
+                        .Where(r => r.OrgCode == req.OrgCode && r.Status == 1)
+                        .Sum(r => r.Positions);
+
+                    var responseItem = new OrgActivePositionsResponse
+                    {
+                        ClientCode = req.OrgCode,
+                        TotalPositions = totalPositions
+                    };
+
+  
+                    var clientData = await _organizationRepository.GetOrganizationData(req.OrgCode);
+                    if (clientData != null)
+                    {
+                        responseItem.ClientName = clientData.OrgName;
+                        responseItem.ClientFavicon = clientData.Logo;
+                    }
+
+                    orgActivePositionsResponseList.Add(responseItem);
+                }
+
+             
                 return new PaginationDto<OrgActivePositionsResponse>
                 {
-                    Count = 0,
+                    Count = totalCount,
                     Page = request.PageNumber,
-                    TotalPages = 0,
-                    List = new List<OrgActivePositionsResponse>()
+                    TotalPages = totalPages,
+                    List = orgActivePositionsResponseList
                 };
             }
             catch (Exception)
@@ -640,6 +643,7 @@ namespace VendersCloud.Business.Service.Concrete
                 throw;
             }
         }
+
 
 
 
