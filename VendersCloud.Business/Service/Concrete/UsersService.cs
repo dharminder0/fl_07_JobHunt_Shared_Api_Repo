@@ -100,7 +100,7 @@ namespace VendersCloud.Business.Service.Concrete
                         login.CompanyIcon = companyData.Logo;
                         login.CompanyName = companyData.OrgName;
                         login.IsVerified = dbUser.IsVerified;
-                        login.OrgImage = companyData.Logo;
+                        login.ProfileAvatar = dbUser.ProfileAvatar;
                         return new ActionMessageResponse { Success = true, Message = "Login SuccessFull!!", Content = login };
                     }
                 }

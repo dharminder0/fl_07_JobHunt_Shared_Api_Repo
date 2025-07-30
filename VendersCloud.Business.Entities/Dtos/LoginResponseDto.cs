@@ -13,6 +13,6 @@
         public string CompanyIcon { get; set; }
         public string CompanyName { get; set; }
         public bool IsVerified { get; set; }
-        public string  OrgImage { get; set; }
+        public string ProfileAvatar { get; set; }
     }
 }
