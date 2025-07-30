@@ -1460,7 +1460,7 @@ namespace VendersCloud.Business.Service.Concrete
 
                 dynamic resultList = new ExpandoObject();
                 resultList.MatchingRecordCount = filteredList.Count;
-                resultList.Records = filteredList;
+                resultList.Records = filteredList.OrderByDescending(v=>v.CreatedOn).ToList();
 
                 return new List<dynamic> { resultList };
             }
