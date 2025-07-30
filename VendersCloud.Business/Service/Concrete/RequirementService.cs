@@ -1156,30 +1156,53 @@ namespace VendersCloud.Business.Service.Concrete
         {
             try
             {
-
                 var obj = new VendorRequirementCount();
-                List<int> RequirementVendorsId = await _requirementVendorsRepository.GetRequirementShareJobsAsync(request.OrgCode);
-                var sharedrequirement = await _requirementRepository.GetRequirementByIdAsync(RequirementVendorsId);
-                var publicReq = await _requirementRepository.GetPublicRequirementAsync(null, 3);
-                sharedrequirement = sharedrequirement.Concat(publicReq);
+
+     
+                List<int> requirementVendorsId = await _requirementVendorsRepository
+                    .GetRequirementShareJobsAsync(request.OrgCode);
+
+                var sharedRequirement = await _requirementRepository
+                    .GetRequirementByIdAsync(requirementVendorsId);
+
+                var publicReq = await _requirementRepository
+                    .GetPublicRequirementAsync(null, 3);
+
+
+                var allRequirements = sharedRequirement
+                    .Concat(publicReq)
+                    .ToList();
+
+  
                 DateTime startDate = request.StartDate.Date;
                 DateTime endDate = request.EndDate.Date.AddDays(1).AddTicks(-1);
 
-                var filteredShared = sharedrequirement
+                var filteredShared = allRequirements
                     .Where(v => v.CreatedOn >= startDate && v.CreatedOn <= endDate)
                     .ToList();
 
-                obj.Open = filteredShared.Count(v => v.Status == (int)RequirementsStatus.Open);
-                obj.Closed = filteredShared.Count(v => v.Status==(int)RequirementsStatus.Closed);
-                obj.Onhold = filteredShared.Count(v => v.Status == (int)RequirementsStatus.OnHold);
+                var grouped = filteredShared
+                    .GroupBy(v => v.Status)
+                    .ToDictionary(g => g.Key, g => g.Sum(x => x.Positions));
+
+                obj.Open = grouped.ContainsKey((int)RequirementsStatus.Open)
+                    ? grouped[(int)RequirementsStatus.Open] : 0;
+
+                obj.Closed = grouped.ContainsKey((int)RequirementsStatus.Closed)
+                    ? grouped[(int)RequirementsStatus.Closed] : 0;
+
+                obj.Onhold = grouped.ContainsKey((int)RequirementsStatus.OnHold)
+                    ? grouped[(int)RequirementsStatus.OnHold] : 0;
+
                 return obj;
-   
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message);
+             
+                throw new Exception("Error fetching vendor requirement counts", ex);
             }
         }
+
 
         public async Task<List<VendorGraphResponse>> GetVendorDayWeekCountsAsync(VendorGraphRequest request)
         {
