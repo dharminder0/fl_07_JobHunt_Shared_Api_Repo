@@ -748,7 +748,7 @@ namespace VendersCloud.Business.Service.Concrete
                     Count = totalRecords,
                     Page = request.Page,
                     TotalPages = (int)Math.Ceiling(totalRecords / (double)request.PageSize),
-                    List = requirementsResponseList
+                    List = requirementsResponseList.OrderByDescending(v => v.CreatedOn).ToList()
                 };
             }
             catch (Exception ex)
@@ -1005,7 +1005,7 @@ namespace VendersCloud.Business.Service.Concrete
                     Count = totalRecords,
                     Page = request.Page,
                     TotalPages = (int)Math.Ceiling(totalRecords / (double)request.PageSize),
-                    List = paginatedRequirements
+                    List = paginatedRequirements.OrderByDescending(v => v.ApplicationDate).ToList()
                 };
             }
             catch (Exception ex)
