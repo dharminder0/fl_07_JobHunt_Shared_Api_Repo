@@ -333,7 +333,7 @@ namespace VendersCloud.Business.Service.Concrete
         // Pagination
         var totalCount = filteredApplications.Count;
         var totalPages = (int)Math.Ceiling((double)totalCount / request.PageSize);
-            filteredApplications = filteredApplications.OrderByDescending(v => v.UpdatedOn).ToList();
+            filteredApplications = filteredApplications.OrderByDescending(v => v.CreatedOn).ToList();
         var pagedResults = filteredApplications
             .Skip((request.Page - 1) * request.PageSize)
             .Take(request.PageSize)
