@@ -582,6 +582,7 @@ namespace VendersCloud.Business.Service.Concrete
 
 
                     totalRecords = allRequirements.Count;
+                    allRequirements = allRequirements.OrderByDescending(v => v.CreatedOn).ToList();
 
                     paginatedRequirements = allRequirements
                         .Skip((request.Page - 1) * request.PageSize)
@@ -634,6 +635,7 @@ namespace VendersCloud.Business.Service.Concrete
                     }
                     //var allRequirements = requirements.Concat(filteredEmplanelRequirement).Concat(sharedrequirement).Distinct().ToList();
                     totalRecords = allRequirements.Count;
+                    allRequirements = allRequirements.OrderByDescending(v => v.CreatedOn).ToList();
                     paginatedRequirements = allRequirements.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToList();
                 }
 
@@ -995,6 +997,7 @@ namespace VendersCloud.Business.Service.Concrete
 
                 // Pagination logic
                 int totalRecords = listResponse.Count;
+                listResponse = listResponse.OrderByDescending(v => v.ApplicationDate).ToList();
                 var paginatedRequirements = listResponse
                     .Skip((request.Page - 1) * request.PageSize)
                     .Take(request.PageSize)

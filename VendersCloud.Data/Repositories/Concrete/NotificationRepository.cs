@@ -39,7 +39,7 @@ namespace VendersCloud.Data.Repositories.Concrete
 
             var sql = @"SELECT * FROM Notifications 
                 WHERE orgCode = @orgCode
-                ORDER BY CreatedOn ASC" 
+                ORDER BY CreatedOn desc" 
                ;
 
             var history = dbInstance.Select<Notifications>(sql, new
