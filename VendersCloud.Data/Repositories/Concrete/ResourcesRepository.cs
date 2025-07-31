@@ -449,7 +449,7 @@ ORDER BY r.CreatedOn DESC;
         parameters.Add("@status", status);
 
                 const string contractQuery = @"
-SELECT TOP 10 
+SELECT  DISTINCT TOP 10 
  ASH.status,
 RS.FirstName, 
 r.Id AS RequirementId,
