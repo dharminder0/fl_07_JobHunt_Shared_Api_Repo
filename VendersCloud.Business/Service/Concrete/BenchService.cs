@@ -333,6 +333,7 @@ namespace VendersCloud.Business.Service.Concrete
         // Pagination
         var totalCount = filteredApplications.Count;
         var totalPages = (int)Math.Ceiling((double)totalCount / request.PageSize);
+            filteredApplications = filteredApplications.OrderByDescending(v => v.UpdatedOn).ToList();
         var pagedResults = filteredApplications
             .Skip((request.Page - 1) * request.PageSize)
             .Take(request.PageSize)
@@ -401,7 +402,7 @@ namespace VendersCloud.Business.Service.Concrete
         {
             listSearchResponse = listSearchResponse.Where(v => v.UniqueId == request.UniqueId).ToList();
         }
-
+        
         return new PaginationDto<ApplicantsSearchResponse>
         {
             Count = totalCount,
@@ -875,7 +876,7 @@ namespace VendersCloud.Business.Service.Concrete
 
                 int[] actionStatuses =
                 {
-    (int)RecruitmentStatus.Shortlisted,
+ (int)RecruitmentStatus.Shortlisted,
     (int)RecruitmentStatus.TechnicalAssessment,
     (int)RecruitmentStatus.InterviewRound1,
     (int)RecruitmentStatus.InterviewRound2,
@@ -884,7 +885,10 @@ namespace VendersCloud.Business.Service.Concrete
     (int)RecruitmentStatus.Onboarded,
     (int)RecruitmentStatus.ContractClosed,
     (int)RecruitmentStatus.Rejected,
-    (int)RecruitmentStatus.Withdrawn
+    (int)RecruitmentStatus.Withdrawn,
+    (int)RecruitmentStatus.UnderReview,
+     (int)RecruitmentStatus.New,
+      (int)RecruitmentStatus.OnHold
 };
 
                 if (actionStatuses.Contains(model.Status))
