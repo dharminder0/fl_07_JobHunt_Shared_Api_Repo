@@ -15,5 +15,6 @@ namespace VendersCloud.Business.Entities.DataModels
         public string ChangedBy { get; set; }
         public DateTime ChangedOn { get; set; }
         public string  Comment { get; set; }
+        public DateTime? ActionDate { get; set; }
     }
 }

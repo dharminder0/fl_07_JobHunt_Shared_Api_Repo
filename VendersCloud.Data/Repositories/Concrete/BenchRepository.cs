@@ -205,18 +205,19 @@ namespace VendersCloud.Data.Repositories.Concrete
                     Status = model.Status,
                     ChangedBy = model.ChangedBy,
                     ChangedOn = model.ChangedOn,
+                    ActionDate = model.ActionDate,
                     Comment = model.Comment
-                  
                 });
 
                 var rowsAffected = await dbInstance.ExecuteAsync(query);
                 return rowsAffected > 0;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return false;
             }
         }
+
         public async Task<List<ApplicantStatusHistory>> GetStatusHistoryByApplicantId(int applicantId)
         {
             try

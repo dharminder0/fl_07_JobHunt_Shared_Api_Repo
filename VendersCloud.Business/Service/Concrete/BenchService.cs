@@ -872,6 +872,37 @@ namespace VendersCloud.Business.Service.Concrete
                     return false;
 
                 model.ChangedOn = DateTime.UtcNow;
+
+                int[] actionStatuses =
+                {
+    (int)RecruitmentStatus.Shortlisted,
+    (int)RecruitmentStatus.TechnicalAssessment,
+    (int)RecruitmentStatus.InterviewRound1,
+    (int)RecruitmentStatus.InterviewRound2,
+    (int)RecruitmentStatus.InterviewRound3,
+    (int)RecruitmentStatus.Selected,
+    (int)RecruitmentStatus.Onboarded,
+    (int)RecruitmentStatus.ContractClosed,
+    (int)RecruitmentStatus.Rejected,
+    (int)RecruitmentStatus.Withdrawn
+};
+
+                if (actionStatuses.Contains(model.Status))
+                {
+                    model.ActionDate = DateTime.UtcNow;
+
+               
+                    if (model.ActionDate.HasValue && model.ActionDate.Value > DateTime.MinValue)
+                    {
+                        model.ActionDate = model.ActionDate.Value;
+                    }
+                }
+                else
+                {
+                  
+                    model.ActionDate = null;
+                }
+
                 var result = await _benchRepository.InsertApplicantStatusHistory(model);
 
                 try
@@ -939,7 +970,8 @@ namespace VendersCloud.Business.Service.Concrete
                     StatusName = EnumHelper.GetEnumDescription<RecruitmentStatus>(item.Status),
                     ChangedBy = item.ChangedBy,
                     ChangedOn = item.ChangedOn,
-                     Comment= item.Comment
+                     Comment= item.Comment,
+                     ActionDate = item.ActionDate,
 
                  }).ToList();
             }
