@@ -886,46 +886,59 @@ namespace VendersCloud.Business.Service.Concrete
             {
                 // Validate input
                 if (request == null || string.IsNullOrEmpty(request.OrgCode))
-                {
-                    throw new ArgumentNullException("Enter Valid Input!!");
-                }
+                    throw new ArgumentNullException(nameof(request), "Enter Valid Input!!");
 
                 List<CompanyRequirementResponse> listResponse = new List<CompanyRequirementResponse>();
 
-                // Get organization and requirement data
-                var orgData = await _organizationRepository.GetOrganizationData(request.OrgCode);
-                var requirementData = await _requirementRepository.GetRequirementByOrgCodeAsync(request.OrgCode);
+                // Get organization and requirement data in parallel
+                var orgTask = _organizationRepository.GetOrganizationData(request.OrgCode);
+                var reqTask = _requirementRepository.GetRequirementByOrgCodeAsync(request.OrgCode);
+                await Task.WhenAll(orgTask, reqTask);
+
+                var orgData = orgTask.Result;
+                var requirementData = reqTask.Result;
 
                 // Filter requirements by client criteria
                 if (requirementData != null && requirementData.Any())
                 {
                     var filteredRequirements = requirementData
                         .Where(item =>
-                            (request.Client == null || !request.Client.Any() || request.Client.Contains(item.ClientCode))
+                            request.Client == null || !request.Client.Any() || request.Client.Contains(item.ClientCode)
                         )
                         .ToList();
 
                     foreach (var item in filteredRequirements)
                     {
-                        // Get application data
+                        // Get all applications for this requirement
                         var allApplications = await _resourcesRepository.GetApplicationsPerRequirementIdAsync(item.Id);
-
                         if (allApplications == null || !allApplications.Any())
-                        {
-                            continue; // Skip if there are no applications for this requirement
-                        }
+                            continue;
 
-
+                        // Filter by status
                         var filteredApplications = allApplications
                             .Where(app => request.Status == null || !request.Status.Any() || request.Status.Contains(app.Status))
                             .ToList();
 
+                        // Preload all dependent data for these applications in parallel
+                        var userIds = filteredApplications.Select(a => a.CreatedBy).Distinct().ToList();
+                        var resourceIds = filteredApplications.Select(a => a.ResourceId).Distinct().ToList();
+
+                        var usersTask = Task.WhenAll(userIds.Select(id => _usersRepository.GetUserByIdAsync(id)));
+                        var benchTask = Task.WhenAll(resourceIds.Select(id => _benchRepository.GetBenchResponseByIdAsync(id)));
+                        var totalApplicationsTask = _resourcesRepository.GetTotalApplicationsPerRequirementIdAsync(item.Id);
+
+                        await Task.WhenAll(usersTask, benchTask, totalApplicationsTask);
+
+                        var users = usersTask.Result.Where(u => u != null).ToDictionary(u => u.Id);
+                        var benchDataList = benchTask.Result.SelectMany(x => x).ToList();
+                        var benchLookup = benchDataList.GroupBy(b => b.Id).ToDictionary(g => g.Key, g => g.First());
+                        var totalApplications = totalApplicationsTask.Result;
+
                         foreach (var app in filteredApplications)
                         {
-                            // Create a response object for each application
                             var requirementResponse = new CompanyRequirementResponse
                             {
-                                ApplicationId =app.Id,
+                                ApplicationId = app.Id,
                                 RequirementUniqueId = item.UniqueId,
                                 RequirementId = item.Id,
                                 Role = item.Title,
@@ -935,36 +948,38 @@ namespace VendersCloud.Business.Service.Concrete
                                 OrgName = orgData.OrgName,
                                 OrgLogo = orgData.Logo,
                                 Status = app.Status,
-                                StatusName = CommonFunctions.GetEnumDescription((RecruitmentStatus)app.Status)
+                                StatusName = CommonFunctions.GetEnumDescription((RecruitmentStatus)app.Status),
+                                Comment = app.Comment,
+                                Applicants = totalApplications
                             };
 
-                            var vendorDetails = await _usersRepository.GetUserByIdAsync(app.CreatedBy);
-                            var vendorOrgData = await _organizationRepository.GetOrganizationData(vendorDetails.OrgCode);
-                            requirementResponse.Comment = app.Comment;
-                            requirementResponse.VendorOrgName = vendorOrgData.OrgName;
-                            requirementResponse.VendorLogo = vendorOrgData.Logo;
-                            requirementResponse.VendorOrgCode = vendorOrgData.OrgCode;
-                            requirementResponse.ResourceId = app.ResourceId;
-                            var benchData = await _benchRepository.GetBenchResponseByIdAsync(app.ResourceId);
-                            var matchResult = await _matchRecordRepository.GetMatchScoreAsync(app.RequirementId, app.ResourceId);
-                            if (matchResult != null)
+                            // Vendor details
+                            if (users.TryGetValue(app.CreatedBy, out var vendorDetails))
                             {
-                                requirementResponse.MatchingScore = matchResult.MatchScore;
+                                var vendorOrgData = await _organizationRepository.GetOrganizationData(vendorDetails.OrgCode);
+                                if (vendorOrgData != null)
+                                {
+                                    requirementResponse.VendorOrgName = vendorOrgData.OrgName;
+                                    requirementResponse.VendorLogo = vendorOrgData.Logo;
+                                    requirementResponse.VendorOrgCode = vendorOrgData.OrgCode;
+                                }
                             }
-  
-                          
-                                
-                            var candidateDetails = benchData?.FirstOrDefault();
 
-                            if (candidateDetails != null)
+                            // Candidate & CV
+                            requirementResponse.ResourceId = app.ResourceId;
+                            if (benchLookup.TryGetValue(app.ResourceId, out var candidateDetails))
                             {
                                 requirementResponse.FirstName = candidateDetails.FirstName;
                                 requirementResponse.LastName = candidateDetails.LastName;
-                                requirementResponse.CV = await GetCvByIdAsync(candidateDetails.Id); 
+                                requirementResponse.CV = await GetCvByIdAsync(candidateDetails.Id);
                             }
 
-                            requirementResponse.Applicants = await _resourcesRepository.GetTotalApplicationsPerRequirementIdAsync(requirementResponse.RequirementId);
+                            // Matching Score
+                            var matchResult = await _matchRecordRepository.GetMatchScoreAsync(app.RequirementId, app.ResourceId);
+                            if (matchResult != null)
+                                requirementResponse.MatchingScore = matchResult.MatchScore;
 
+                            // Client info
                             var clientData = await _clientsRepository.GetClientsByClientCodeAsync(requirementResponse.ClientCode);
                             if (clientData != null)
                             {
@@ -972,7 +987,6 @@ namespace VendersCloud.Business.Service.Concrete
                                 requirementResponse.ClientLogo = clientData.LogoURL;
                             }
 
-                            // Add response to the list
                             listResponse.Add(requirementResponse);
                         }
                     }
@@ -988,17 +1002,19 @@ namespace VendersCloud.Business.Service.Concrete
                         )
                         .ToList();
                 }
+
+                // Filter by RequirementUniqueId
                 if (!string.IsNullOrEmpty(request.RequirmentUniqueId))
                 {
                     listResponse = listResponse
-                        .Where(r => r.RequirementUniqueId == request.RequirmentUniqueId).ToList();
-                     
+                        .Where(r => r.RequirementUniqueId == request.RequirmentUniqueId)
+                        .ToList();
                 }
 
-                // Pagination logic
+                // Pagination
                 int totalRecords = listResponse.Count;
-                listResponse = listResponse.OrderByDescending(v => v.ApplicationDate).ToList();
                 var paginatedRequirements = listResponse
+                    .OrderByDescending(v => v.ApplicationDate)
                     .Skip((request.Page - 1) * request.PageSize)
                     .Take(request.PageSize)
                     .ToList();
@@ -1008,12 +1024,12 @@ namespace VendersCloud.Business.Service.Concrete
                     Count = totalRecords,
                     Page = request.Page,
                     TotalPages = (int)Math.Ceiling(totalRecords / (double)request.PageSize),
-                    List = paginatedRequirements.OrderByDescending(v => v.ApplicationDate).ToList()
+                    List = paginatedRequirements
                 };
             }
-            catch (Exception ex)
+            catch
             {
-                throw new Exception(ex.Message);
+                throw; // keep stack trace
             }
         }
 
