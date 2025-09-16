@@ -607,23 +607,26 @@ SELECT
 
             string requirementQuery = @"
         SELECT 
-            COUNT(CASE WHEN status = 1 THEN 1 END) AS [Open],
-            COUNT(CASE WHEN status = 2 THEN 1 END) AS [Onhold],
-            COUNT(CASE WHEN status = 3 THEN 1 END) AS [Closed]
+            SUM(CASE WHEN Status = 1 THEN Positions ELSE 0 END) AS [Open],
+            SUM(CASE WHEN Status = 2 THEN Positions ELSE 0 END) AS [Onhold],
+            SUM(CASE WHEN Status = 3 THEN Positions ELSE 0 END) AS [Closed]
         FROM Requirement  
         WHERE OrgCode = @OrgCode 
           AND CreatedOn BETWEEN @StartDate AND DATEADD(day, 1, @EndDate)  
-          AND IsDeleted <> 1;";
+          AND IsDeleted <> 1;
+    ";
 
-            var result = dbInstance.Select<VendorRequirementCount>(requirementQuery, new
+            // Execute query
+            var result = (await dbInstance.SelectAsync<VendorRequirementCount>(requirementQuery, new
             {
                 request.OrgCode,
                 request.StartDate,
                 request.EndDate
-            }).FirstOrDefault(); // return a single object
+            })).FirstOrDefault();
 
-            return result ?? new VendorRequirementCount(); // handle null case
+            return result ?? new VendorRequirementCount(); // Handle null case
         }
+
 
         public async Task<VendorRequirementCount> GetVendorRequirementCountAsync(VendorGraphRequest request)
         {

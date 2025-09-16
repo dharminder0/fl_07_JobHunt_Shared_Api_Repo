@@ -333,6 +333,7 @@ namespace VendersCloud.Business.Service.Concrete
         // Pagination
         var totalCount = filteredApplications.Count;
         var totalPages = (int)Math.Ceiling((double)totalCount / request.PageSize);
+            filteredApplications = filteredApplications.OrderByDescending(v => v.CreatedOn).ToList();
         var pagedResults = filteredApplications
             .Skip((request.Page - 1) * request.PageSize)
             .Take(request.PageSize)
@@ -401,7 +402,7 @@ namespace VendersCloud.Business.Service.Concrete
         {
             listSearchResponse = listSearchResponse.Where(v => v.UniqueId == request.UniqueId).ToList();
         }
-
+        
         return new PaginationDto<ApplicantsSearchResponse>
         {
             Count = totalCount,
@@ -858,7 +859,7 @@ namespace VendersCloud.Business.Service.Concrete
 
             dynamic result = new ExpandoObject();
             result.MatchingRecordCount = filteredList.Count;
-            result.Records = filteredList;
+            result.Records = filteredList.OrderByDescending(v=>v.CreatedOn);
 
             return new List<dynamic> { result };
         }
@@ -872,6 +873,40 @@ namespace VendersCloud.Business.Service.Concrete
                     return false;
 
                 model.ChangedOn = DateTime.UtcNow;
+
+                int[] actionStatuses =
+                {
+ (int)RecruitmentStatus.Shortlisted,
+    (int)RecruitmentStatus.TechnicalAssessment,
+    (int)RecruitmentStatus.InterviewRound1,
+    (int)RecruitmentStatus.InterviewRound2,
+    (int)RecruitmentStatus.InterviewRound3,
+    (int)RecruitmentStatus.Selected,
+    (int)RecruitmentStatus.Onboarded,
+    (int)RecruitmentStatus.ContractClosed,
+    (int)RecruitmentStatus.Rejected,
+    (int)RecruitmentStatus.Withdrawn,
+    (int)RecruitmentStatus.UnderReview,
+     (int)RecruitmentStatus.New,
+      (int)RecruitmentStatus.OnHold
+};
+
+                if (actionStatuses.Contains(model.Status))
+                {
+                    model.ActionDate = DateTime.UtcNow;
+
+               
+                    if (model.ActionDate.HasValue && model.ActionDate.Value > DateTime.MinValue)
+                    {
+                        model.ActionDate = model.ActionDate.Value;
+                    }
+                }
+                else
+                {
+                  
+                    model.ActionDate = null;
+                }
+
                 var result = await _benchRepository.InsertApplicantStatusHistory(model);
 
                 try
@@ -939,7 +974,8 @@ namespace VendersCloud.Business.Service.Concrete
                     StatusName = EnumHelper.GetEnumDescription<RecruitmentStatus>(item.Status),
                     ChangedBy = item.ChangedBy,
                     ChangedOn = item.ChangedOn,
-                     Comment= item.Comment
+                     Comment= item.Comment,
+                     ActionDate = item.ActionDate,
 
                  }).ToList();
             }
